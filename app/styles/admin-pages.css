@@ -13,7 +13,7 @@
   gap: 8px;
 }
 
-.site-shell .site-post-index .site-admin-post-controls {
+.site-shell :is(.site-post-index, .site-project-index) .site-admin-post-controls {
   display: flex;
   width: 720px;
   max-width: 100%;
@@ -27,13 +27,13 @@
   border-bottom: 1px solid var(--site-color-border);
 }
 
-.site-shell .site-post-index .site-admin-post-tabs {
+.site-shell :is(.site-post-index, .site-project-index) .site-admin-post-tabs {
   display: flex;
   align-items: center;
   gap: 20px;
 }
 
-.site-shell .site-post-index .site-admin-post-tab {
+.site-shell :is(.site-post-index, .site-project-index) .site-admin-post-tab {
   min-height: 44px;
   padding: 8px 0;
   border: 0;
@@ -48,29 +48,29 @@
   transition: color 150ms ease, border-color 150ms ease;
 }
 
-.site-shell .site-post-index .site-admin-post-tab:hover,
-.site-shell .site-post-index .site-admin-post-tab[aria-pressed='true'] {
+.site-shell :is(.site-post-index, .site-project-index) .site-admin-post-tab:hover,
+.site-shell :is(.site-post-index, .site-project-index) .site-admin-post-tab[aria-pressed='true'] {
   color: var(--site-color-heading);
 }
 
-.site-shell .site-post-index .site-admin-post-tab[aria-pressed='true'] {
+.site-shell :is(.site-post-index, .site-project-index) .site-admin-post-tab[aria-pressed='true'] {
   border-bottom-color: var(--site-color-heading);
 }
 
-.site-shell .site-post-index .site-admin-post-tab:focus-visible {
+.site-shell :is(.site-post-index, .site-project-index) .site-admin-post-tab:focus-visible {
   outline: 2px solid var(--site-color-focus-ring);
   outline-offset: 3px;
   border-radius: 2px;
 }
 
-.site-shell .site-post-index .site-admin-post-actions {
+.site-shell :is(.site-post-index, .site-project-index) .site-admin-post-actions {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
   gap: 2px;
 }
 
-.site-shell .site-post-index .site-admin-post-create {
+.site-shell :is(.site-post-index, .site-project-index) .site-admin-post-create {
   min-height: 34px;
   padding-inline: 8px;
   border: 1px solid transparent;
@@ -82,15 +82,15 @@
   transition: opacity 150ms ease, transform 150ms ease;
 }
 
-.site-shell .site-post-index .site-admin-post-create:hover {
+.site-shell :is(.site-post-index, .site-project-index) .site-admin-post-create:hover {
   opacity: 0.88;
 }
 
-.site-shell .site-post-index .site-admin-post-create:active {
+.site-shell :is(.site-post-index, .site-project-index) .site-admin-post-create:active {
   transform: translateY(1px);
 }
 
-.site-shell .site-post-index .site-admin-post-options-trigger {
+.site-shell :is(.site-post-index, .site-project-index) .site-admin-post-options-trigger {
   display: grid;
   width: 34px;
   min-height: 34px;
@@ -104,12 +104,12 @@
   font-weight: 500;
 }
 
-.site-shell .site-post-index .site-admin-post-options-trigger:hover {
+.site-shell :is(.site-post-index, .site-project-index) .site-admin-post-options-trigger:hover {
   background: var(--site-color-hover-background);
   color: var(--site-color-heading);
 }
 
-.site-shell .site-post-index .site-admin-post-options-trigger:focus-visible {
+.site-shell :is(.site-post-index, .site-project-index) .site-admin-post-options-trigger:focus-visible {
   outline: 2px solid var(--site-color-focus-ring);
   outline-offset: 2px;
 }
@@ -501,25 +501,25 @@
 }
 
 @media (max-width: 767px) {
-  .site-shell .site-post-index .site-admin-post-controls {
+  .site-shell :is(.site-post-index, .site-project-index) .site-admin-post-controls {
     align-items: flex-start;
     gap: 8px 16px;
     margin-bottom: 28px;
     padding-bottom: 8px;
   }
 
-  .site-shell .site-post-index .site-admin-post-tabs {
+  .site-shell :is(.site-post-index, .site-project-index) .site-admin-post-tabs {
     width: 100%;
     gap: 24px;
   }
 
-  .site-shell .site-post-index .site-admin-post-actions {
+  .site-shell :is(.site-post-index, .site-project-index) .site-admin-post-actions {
     width: 100%;
     justify-content: flex-start;
     flex-wrap: wrap;
   }
 
-  .site-shell .site-post-index .site-admin-post-bulk-actions {
+  .site-shell :is(.site-post-index, .site-project-index) .site-admin-post-bulk-actions {
     flex-wrap: wrap;
   }
 

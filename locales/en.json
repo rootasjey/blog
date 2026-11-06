@@ -200,8 +200,10 @@
       "tagsPlaceholder": "Tags (comma separated)",
       "assignedTag": "Assigned tag:",
       "postCreated": "Post created",
+      "projectCreated": "Project created",
       "redirecting": "Redirecting to editor…",
-      "createFailed": "Failed to create post"
+      "createFailed": "Failed to create post",
+      "projectCreateFailed": "Failed to create project"
     },
     "editSlugDialog": {
       "title": "Edit post slug",

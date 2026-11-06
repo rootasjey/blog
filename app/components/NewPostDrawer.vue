@@ -1,39 +1,49 @@
 <template>
   <!-- Render a bottom drawer on small screens, and a centered dialog on desktop -->
   <template v-if="!isDesktop">
-    <NDrawer v-model:open="open" placement="bottom">
+    <NDrawer v-model:open="open" placement="bottom" class="site-new-content-drawer">
       <template #header>
-        <div class="flex items-center justify-between w-full">
-          <h3 class="text-lg font-semibold">{{ $t('components.newPostDrawer.title') }}</h3>
+        <div class="site-new-content-mobile-header">
+          <h3 class="site-new-content-title">{{ creationTitle }}</h3>
           <NDrawerClose />
         </div>
       </template>
 
       <template #body>
-        <div class="p-4">
-          <div class="grid gap-3">
-            <NInput v-model="name" :placeholder="$t('components.newPostDrawer.titlePlaceholder')" input="outline" />
+        <div class="site-new-content-body">
+          <div class="site-new-content-form">
+            <label class="site-new-content-field">
+              <span>{{ $t('components.editPostDialog.titleLabel') }}</span>
+              <NInput v-model="name" :placeholder="$t('components.newPostDrawer.titlePlaceholder')" input="outline" />
+            </label>
 
-            <NInput
-              v-model="description"
-              type="textarea"
-              :rows="4"
-              :placeholder="$t('components.newPostDrawer.descriptionPlaceholder')"
-              input="outline"
-            />
+            <label class="site-new-content-field">
+              <span>{{ $t('components.editPostDialog.descriptionLabel') }}</span>
+              <NInput
+                v-model="description"
+                type="textarea"
+                :rows="4"
+                :placeholder="$t('components.newPostDrawer.descriptionPlaceholder')"
+                input="outline"
+              />
+            </label>
 
-            <NInput v-model="tagsText" :placeholder="$t('components.newPostDrawer.tagsPlaceholder')" input="outline" />
+            <label class="site-new-content-field">
+              <span>{{ $t('common.tags') }}</span>
+              <NInput v-model="tagsText" :placeholder="$t('components.newPostDrawer.tagsPlaceholder')" input="outline" />
+            </label>
 
-            <div v-if="assignedTag" class="mt-2">
-              <span class="text-xs text-slate-500 dark:text-slate-400">{{ $t('components.newPostDrawer.assignedTag') }}</span>
-              <NBadge badge="soft" color="gray" class="ml-2">{{ assignedTag }}</NBadge>
+            <div v-if="assignedTag" class="site-new-content-assigned">
+              <span>{{ $t('components.newPostDrawer.assignedTag') }}</span>
+              <span class="site-new-content-assigned-tag">{{ assignedTag }}</span>
             </div>
 
-            <div class="flex items-center justify-end gap-2 pt-2">
-              <NButton @click="close" btn="ghost-gray">{{ $t('common.cancel') }}</NButton>
-              <NButton :disabled="!name || creating" @click="create" btn="solid-primary" title="Cmd/Ctrl + Enter">
+            <div class="site-new-content-footer">
+              <span class="site-new-content-shortcut">⌘↵</span>
+              <NButton @click="close" btn="ghost-gray" class="site-new-content-cancel">{{ $t('common.cancel') }}</NButton>
+              <NButton :disabled="!name || creating" @click="create" btn="primary" class="site-new-content-submit" title="Cmd/Ctrl + Enter">
                 <NIcon :name="creating ? 'i-lucide-loader' : 'i-lucide-plus'" :class="{ 'animate-spin': creating }" />
-                <span class="ml-2">{{ $t('common.create') }} <span class="ml-1 text-xs text-slate-500 dark:text-slate-400">⌘↵</span></span>
+                <span>{{ $t('common.create') }}</span>
               </NButton>
             </div>
           </div>
@@ -44,15 +54,19 @@
 
   <template v-else>
     <NDialog v-model:open="open">
-      <NDialogContent class="max-w-2xl">
+      <NDialogContent class="site-new-content-dialog max-w-xl">
         <NDialogHeader>
-          <NDialogTitle>{{ $t('components.newPostDrawer.title') }}</NDialogTitle>
+          <NDialogTitle class="site-new-content-title">{{ creationTitle }}</NDialogTitle>
         </NDialogHeader>
 
-        <div class="mt-2 p-2">
-          <div class="grid gap-3">
+        <div class="site-new-content-form">
+          <label class="site-new-content-field">
+            <span>{{ $t('components.editPostDialog.titleLabel') }}</span>
             <NInput v-model="name" :placeholder="$t('components.newPostDrawer.titlePlaceholder')" input="outline" autofocus />
+          </label>
 
+          <label class="site-new-content-field">
+            <span>{{ $t('components.editPostDialog.descriptionLabel') }}</span>
             <NInput
               v-model="description"
               type="textarea"
@@ -60,24 +74,26 @@
               :placeholder="$t('components.newPostDrawer.descriptionPlaceholder')"
               input="outline"
             />
+          </label>
 
+          <label class="site-new-content-field">
+            <span>{{ $t('common.tags') }}</span>
             <NInput v-model="tagsText" :placeholder="$t('components.newPostDrawer.tagsPlaceholder')" input="outline" />
+          </label>
 
-            <div v-if="assignedTag" class="mt-2">
-              <span class="text-xs text-slate-500 dark:text-slate-400">{{ $t('components.newPostDrawer.assignedTag') }}</span>
-              <NBadge badge="soft" color="gray" class="ml-2">{{ assignedTag }}</NBadge>
-            </div>
-
-            <div class="flex items-center justify-end gap-2 pt-2">
-              <NDialogFooter class="flex items-center gap-2 justify-end p-0">
-                <NButton @click="close" btn="ghost-gray">{{ $t('common.cancel') }}</NButton>
-                <NButton :disabled="!name || creating" @click="create" btn="soft-blue" title="Cmd/Ctrl + Enter">
-                  <NIcon :name="creating ? 'i-lucide-loader' : 'i-lucide-plus'" :class="{ 'animate-spin': creating }" />
-                  <span class="ml-2">{{ $t('common.create') }} <span class="ml-1 text-xs text-slate-500 dark:text-slate-400">⌘↵</span></span>
-                </NButton>
-              </NDialogFooter>
-            </div>
+          <div v-if="assignedTag" class="site-new-content-assigned">
+            <span>{{ $t('components.newPostDrawer.assignedTag') }}</span>
+            <span class="site-new-content-assigned-tag">{{ assignedTag }}</span>
           </div>
+
+          <NDialogFooter class="site-new-content-footer">
+            <span class="site-new-content-shortcut">⌘↵</span>
+            <NButton @click="close" btn="ghost-gray" class="site-new-content-cancel">{{ $t('common.cancel') }}</NButton>
+            <NButton :disabled="!name || creating" @click="create" btn="primary" class="site-new-content-submit" title="Cmd/Ctrl + Enter">
+              <NIcon :name="creating ? 'i-lucide-loader' : 'i-lucide-plus'" :class="{ 'animate-spin': creating }" />
+              <span>{{ $t('common.create') }}</span>
+            </NButton>
+          </NDialogFooter>
         </div>
       </NDialogContent>
     </NDialog>
@@ -123,6 +139,8 @@ const close = () => {
 }
 
 const assignedTag = computed(() => props.defaultTag ? props.defaultTag.trim() : '')
+const isProjectCreation = computed(() => assignedTag.value.toLowerCase() === 'project')
+const creationTitle = computed(() => $t(isProjectCreation.value ? 'pages.projects.newProject' : 'pages.posts.newPost'))
 
 const create = async () => {
   if (!name.value) return
@@ -152,7 +170,7 @@ const create = async () => {
     
     // Show success toast
     toast.toast({
-      title: $t('components.newPostDrawer.postCreated'),
+      title: $t(isProjectCreation.value ? 'components.newPostDrawer.projectCreated' : 'components.newPostDrawer.postCreated'),
       description: $t('components.newPostDrawer.redirecting'),
       toast: 'success'
     })
@@ -173,7 +191,7 @@ const create = async () => {
     
     // Show error toast with detailed message
     toast.toast({
-      title: $t('components.newPostDrawer.createFailed'),
+      title: $t(isProjectCreation.value ? 'components.newPostDrawer.projectCreateFailed' : 'components.newPostDrawer.createFailed'),
       description: errorMessage,
       toast: 'danger'
     })
@@ -186,6 +204,150 @@ const create = async () => {
 <style scoped>
 @layer components {
 
-.grid { max-width: 720px; }
+.site-new-content-dialog {
+  max-height: min(88vh, 720px);
+  overflow-y: auto;
+  border: 1px solid var(--site-color-border);
+  border-radius: 12px;
+  background: var(--site-color-background);
+  color: var(--site-color-text);
+  box-shadow: 0 24px 72px rgb(0 0 0 / 20%);
+}
+
+.site-new-content-mobile-header {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.site-new-content-body {
+  padding: 8px 16px 20px;
+}
+
+.site-new-content-title {
+  margin: 0;
+  color: var(--site-color-heading);
+  font-size: 20px;
+  font-weight: 550;
+  line-height: 28px;
+}
+
+.site-new-content-form {
+  display: grid;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.site-new-content-field {
+  display: grid;
+  gap: 8px;
+  color: var(--site-color-text);
+  font-size: 13px;
+  font-weight: 550;
+}
+
+.site-new-content-field :deep(input),
+.site-new-content-field :deep(textarea) {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--site-color-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--site-color-heading);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.site-new-content-field :deep(input) {
+  min-height: 42px;
+  padding: 9px 11px;
+}
+
+.site-new-content-field :deep(textarea) {
+  min-height: 104px;
+  padding: 10px 11px;
+  resize: vertical;
+}
+
+.site-new-content-field :deep(input::placeholder),
+.site-new-content-field :deep(textarea::placeholder) {
+  color: var(--site-color-muted);
+  opacity: 0.8;
+}
+
+.site-new-content-field :deep(input:focus),
+.site-new-content-field :deep(textarea:focus) {
+  border-color: var(--site-color-focus-ring);
+  outline: 2px solid color-mix(in srgb, var(--site-color-focus-ring) 24%, transparent);
+  outline-offset: 1px;
+}
+
+.site-new-content-assigned {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--site-color-muted);
+  font-size: 12px;
+}
+
+.site-new-content-assigned-tag {
+  padding: 3px 8px;
+  border: 1px solid var(--site-color-border);
+  border-radius: 5px;
+  color: var(--site-color-text);
+  line-height: 18px;
+}
+
+.site-new-content-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid var(--site-color-border);
+}
+
+.site-new-content-shortcut {
+  margin-right: auto;
+  color: var(--site-color-muted);
+  font-size: 12px;
+}
+
+.site-new-content-cancel,
+.site-new-content-submit {
+  min-height: 36px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.site-new-content-submit {
+  border: 1px solid var(--site-color-heading);
+  background: var(--site-color-heading);
+  color: var(--site-color-background);
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.site-new-content-submit:hover:not(:disabled) {
+  opacity: 0.86;
+}
+
+.site-new-content-submit:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+@media (max-width: 1023px) {
+  .site-new-content-form {
+    margin-top: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-new-content-submit {
+    transition: none;
+  }
+}
 }
 </style>

@@ -1,57 +1,6 @@
 <template>
   <div class="min-h-screen py-6 site-project-index">
     <div class="container mx-auto px-4 md:px-8">
-      <!-- Admin Toolbar (sticky top) -->
-      <ClientOnly>
-        <div v-if="isAdmin" class="sticky z-12 mb-10 transition-all duration-200" :style="{ top: `${toolbarTop}px` }">
-          <div class="bg-background/60 backdrop-blur-sm border border-border rounded-2xl px-4 py-3 flex items-center justify-between gap-3 shadow-sm">
-            <div class="flex items-center gap-2">
-              <NButton @click="isNewDrawerOpen = true" btn="outline-gray" size="xs" leading="i-ph-plus-bold">
-                <span class="hidden md:inline">{{ $t('pages.projects.newProject') }}</span>
-              </NButton>
-              <NewPostDrawer v-model="isNewDrawerOpen" @created="onPostCreated" defaultTag="project" />
-            </div>
-
-            <!-- Tabs (icons-only) aligned to the end/right -->
-            <div class="ml-auto flex items-center gap-2">
-              <NButton
-                :aria-label="$t('pages.posts.published')"
-                :btn="activeTab === 'published' ? 'soft' : 'ghost-gray'"
-                size="sm"
-                icon
-                label="i-ph-newspaper"
-                @click="setTab('published')"
-                class="w-9 h-9 flex items-center justify-center"
-              />
-              
-              <NButton
-                :aria-label="$t('pages.posts.drafts')"
-                :btn="activeTab === 'drafts' ? 'soft' : 'ghost-gray'"
-                size="sm"
-                icon
-                label="i-ph-file-text"
-                @click="setTab('drafts')"
-                class="w-9 h-9 flex items-center justify-center"
-              />
-
-              <NButton
-                :aria-label="$t('pages.posts.archived')"
-                :btn="activeTab === 'archived' ? 'soft' : 'ghost-gray'"
-                size="sm"
-                icon
-                label="i-ph-archive"
-                @click="setTab('archived')"
-                class="w-9 h-9 flex items-center justify-center"
-              />
-
-              <div class="text-xs opacity-60 ml-3" v-if="draftsPending || archivedPending">
-                <span v-if="draftsPending" class="flex items-center gap-1"><span class="i-lucide-loader animate-spin" />{{ $t('common.loading') }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </ClientOnly> 
-
       <CollectionIntro
         v-if="activeTab === 'published' && !isAdmin"
         :title="publicIntroCopy.title"
@@ -60,54 +9,47 @@
 
       <!-- Admin-only project controls -->
       <div v-if="isAdmin" class="site-admin-list-header">
-        <div v-if="activeTab === 'published'">
+        <div>
           <div class="site-admin-list-header-copy">
-            <h1 class="site-admin-heading">{{ $t('pages.projects.heading') }}</h1>
-            <p class="site-admin-intro">{{ $t('pages.projects.description') }}</p>
-          </div>
-          <div class="site-admin-list-header-action">
-            <NDropdownMenu :items="viewDropdownItems" :_dropdownMenuContent="{ side: 'bottom', align: 'end' }">
-              <template #default>
-                <NButton btn="outline-gray" size="xs" icon :aria-label="$t('common.changeView')">
-                  <NIcon :name="viewMode === 'cards' ? 'i-ph-squares-four' : 'i-ph-list-checks'" />
-                </NButton>
-              </template>
-            </NDropdownMenu>
+            <h1 class="site-admin-heading" v-if="activeTab === 'published'">{{ $t('pages.projects.heading') }}</h1>
+            <h1 class="site-admin-heading" v-else-if="activeTab === 'drafts'">{{ $t('pages.posts.draftsHeading') }}</h1>
+            <h1 class="site-admin-heading" v-else>{{ $t('pages.posts.archivedHeading') }}</h1>
+            <p class="site-admin-intro" v-if="activeTab === 'published'">{{ $t('pages.projects.description') }}</p>
+            <p class="site-admin-intro" v-else-if="activeTab === 'drafts'">{{ $t('pages.projects.draftsDescription') }}</p>
+            <p class="site-admin-intro" v-else>{{ $t('pages.projects.archivedDescription') }}</p>
           </div>
         </div>
+      </div>
 
-        <div v-else-if="activeTab === 'drafts'">
-          <div class="site-admin-list-header-copy">
-            <h1 class="site-admin-heading">{{ $t('pages.posts.draftsHeading') }}</h1>
-            <p class="site-admin-intro">{{ $t('pages.projects.draftsDescription') }}</p>
-          </div>
-          <div class="site-admin-list-header-action">
-            <NDropdownMenu :items="viewDropdownItems" :_dropdownMenuContent="{ side: 'bottom', align: 'end' }">
-              <template #default>
-                <NButton btn="outline-gray" size="xs" icon :aria-label="$t('common.changeView')">
-                  <NIcon :name="viewMode === 'cards' ? 'i-ph-squares-four' : 'i-ph-list-checks'" />
-                </NButton>
-              </template>
-            </NDropdownMenu>
-          </div>
-        </div>
+      <ClientOnly>
+        <div v-if="isAdmin" class="site-admin-post-controls">
+          <nav class="site-admin-post-tabs" :aria-label="$t('pages.projects.heading')">
+            <button type="button" class="site-admin-post-tab" :aria-pressed="activeTab === 'published'" @click="setTab('published')">
+              {{ $t('pages.posts.published') }}
+            </button>
+            <button type="button" class="site-admin-post-tab" :aria-pressed="activeTab === 'drafts'" @click="setTab('drafts')">
+              {{ $t('pages.posts.drafts') }}
+            </button>
+            <button type="button" class="site-admin-post-tab" :aria-pressed="activeTab === 'archived'" @click="setTab('archived')">
+              {{ $t('pages.posts.archived') }}
+            </button>
+          </nav>
 
-        <div v-else-if="activeTab === 'archived'">
-          <div class="site-admin-list-header-copy">
-            <h1 class="site-admin-heading">{{ $t('pages.posts.archivedHeading') }}</h1>
-            <p class="site-admin-intro">{{ $t('pages.projects.archivedDescription') }}</p>
-          </div>
-          <div class="site-admin-list-header-action">
+          <div class="site-admin-post-actions">
+            <NButton @click="isNewDrawerOpen = true" btn="primary" size="xs" leading="i-ph-plus-bold" class="site-admin-post-create">
+              {{ $t('pages.projects.newProject') }}
+            </NButton>
             <NDropdownMenu :items="viewDropdownItems" :_dropdownMenuContent="{ side: 'bottom', align: 'end' }">
               <template #default>
-                <NButton btn="outline-gray" size="xs" icon :aria-label="$t('common.changeView')">
-                  <NIcon :name="viewMode === 'cards' ? 'i-ph-squares-four' : 'i-ph-list-checks'" />
+                <NButton btn="ghost-gray" size="xs" icon :aria-label="$t('common.changeView')" class="site-admin-post-options-trigger">
+                  <NIcon name="i-ph-dots-three-vertical" />
                 </NButton>
               </template>
             </NDropdownMenu>
           </div>
         </div>
-      </div> 
+        <NewPostDrawer v-model="isNewDrawerOpen" @created="onPostCreated" defaultTag="project" />
+      </ClientOnly>
 
       <!-- Projects list (grid cards & list view) -->
       <PostsList
@@ -240,12 +182,10 @@
 import type { Post } from '~~/shared/types/post'
 import { watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useStorage } from '@vueuse/core'
-import { useHeaderToolbarOffset } from '~/composables/useHeaderToolbarOffset' 
 import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
 const router = useRouter()
 const confirmDialogOpen = ref(false)
 const postPendingDelete = ref<Post | null>(null)
-const { top: toolbarTop } = useHeaderToolbarOffset({ baseOffsetPx: 16 })
 const deleting = ref(false)
 const duplicatingPosts = ref(new Set<string | number>())
 

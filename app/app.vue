@@ -5,6 +5,7 @@
       <NuxtPage />
     </NuxtLayout>
     <ClientOnly>
+      <CursorTooltip />
       <SearchModal />
     </ClientOnly>
   </div>

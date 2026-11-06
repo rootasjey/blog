@@ -200,8 +200,10 @@
       "tagsPlaceholder": "Tags (séparés par des virgules)",
       "assignedTag": "Tag assigné :",
       "postCreated": "Article créé",
+      "projectCreated": "Projet créé",
       "redirecting": "Redirection vers l'éditeur…",
-      "createFailed": "Échec de la création de l'article"
+      "createFailed": "Échec de la création de l'article",
+      "projectCreateFailed": "Échec de la création du projet"
     },
     "editSlugDialog": {
       "title": "Modifier le slug",

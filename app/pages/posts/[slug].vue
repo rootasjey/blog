@@ -6,15 +6,17 @@
           <nav class="site-preview-topic-nav" :aria-label="locale === 'fr' ? 'Articles associés' : 'Related posts'">
             <NuxtLink
               v-if="previousPost"
+              class="site-post-nav-link site-post-nav-link-previous"
               :to="localizedPath(`/posts/${previousPost.slug}`, locale)"
-              :aria-label="locale === 'fr' ? 'Article précédent' : 'Previous post'"
+              :aria-label="locale === 'fr' ? 'Article précédent' : 'Previous Post'"
+              :data-cursor-tooltip="locale === 'fr' ? 'Article précédent' : 'Previous Post'"
             >
               <span class="i-ph-arrow-left" aria-hidden="true" />
             </NuxtLink>
             <span v-else class="site-post-nav-spacer" aria-hidden="true" />
             <NuxtLink
               v-if="primaryTag"
-              class="site-preview-tag"
+              class="site-preview-tag site-interactive-hover"
               :to="`${localizedPath('/posts', locale)}?tag=${encodeURIComponent(primaryTag.name)}`"
               :style="{ '--post-tag-color': postTagColor(primaryTag.name) }"
             >
@@ -23,8 +25,10 @@
             <span v-else class="site-post-nav-spacer" aria-hidden="true" />
             <NuxtLink
               v-if="nextPost"
+              class="site-post-nav-link site-post-nav-link-next"
               :to="localizedPath(`/posts/${nextPost.slug}`, locale)"
-              :aria-label="locale === 'fr' ? 'Article suivant' : 'Next post'"
+              :aria-label="locale === 'fr' ? 'Article suivant' : 'Next Post'"
+              :data-cursor-tooltip="locale === 'fr' ? 'Article suivant' : 'Next Post'"
             >
               <span class="i-ph-arrow-right" aria-hidden="true" />
             </NuxtLink>
@@ -37,7 +41,14 @@
     </header>
 
     <div v-if="post.image?.src" class="site-preview-cover">
-      <PostImage provider="hubblob" :src="post.image.src" :alt="post.image.alt || post.name" class="post-cover" />
+      <button
+        type="button"
+        class="post-cover site-preview-cover-trigger"
+        :aria-label="locale === 'fr' ? 'Agrandir la couverture' : 'Expand cover image'"
+        @click="handleCoverClick"
+      >
+        <PostImage provider="hubblob" :src="post.image.src" :alt="post.image.alt || post.name" class="site-preview-cover-image" />
+      </button>
     </div>
 
     <ReadingProgress v-if="post.article" content-selector=".site-post-content .post-content" />
@@ -54,7 +65,7 @@
       <div class="container">
         <NuxtLink
           v-if="post.user"
-          class="site-post-author-card"
+          class="site-post-author-card site-interactive-hover"
           :to="authorPath"
           :aria-label="post.user.name || $t('components.postEndMatter.authorName')"
         >
@@ -109,9 +120,12 @@
         role="dialog"
         aria-modal="true"
         :aria-label="$t('pages.post.expandedImage')"
-        @click.self="closeLightbox"
+        @click="closeLightbox"
       >
-        <div class="lightbox-image-frame">
+        <button type="button" class="lightbox-close" :aria-label="$t('common.close')" @click.stop="closeLightbox">
+          <span class="i-ph-x" aria-hidden="true" />
+        </button>
+        <div class="lightbox-image-frame" @click.stop>
           <img
             :src="lightboxImage.src"
             :alt="lightboxImage.alt || post.name"
@@ -263,11 +277,7 @@ const closeLightbox = () => {
   lastImageOrigin.value = null
 }
 
-const handleContentClick = (event: MouseEvent) => {
-  const target = event.target as HTMLElement | null
-  if (!target || target.tagName !== 'IMG') return
-
-  const image = target as HTMLImageElement
+const openImageLightbox = (image: HTMLImageElement) => {
   const src =
     image.currentSrc ||
     image.getAttribute('src') ||
@@ -275,7 +285,6 @@ const handleContentClick = (event: MouseEvent) => {
     (image.dataset as Record<string, string | undefined>)['lazySrc']
 
   if (!src) return
-  event.preventDefault()
 
   if (import.meta.client) {
     const rect = image.getBoundingClientRect()
@@ -293,6 +302,20 @@ const handleContentClick = (event: MouseEvent) => {
     src,
     alt: image.alt || undefined,
   }
+}
+
+const handleContentClick = (event: MouseEvent) => {
+  const target = event.target as HTMLElement | null
+  if (!target || target.tagName !== 'IMG') return
+
+  event.preventDefault()
+  openImageLightbox(target as HTMLImageElement)
+}
+
+const handleCoverClick = (event: MouseEvent) => {
+  const button = event.currentTarget as HTMLButtonElement
+  const image = button.querySelector('img')
+  if (image) openImageLightbox(image)
 }
 
 const lightboxImageStyle = computed(() => {
@@ -354,6 +377,11 @@ const animateLightbox = (
 }
 
 const handleLightboxEnter = (el: Element, done: () => void) => {
+  if (import.meta.client && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    done()
+    return
+  }
+
   const img = el.querySelector<HTMLImageElement>('.lightbox-image')
   const params = getTransitionParams(img)
   if (!params) {
@@ -369,6 +397,12 @@ const handleLightboxEnter = (el: Element, done: () => void) => {
 }
 
 const handleLightboxLeave = (el: Element, done: () => void) => {
+  if (import.meta.client && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    lastImageRect.value = null
+    done()
+    return
+  }
+
   const img = el.querySelector<HTMLImageElement>('.lightbox-image')
   const params = getTransitionParams(img)
   if (!params) {
@@ -393,6 +427,8 @@ const handleDocumentScroll = () => {
 
 const handleEscape = (event: KeyboardEvent) => {
   if (event.key === 'Escape') {
+    event.preventDefault()
+    event.stopPropagation()
     closeLightbox()
   }
 }
@@ -403,7 +439,7 @@ const addLightboxListeners = () => {
   window.addEventListener('scroll', handleDocumentScroll, { passive: true })
   window.addEventListener('wheel', handleDocumentScroll, { passive: true })
   window.addEventListener('touchmove', handleDocumentScroll, { passive: true })
-  window.addEventListener('keyup', handleEscape)
+  window.addEventListener('keydown', handleEscape, true)
 }
 
 const removeLightboxListeners = () => {
@@ -411,7 +447,7 @@ const removeLightboxListeners = () => {
   window.removeEventListener('scroll', handleDocumentScroll)
   window.removeEventListener('wheel', handleDocumentScroll)
   window.removeEventListener('touchmove', handleDocumentScroll)
-  window.removeEventListener('keyup', handleEscape)
+  window.removeEventListener('keydown', handleEscape, true)
   listenersAttached = false
 }
 
@@ -488,6 +524,33 @@ useHead({
   padding: 1.5rem;
 }
 
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 28%);
+  border-radius: 12px;
+  background: rgb(20 20 20 / 78%);
+  color: #fff;
+  cursor: pointer;
+  font-size: 20px;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.lightbox-close:hover {
+  border-color: rgb(255 255 255 / 58%);
+  background: rgb(45 45 45 / 92%);
+}
+
+.lightbox-close:focus-visible {
+  outline: 2px solid var(--site-color-focus-ring);
+  outline-offset: 3px;
+}
+
 .lightbox-image-frame {
   max-width: min(90vw, 1200px);
   max-height: 90vh;
@@ -503,6 +566,10 @@ useHead({
   height: auto;
   display: block;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox-close { transition: none; }
+}
 }
 </style>
 
@@ -511,9 +578,14 @@ useHead({
 
 /* Component and page styles moved from the global stylesheets. */
 .site-shell .site-preview-topic-nav .site-post-nav-spacer { display: block; width: 28px; height: 28px; flex: none; }
+.site-shell .site-preview-topic-nav > .site-post-nav-link { position: relative; display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid transparent; border-radius: 10px; color: var(--site-color-muted); transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease; }
+.site-shell .site-preview-topic-nav > .site-post-nav-link:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--site-color-text) 12%, transparent); background: color-mix(in srgb, var(--site-color-text) 5%, transparent); color: var(--site-color-heading); }
+.site-shell .site-post-nav-link:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 3px; }
+.site-shell .site-preview-cover-trigger { display: block; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
+.site-shell .site-preview-cover-trigger:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 4px; }
+.site-shell .site-preview-cover-image { display: block; width: 100%; height: 100%; object-fit: cover; }
 .site-shell .site-post-author-heading { display: flex; width: fit-content; align-items: center; gap: 12px; color: var(--site-color-heading); font-size: 16px; font-weight: 550; }
 .site-shell .site-post-author-heading > img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
-.site-shell .site-post-author-card:hover .site-post-author-heading > span { text-decoration: underline; text-underline-offset: 3px; }
 .site-shell .site-post-author-bio { margin: 14px 0 0; color: var(--site-color-muted); font-size: 14px; line-height: 1.55; }
 .site-shell .site-post-share-row { width: min(700px, calc(100% - 32px)); margin: 20px auto 0; }
 .site-shell .site-post-end-meta { display: flex; width: min(700px, calc(100% - 32px)); align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin: 18px auto 0; color: var(--site-color-muted); font-size: 13px; }
@@ -530,6 +602,9 @@ useHead({
 }
 @media (max-width: 640px) {
   .site-shell .site-post-share-row { margin-top: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-shell .site-preview-topic-nav > .site-post-nav-link { transition: none; }
 }
 }
 </style>
