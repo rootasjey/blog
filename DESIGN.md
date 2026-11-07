@@ -28,6 +28,7 @@ Spacing tokens follow a 4px base scale (`--site-space-1` through `--site-space-1
 
 - `AppHeader.vue` owns the shared site navigation and its interaction states.
 - `PostShareActions.vue`, `TagsDirectory.vue`, and the post/project card components own their reusable feature controls and media treatments.
+- The private profile editor keeps the avatar, editable identity, and biography in one compact header, then groups account details in a simple responsive grid. Its page-specific layout lives in `app/styles/profile.css`.
 - Article covers use the feature-cover radius and clip their image to the same rounded frame. Inline article images use the smaller inline-media radius.
 - Public list rows may stay square where their border or divider defines the row; do not round every image mechanically. Full-bleed article media remains edge-to-edge by design.
 - Use the same semantic color and radius tokens in light and dark themes instead of introducing per-route copies.
