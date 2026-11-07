@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
+import { isTagIconName } from '~~/shared/constants/tag-icons'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -11,13 +12,17 @@ export default defineEventHandler(async (event) => {
 
     const category = String(body?.category || 'general').trim()
     const description = String(body?.description || '').trim()
+    if (body?.icon != null && body.icon !== '' && !isTagIconName(body.icon)) {
+      return apiError(event, 400, 'VALIDATION_ERROR', 'Invalid tag icon')
+    }
+    const icon = isTagIconName(body?.icon) ? body.icon : null
 
     const exists = await db.query.tags.findFirst({
       where: and(eq(schema.tags.name, name), eq(schema.tags.category, category)),
     })
     if (exists) return apiError(event, 409, 'CONFLICT', 'Tag already exists')
 
-    const result = await db.insert(schema.tags).values({ name, category, description }).run()
+    const result = await db.insert(schema.tags).values({ name, category, description, icon }).run()
     const insertedId = Number((result as any)?.lastInsertRowid ?? 0)
 
     const tag = insertedId

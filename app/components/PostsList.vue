@@ -1,7 +1,27 @@
 <template>
   <div>
     <!-- Cards grid -->
-    <div v-if="viewMode !== 'list'" class="mx-auto columns-1 sm:columns-2 lg:columns-3">
+    <div v-if="projectCardLayout && viewMode !== 'list'" class="site-project-admin-grid">
+      <ProjectAdminCard
+        v-for="(post, i) in posts"
+        :key="post.slug"
+        :post="post"
+        :idx="i"
+        :link="linkForPost(post)"
+        :isAdmin="isAdmin"
+        :selectionMode="selectionMode"
+        :selectedSlugs="selectedSlugs"
+        :duplicatingPosts="duplicatingPosts"
+        :menuItemsForPost="menuItemsForPost"
+        :entered="entered"
+        @toggle-selected="$emit('toggle-selected', $event)"
+        @long-press-start="$emit('long-press-start', $event)"
+        @long-press-cancel="$emit('long-press-cancel')"
+        @post-click="(e, p) => $emit('post-click', e, p)"
+      />
+    </div>
+
+    <div v-else-if="viewMode !== 'list'" class="mx-auto columns-1 sm:columns-2 lg:columns-3">
       <PostCard
         v-for="(post, i) in posts"
         :key="post.slug"
@@ -61,6 +81,7 @@ const props = defineProps<{
   menuItemsForPost: (p: Post) => any
   linkForPost: (p: Post) => string
   entered: boolean
+  projectCardLayout?: boolean
 }>()
 
 const emit = defineEmits<{

@@ -9,13 +9,15 @@
       </h2>
       <nav :aria-label="$t('components.trendingTags.heading')">
         <NuxtLink
-          v-for="(tag, index) in tags"
+          v-for="tag in tags"
           :key="tag.name"
           :to="`${localizedPath('/posts', $getLocale())}?tag=${encodeURIComponent(tag.name)}`"
           :aria-label="`${tag.name}: ${tag.count}`"
+          :style="{ '--tag-accent': postTagColor(tag.name) }"
         >
           <span class="home-trending-tag-icon" aria-hidden="true">
-            <span :class="tagIcons[index % tagIcons.length]" />
+            <NIcon v-if="tag.icon" :name="tag.icon" />
+            <span v-else>{{ tagInitial(tag.name) }}</span>
           </span>
           <span class="home-trending-tag-name">
             {{ tag.name }}
@@ -31,10 +33,10 @@
 import type { ApiTag } from '~~/shared/types/tags'
 import { EXCLUDED_TAGS } from '~/utils/tagConstants'
 import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
+import { postTagColor } from '~/utils/postTagColor'
 
 const { $getLocale, $t } = useI18n()
 const tagStore = useTagStore()
-const tagIcons = ['i-ph-triangle-fill', 'i-ph-heart-fill', 'i-ph-crown-fill', 'i-ph-bookmark-simple-fill']
 
 try {
   await tagStore.fetchTags()
@@ -61,11 +63,16 @@ const tags = computed(() => {
     return liveTags.map(tag => ({
       name: tag.name,
       count: tag.count ?? 0,
+      icon: tag.icon ?? null,
     }))
   }
 
-  return [...sampleCounts].slice(0, 4).map(([name, count]) => ({ name, count }))
+  return [...sampleCounts].slice(0, 4).map(([name, count]) => ({ name, count, icon: null }))
 })
+
+function tagInitial(name: string) {
+  return Array.from(name.trim())[0]?.toLocaleUpperCase() || '#'
+}
 </script>
 
 <style>
@@ -167,41 +174,32 @@ const tags = computed(() => {
   }
   .site-shell .home-trending-tag-icon {
     display: grid;
+    box-sizing: border-box;
     flex: 0 0 44px;
     width: 44px;
     height: 44px;
     place-items: center;
     outline: none;
-    border: 1px solid color-mix(in srgb, var(--tag-icon-color) 28%, transparent);
+    border: 1px solid color-mix(in srgb, var(--tag-accent) 30%, transparent);
     border-radius: 12px;
-    color: var(--tag-icon-color);
+    background: color-mix(in srgb, var(--tag-accent) 5%, transparent);
+    color: var(--tag-accent);
+    font-size: 15px;
+    font-weight: 550;
     transition:
       transform 300ms cubic-bezier(0.4, 0, 0.21, 1.8),
       background-color 200ms ease,
       border-color 200ms ease;
   }
-  .site-shell .home-trending-tags nav a:nth-child(1) {
-    --tag-icon-color: #a467d5;
-  }
-  .site-shell .home-trending-tags nav a:nth-child(2) {
-    --tag-icon-color: #ef716e;
-  }
-  .site-shell .home-trending-tags nav a:nth-child(3) {
-    --tag-icon-color: #e9ac70;
-  }
-  .site-shell .home-trending-tags nav a:nth-child(4) {
-    --tag-icon-color: #77b9ec;
-  }
   .site-shell .home-trending-tag-icon > span {
+    display: grid;
     width: 16px;
     height: 16px;
+    place-items: center;
+    line-height: 1;
   }
   .site-shell .home-trending-tags nav a:hover .home-trending-tag-icon {
-    background: color-mix(
-      in srgb,
-      var(--tag-icon-color) 6%,
-      var(--site-color-background)
-    );
+    background: color-mix(in srgb, var(--tag-accent) 11%, transparent);
     border-color: transparent;
     transform: scale(1.05);
   }
@@ -242,14 +240,14 @@ const tags = computed(() => {
 <style>
 /* Keep the custom tag-chip border above unlayered UnoCSS resets. */
 .site-shell .home-trending-tags .home-trending-tag-icon {
-  border: 1px solid color-mix(in srgb, var(--tag-icon-color) 28%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tag-accent) 30%, transparent);
   transition:
     transform 300ms cubic-bezier(.4, 0, .21, 1.8),
     background-color 200ms ease,
     border-color 200ms ease;
 }
 .site-shell .home-trending-tags nav a:hover .home-trending-tag-icon {
-  background: color-mix(in srgb, var(--tag-icon-color) 6%, var(--site-color-background));
+  background: color-mix(in srgb, var(--tag-accent) 11%, transparent);
   border-color: transparent;
   transform: scale(1.05);
 }

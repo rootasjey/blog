@@ -1,13 +1,14 @@
 /**
  * Tag structure used in the API.
  * This is used in the API response and in the Post type.
- * It includes the tag's ID, name, category, and timestamps.
+ * It includes the tag's ID, name, category, optional icon, and timestamps.
  */
 export type ApiTag = {
   id: number
   name: string
   category: string
   description: string
+  icon?: string | null
   created_at: string
   updated_at: string
   count?: number
@@ -22,6 +23,7 @@ export type Tag = {
   name: string
   category?: string
   description?: string
+  icon?: string | null
 }
 
 export interface TagWithUsage extends ApiTag {

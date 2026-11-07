@@ -1,13 +1,16 @@
 <template>
   <section class="site-collection-intro">
     <img class="site-collection-avatar" src="/images/presentation/jc-pp.jpg" alt="Jérémie Corpinot" width="100" height="100">
-    <h1>{{ title }}</h1>
-    <p>{{ description }}</p>
+    <SlidingCopy v-if="animateCopy" :title="title" :description="description" />
+    <template v-else>
+      <h1>{{ title }}</h1>
+      <p>{{ description }}</p>
+    </template>
   </section>
 </template>
 
 <script setup lang="ts">
-defineProps<{ title: string; description: string }>()
+withDefaults(defineProps<{ title: string; description: string; animateCopy?: boolean }>(), { animateCopy: false })
 </script>
 
 <style>
@@ -23,6 +26,8 @@ defineProps<{ title: string; description: string }>()
 }
 @media (max-width: 1023px) {
   .site-shell .site-collection-avatar { width: 72px; height: 72px; margin-bottom: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
 }
 }
 </style>

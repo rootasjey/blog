@@ -5,35 +5,25 @@
         v-if="activeTab === 'published' && !isAdmin"
         :title="publicIntroCopy.title"
         :description="publicIntroCopy.description"
+        animateCopy
       />
 
       <!-- Admin-only project controls -->
       <div v-if="isAdmin" class="site-admin-list-header">
-        <div>
-          <div class="site-admin-list-header-copy">
-            <h1 class="site-admin-heading" v-if="activeTab === 'published'">{{ $t('pages.projects.heading') }}</h1>
-            <h1 class="site-admin-heading" v-else-if="activeTab === 'drafts'">{{ $t('pages.posts.draftsHeading') }}</h1>
-            <h1 class="site-admin-heading" v-else>{{ $t('pages.posts.archivedHeading') }}</h1>
-            <p class="site-admin-intro" v-if="activeTab === 'published'">{{ $t('pages.projects.description') }}</p>
-            <p class="site-admin-intro" v-else-if="activeTab === 'drafts'">{{ $t('pages.projects.draftsDescription') }}</p>
-            <p class="site-admin-intro" v-else>{{ $t('pages.projects.archivedDescription') }}</p>
-          </div>
+        <div class="site-admin-list-header-copy-wrap">
+          <SlidingCopy
+            :title="activeTab === 'published' ? $t('pages.projects.heading') : activeTab === 'drafts' ? $t('pages.posts.draftsHeading') : $t('pages.posts.archivedHeading')"
+            :description="activeTab === 'published' ? $t('pages.projects.description') : activeTab === 'drafts' ? $t('pages.projects.draftsDescription') : $t('pages.projects.archivedDescription')"
+            :direction="copySlideDirection"
+            title-class="site-admin-heading"
+            description-class="site-admin-intro"
+          />
         </div>
       </div>
 
       <ClientOnly>
         <div v-if="isAdmin" class="site-admin-post-controls">
-          <nav class="site-admin-post-tabs" :aria-label="$t('pages.projects.heading')">
-            <button type="button" class="site-admin-post-tab" :aria-pressed="activeTab === 'published'" @click="setTab('published')">
-              {{ $t('pages.posts.published') }}
-            </button>
-            <button type="button" class="site-admin-post-tab" :aria-pressed="activeTab === 'drafts'" @click="setTab('drafts')">
-              {{ $t('pages.posts.drafts') }}
-            </button>
-            <button type="button" class="site-admin-post-tab" :aria-pressed="activeTab === 'archived'" @click="setTab('archived')">
-              {{ $t('pages.posts.archived') }}
-            </button>
-          </nav>
+          <AdminListTabs :model-value="activeTab" :items="adminTabs" :label="$t('pages.projects.heading')" @select="setTab" />
 
           <div class="site-admin-post-actions">
             <NButton @click="isNewDrawerOpen = true" btn="primary" size="xs" leading="i-ph-plus-bold" class="site-admin-post-create">
@@ -67,6 +57,7 @@
         @post-click="onPostCardClick"
         :linkForPost="(p) => `/posts/${p.slug}`"
         :entered="entered"
+        projectCardLayout
       />
 
       <section v-else-if="activeTab === 'published' && !isLoadingVisible && publicProjects.length" class="site-demo-projects">
@@ -129,6 +120,7 @@
           @post-click="onPostCardClick"
           :linkForPost="(p) => `/posts/edit/${p.slug}`"
           :entered="entered"
+          projectCardLayout
         />
       </ClientOnly>
 
@@ -149,6 +141,7 @@
           @post-click="onPostCardClick"
           :linkForPost="(p) => `/posts/${p.slug}`"
           :entered="entered"
+          projectCardLayout
         />
       </ClientOnly>
     </div>
@@ -254,8 +247,17 @@ const { data: archived, pending: archivedPending, execute: fetchArchived } = awa
 
 // Admin tab state – controls which list is shown for admins (published/drafts/archived)
 const activeTab = useStorage<'published'|'drafts'|'archived'>('projects.activeTab', 'published')
+const adminTabs = computed(() => [
+  { value: 'published' as const, label: $t('pages.posts.published') },
+  { value: 'drafts' as const, label: $t('pages.posts.drafts') },
+  { value: 'archived' as const, label: $t('pages.posts.archived') },
+])
+const copySlideDirection = ref(1)
+const tabOrder = ['published', 'drafts', 'archived'] as const
 
 function setTab(tab: 'published'|'drafts'|'archived') {
+  if (tab === activeTab.value) return
+  copySlideDirection.value = tabOrder.indexOf(tab) > tabOrder.indexOf(activeTab.value) ? 1 : -1
   activeTab.value = tab
   if (tab === 'drafts' && !drafts.value) fetchDrafts()
   if (tab === 'archived' && !archived.value) fetchArchived()
@@ -264,7 +266,7 @@ function setTab(tab: 'published'|'drafts'|'archived') {
 const isAdmin = computed(() => loggedIn.value && user.value?.role === 'admin') 
 
 // Persistent view preference for projects
-const viewMode = useStorage<'cards'|'list'>('projects.viewMode.v2', 'list')
+const viewMode = useStorage<'cards'|'list'>('projects.viewMode.v3', 'cards')
 const isListView = computed(() => viewMode.value === 'list')
 const viewDropdownItems = computed(() => [
   { label: $t('pages.posts.cardsView'), onSelect: () => (viewMode.value = 'cards'), leading: 'i-ph-squares-four', trailing: viewMode.value === 'cards' ? 'i-ph-check' : undefined },
@@ -663,6 +665,34 @@ async function duplicatePost(post: Post) {
 }
 @media (max-width: 600px) {
   .site-shell .site-project-index .site-demo-projects { gap: 28px; }
+}
+
+/* Project archive follows Core's image-led two-column works grid. */
+.site-shell .site-project-index > .container,
+.site-shell .site-project-index.site-project-index > .container {
+  width: min(720px, calc(100% - 40px));
+  max-width: 720px;
+}
+.site-shell .site-project-index .site-collection-intro {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 80px;
+}
+.site-shell .site-project-index .site-collection-intro p { font-weight: 500; }
+.site-shell .site-project-index .site-demo-projects { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px; }
+.site-shell .site-project-index .site-demo-project-image { aspect-ratio: 16 / 9; border-radius: 16px; }
+.site-shell .site-project-index .site-demo-project h2 { margin-top: 16px; font-size: 18px; line-height: 24px; }
+.site-shell .site-project-index .site-demo-project-meta { font-size: 14px; line-height: 20px; }
+.site-shell .site-project-index .site-admin-list-header { width: 100%; max-width: 100%; margin: 0 0 36px; }
+.site-shell .site-project-index .site-admin-post-controls { width: 100%; }
+
+@media (max-width: 767px) {
+  .site-shell .site-project-index > .container,
+  .site-shell .site-project-index.site-project-index > .container { width: calc(100% - 40px); }
+  .site-shell .site-project-index .site-collection-intro { margin-bottom: 52px; }
+  .site-shell .site-project-index .site-demo-projects { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  .site-shell .site-project-index .site-demo-project h2 { margin-top: 14px; font-size: 21px; }
+  .site-shell .site-project-index .site-admin-list-header { width: 100%; margin-bottom: 32px; }
 }
 }
 </style>

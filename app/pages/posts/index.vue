@@ -9,29 +9,20 @@
 
       <!-- Admin-only post controls -->
       <div v-if="isAdmin" class="site-admin-list-header">
-        <div class="site-admin-list-header-copy">
-          <h1 class="site-admin-heading" v-if="activeTab === 'published'">{{ $t('pages.posts.publishedHeading') }}</h1>
-          <h1 class="site-admin-heading" v-else-if="activeTab === 'drafts'">{{ $t('pages.posts.draftsHeading') }}</h1>
-          <h1 class="site-admin-heading" v-else>{{ $t('pages.posts.archivedHeading') }}</h1>
-          <p class="site-admin-intro" v-if="activeTab === 'published'">{{ $t('pages.posts.publishedDescription') }}</p>
-          <p class="site-admin-intro" v-else-if="activeTab === 'drafts'">{{ $t('pages.posts.draftsDescription') }}</p>
-          <p class="site-admin-intro" v-else>{{ $t('pages.posts.archivedDescription') }}</p>
+        <div class="site-admin-list-header-copy site-admin-list-header-copy-wrap">
+          <SlidingCopy
+            :title="activeTab === 'published' ? $t('pages.posts.publishedHeading') : activeTab === 'drafts' ? $t('pages.posts.draftsHeading') : $t('pages.posts.archivedHeading')"
+            :description="activeTab === 'published' ? $t('pages.posts.publishedDescription') : activeTab === 'drafts' ? $t('pages.posts.draftsDescription') : $t('pages.posts.archivedDescription')"
+            :direction="copySlideDirection"
+            title-class="site-admin-heading"
+            description-class="site-admin-intro"
+          />
         </div>
       </div>
 
       <ClientOnly>
         <div v-if="isAdmin" class="site-admin-post-controls">
-          <nav class="site-admin-post-tabs" :aria-label="$t('pages.posts.publishedHeading')">
-            <button type="button" class="site-admin-post-tab" :aria-pressed="activeTab === 'published'" @click="setTab('published')">
-              {{ $t('pages.posts.published') }}
-            </button>
-            <button type="button" class="site-admin-post-tab" :aria-pressed="activeTab === 'drafts'" @click="setTab('drafts')">
-              {{ $t('pages.posts.drafts') }}
-            </button>
-            <button type="button" class="site-admin-post-tab" :aria-pressed="activeTab === 'archived'" @click="setTab('archived')">
-              {{ $t('pages.posts.archived') }}
-            </button>
-          </nav>
+          <AdminListTabs :model-value="activeTab" :items="adminTabs" :label="$t('pages.posts.publishedHeading')" @select="setTab" />
 
           <div class="site-admin-post-actions">
             <template v-if="selection.selectionMode.value">
@@ -71,8 +62,8 @@
       </ClientOnly>
 
       <PostsList
-        v-if="isAdmin && activeTab === 'published' && posts && posts.length > 0"
-        :posts="enhancedPosts"
+        v-if="isAdmin && activeTab === 'published' && posts && visiblePosts.length > 0"
+        :posts="visiblePosts"
         :viewMode="viewMode"
         :isAdmin="isAdmin"
         :selectionMode="selection.selectionMode.value"
@@ -87,6 +78,11 @@
         :linkForPost="(p) => `/posts/${p.slug}`"
         :entered="entered"
       />
+
+      <div v-else-if="isAdmin && activeTab === 'published' && publicTagFilter && posts && !pending" class="site-public-tag-empty">
+        <p>{{ $t('pages.tags.noPostsFound') }} — {{ publicTagFilter }}</p>
+        <NuxtLink :to="localizedPath('/posts', $getLocale())">{{ $getLocale() === 'fr' ? 'Voir tous les articles' : 'View all posts' }}</NuxtLink>
+      </div>
 
       <PublicPostArchive
         v-else-if="!isAdmin && activeTab === 'published' && posts && !publicTagFilter"
@@ -217,6 +213,10 @@ import { localizedPath } from '~/utils/presentationPosts'
 
 const router = useRouter()
 const route = useRoute()
+const publicTagFilter = computed(() => {
+  const tag = route.query.tag
+  return typeof tag === 'string' && tag.trim() ? tag.trim() : ''
+})
 const confirmDialogOpen = ref(false)
 const postPendingDelete = ref<Post | null>(null)
 const deleting = ref(false)
@@ -392,7 +392,7 @@ const selectedLanguage = useStorage<'en' | 'fr'>(
 )
 
 const languageFilter = computed(() => {
-  if (showAllLanguages.value) return undefined
+  if (showAllLanguages.value || (publicTagFilter.value && loggedIn.value && user.value?.role === 'admin')) return undefined
   return selectedLanguage.value
 })
 
@@ -419,6 +419,13 @@ const { data: archived, pending: archivedPending, execute: fetchArchived } = use
 // previously used toggles: replaced by admin tab (`activeTab`) and setTab()
 // Admin tab state – controls which list is shown for admins (published/drafts/archived)
 const activeTab = useStorage<'published'|'drafts'|'archived'>('posts.activeTab', 'published')
+const copySlideDirection = ref(1)
+const tabOrder = ['published', 'drafts', 'archived'] as const
+const adminTabs = computed(() => [
+  { value: 'published' as const, label: $t('pages.posts.published') },
+  { value: 'drafts' as const, label: $t('pages.posts.drafts') },
+  { value: 'archived' as const, label: $t('pages.posts.archived') },
+])
 // Persistent view preference: 'cards' or 'list'
 const viewMode = useStorage<'cards'|'list'>('posts.viewMode.v2', 'list')
 
@@ -466,6 +473,8 @@ const postOptionsDropdownItems = computed(() => [
 ])
 
 function setTab(tab: 'published'|'drafts'|'archived') {
+  if (tab === activeTab.value) return
+  copySlideDirection.value = tabOrder.indexOf(tab) > tabOrder.indexOf(activeTab.value) ? 1 : -1
   activeTab.value = tab
   if (tab === 'drafts' && !drafts.value) fetchDrafts()
   if (tab === 'archived' && !archived.value) fetchArchived()
@@ -474,20 +483,19 @@ function setTab(tab: 'published'|'drafts'|'archived') {
 const isAdmin = computed(() => loggedIn.value && user.value?.role === 'admin')
 
 const enhancedPosts = computed(() => posts.value ? posts.value.map(p => enhancePost(p)) : [])
-const publicTagFilter = computed(() => {
-  const tag = route.query.tag
-  return typeof tag === 'string' && tag.trim() ? tag.trim() : ''
-})
 const publicArchivePosts = computed(() => {
   if (!publicTagFilter.value) return enhancedPosts.value
   const tag = publicTagFilter.value.toLocaleLowerCase()
   return enhancedPosts.value.filter(post => post.tags?.some(item => item.name.toLocaleLowerCase() === tag))
 })
+watch([publicTagFilter, isAdmin], ([tag, admin]) => {
+  if (tag && admin && activeTab.value !== 'published') setTab('published')
+}, { immediate: true })
 const enhancedDrafts = computed(() => drafts.value ? drafts.value.map(p => enhancePost(p)) : [])
 const enhancedArchived = computed(() => archived.value ? archived.value.map(p => enhancePost(p)) : [])
 
 const visiblePosts = computed(() => {
-  if (activeTab.value === 'published') return enhancedPosts.value
+  if (activeTab.value === 'published') return publicTagFilter.value ? publicArchivePosts.value : enhancedPosts.value
   if (activeTab.value === 'drafts') return enhancedDrafts.value
   if (activeTab.value === 'archived') return enhancedArchived.value
   return [] as Post[]
@@ -535,7 +543,7 @@ const entered = ref(false)
 
 // Whether currently visible content contains any posts (used for empty-state logic)
 const hasVisiblePosts = computed(() => {
-  if (activeTab.value === 'published') return enhancedPosts.value.length > 0
+  if (activeTab.value === 'published') return visiblePosts.value.length > 0
   if (activeTab.value === 'drafts') return enhancedDrafts.value.length > 0
   if (activeTab.value === 'archived') return enhancedArchived.value.length > 0
   return false
@@ -845,6 +853,8 @@ function onPostCardClick(evt: MouseEvent, post: Post) {
 .site-shell .site-post-index.site-post-index > .container { box-sizing: border-box; width: min(700px, calc(100% - 32px)); max-width: 700px; padding-inline: 0; }
 .site-shell .site-post-index .site-collection-intro { width: 100%; margin: 0 0 80px; }
 .site-shell .site-post-index .site-collection-avatar { margin-bottom: 40px; }
+.site-shell .site-post-index .site-admin-list-header-copy-wrap { width: 100%; }
+.site-shell .site-post-index .site-admin-list-header-copy-wrap .site-text-slide-layer { display: grid; align-content: start; gap: 8px; }
 .site-shell .site-post-index--public { min-height: 0; padding-bottom: 0; }
 .site-shell .site-post-index--public .site-public-post-archive { margin-bottom: 0; }
 .site-shell .site-public-tag-empty { margin: 0 auto 64px; color: var(--site-color-text); text-align: center; }

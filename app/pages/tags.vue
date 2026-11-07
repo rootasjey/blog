@@ -1,180 +1,27 @@
 <template>
   <Transition name="page" appear>
     <div>
-      <PresentationTagIndex v-if="!isAdmin && !tagsPending && !tagsError && publicTags.length" :tags="publicTags" />
-      <PresentationTagIndex v-else-if="!isAdmin && !tagsPending && !tagsError" />
-      <section v-else class="site-page site-tags py-12 md:py-16 bg-white dark:bg-gray-950" :class="{ 'site-tags--admin': isAdmin }">
-      <div class="container mx-auto px-6 max-w-7xl">
-        <h1 :class="isAdmin ? 'site-admin-heading mb-2' : 'site-display-heading text-3xl md:text-4xl font-serif font-800 mb-2'">{{ $t('pages.tags.heading') }}</h1>
-        <div class="flex items-center justify-between mb-8">
-          <p class="text-sm text-gray-600 dark:text-gray-400 mr-4">{{ $t('pages.tags.description') }}</p>
-          <div class="lg:hidden">
-            <NButton btn="outline-gray" size="xs" rounded="2" leading="i-ph-tag" @click="tagsDrawerOpen = true">{{ $t('pages.tags.filters') }}</NButton>
-          </div>
+      <TagsDirectory
+        v-if="!tagsPending && !tagsError"
+        :tags="directoryTags"
+        :is-admin="isAdmin"
+        @create="openNewTag"
+        @edit="openEditTag"
+        @delete="onDeleteFromDirectory"
+      />
+      <section v-else class="site-page site-tags-state">
+        <div>
+          <h1>{{ $t('pages.tags.heading') }}</h1>
+          <p>{{ $t('pages.tags.description') }}</p>
+          <p v-if="tagsPending" class="site-tags-state-loading">{{ $t('pages.tags.loading') }}</p>
+          <EmptyState v-else :title="$t('pages.tags.unavailable')" :description="$t('pages.tags.unavailableDesc')" />
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 site-tags-admin-grid">
-          <!-- Tags column -->
-          <aside class="hidden md:block md:col-span-1 site-tags-admin-aside">
-            <ClientOnly>
-              <div v-if="isAdmin" class="sticky z-20 mb-4 transition-all duration-200 site-tags-admin-toolbar" :style="{ top: `${toolbarTop}px` }">
-                <div class="bg-background/60 backdrop-blur-sm border border-border rounded-2xl px-3 py-2 flex items-center justify-between gap-3">
-                  <div class="flex items-center gap-2">
-                    <NButton @click="openNewTag" btn="outline-gray" size="xs" rounded="2" leading="i-ph-plus-bold">{{ $t('pages.tags.newTag') }}</NButton>
-                  </div>
-                </div>
-              </div>
-            </ClientOnly>
-            <div class="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6 sticky top-6 site-tags-admin-filter">
-              <div class="flex items-center gap-3 mb-4">
-                <input
-                  v-model="search"
-                  type="search"
-                  :placeholder="$t('pages.tags.searchPlaceholder')"
-                  class="w-full px-4 py-2 rounded-xl bg-white/70 dark:bg-gray-800/60 placeholder-gray-400 outline-none"
-                />
-              </div>
-
-              <div class="mb-4">
-                <button
-                  @click="selectTag(null)"
-                  :class="['px-3 py-2 rounded-full text-sm font-semibold mr-2 mb-2', selectedTag === null ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100']"
-                >
-                  {{ $t('common.all') }}
-                </button>
-              </div>
-
-              <!-- Loading -->
-              <div v-if="tagsPending" class="space-y-3">
-                <div v-for="i in 6" :key="i" class="h-10 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
-              </div>
-
-              <!-- Error -->
-              <EmptyState
-                v-else-if="tagsError"
-                :title="$t('pages.tags.unavailable')"
-                :description="$t('pages.tags.unavailableDesc')"
-              />
-
-              <TransitionGroup v-else name="tags" tag="ul" class="space-y-3 max-h-[60vh] overflow-y-auto site-tags-admin-list" appear>
-                <li v-for="(tag, i) in filteredTags" :key="tag.id" :style="{ '--enter-delay': `${i * 40}ms` }">
-                  <div class="flex items-center justify-between p-1 rounded-xl site-tags-admin-row">
-                    <button
-                      @click="selectTag(tag.name)"
-                      :class="[
-                        'w-full flex items-center justify-between gap-4 p-3 rounded-xl transition-all text-left site-tags-admin-select',
-                        selectedTag === tag.name ? 'bg-gray-100 dark:bg-gray-800 shadow-sm' : 'hover:shadow-sm'
-                      ]"
-                      :style="selectedTag === tag.name ? { borderLeft: `4px solid ${colorForTag(tag.name)}`, paddingLeft: '0.75rem' } : {}"
-                      :aria-pressed="selectedTag === tag.name"
-                    >
-                      <div class="flex items-center gap-3">
-                        <span :style="{ backgroundColor: colorForTag(tag.name) }" class="w-9 h-9 rounded-lg inline-block flex-none site-tags-admin-swatch"></span>
-                        <div>
-                          <div class="text-sm font-semibold">{{ tag.name }}</div>
-                          <div class="text-xs text-gray-500 dark:text-gray-400">{{ tag.category || $t('pages.tags.general') }}</div>
-                          <div v-if="tag.description" class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{{ tag.description }}</div>
-                        </div>
-                      </div>
-
-                      <div class="flex items-center gap-3">
-                        <div class="text-xs text-gray-600 dark:text-gray-300 font-semibold">{{ tagCounts[tag.name] || 0 }}</div>
-                      </div>
-                    </button>
-
-                    <div v-if="isAdmin" class="ml-2">
-                      <NDropdownMenu :items="menuItemsForTag(tag)" class="inline-block">
-                        <NButton icon btn="ghost-gray" size="xs" @click.stop.prevent>
-                          <NIcon name="i-ph-dots-three-vertical" />
-                        </NButton>
-                      </NDropdownMenu>
-                    </div>
-                  </div>
-                </li>
-              </TransitionGroup>
-            </div>
-          </aside>
-
-          <!-- Posts column -->
-          <main class="md:col-span-2 site-tags-admin-posts">
-            <!-- Loading posts -->
-            <div v-if="postsPending" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-6 gap-y-8">
-              <CardSkeleton v-for="i in 4" :key="i" :lines="3" />
-            </div>
-
-            <!-- Error posts -->
-            <EmptyState
-              v-else-if="postsError"
-              :title="$t('pages.tags.postsUnavailable')"
-              :description="$t('pages.tags.postsUnavailableDesc')"
-              secondary-to="/posts"
-              :secondary-label="$t('components.trendingTags.viewPosts')"
-            />
-
-            <!-- Posts grid -->
-            <TransitionGroup v-else name="list" tag="div" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-6 gap-y-8" appear>
-              <article v-for="(post, i) in visiblePosts" :key="post.slug" :style="{ '--enter-delay': `${i * 50}ms` }" class="group flex flex-col">
-                <NuxtLink :to="`/posts/${post.slug}`" class="block flex flex-col h-full">
-                  <div v-if="post.image?.src" class="relative overflow-hidden rounded-2xl aspect-[4/3] mb-4">
-                    <PostImage :src="post.image.src" :alt="post.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                  </div>
-
-                  <div class="space-y-2 flex-1 flex flex-col">
-                    <span v-if="post.tags?.length" class="inline-block w-fit px-3 py-1.5 text-xs font-semibold tracking-wide bg-lime-300 dark:bg-lime-400 text-gray-900 rounded-full uppercase site-tags-admin-post-tag">{{ post.tags?.[0]?.name }}</span>
-                    <h3 class="text-lg md:text-xl font-serif font-bold leading-snug group-hover:opacity-80 transition-opacity line-clamp-2 flex-1 site-tags-admin-post-title">{{ post.name }}</h3>
-                    <div class="flex items-center gap-2 font-600 text-xs text-gray-500 dark:text-gray-400 mt-auto">
-                      <time>{{ post.formattedDate }}</time>
-                      <span>—</span>
-                      <span>{{ post.readingTime }}</span>
-                    </div>
-                  </div>
-                </NuxtLink>
-              </article>
-            </TransitionGroup> 
-
-            <div v-if="!visiblePosts.length && !postsPending && !postsError" class="mt-12 text-center text-gray-600 dark:text-gray-400">
-              <h2 class="text-size-12 font-200">{{ $t('pages.tags.noPostsFound') }}</h2>
-              <NButton 
-                v-if="route.query.tag"
-                btn="ghost-gray" 
-                size="sm" 
-                @click="selectTag(null)"
-              >
-                {{ $t('common.viewAllPosts') }}
-              </NButton>
-              <NButton 
-                v-else
-                btn="ghost-gray" 
-                size="sm" 
-                @click="router.push('/posts')"
-              >
-                {{ $t('pages.tags.createPost') }}
-              </NButton>
-            </div>
-          </main>
-        </div>
-      </div>
-    </section>
+      </section>
 
       <div v-if="!isAdmin && !tagsPending && !tagsError" class="site-public-archive-footer site-public-tags-footer">
         <NewsletterSubscription />
         <HomeRecommendations />
       </div>
-
-  <ClientOnly>
-    <TagsDrawer
-      v-model:open="tagsDrawerOpen"
-      v-model:search="search"
-      :tags="tags"
-      :selectedTag="selectedTag"
-      :tagCounts="tagCounts"
-      :is-admin="isAdmin"
-      @select="(name) => (selectTag(name), tagsDrawerOpen = false)"
-      @new="openNewTag"
-      @edit="openEditTag"
-      @delete="onDeleteFromDrawer"
-    />
-  </ClientOnly>
 
   <NDialog v-model:open="tagDialogOpen">
     <NDialogContent class="max-w-md">
@@ -184,9 +31,18 @@
 
       <NDialogDescription>
         <div class="space-y-3">
-          <NInput v-model="tagName" :placeholder="$t('pages.tags.tagNamePlaceholder')" input="outline" class="shadow-none ring-none" autofocus />
-          <NInput v-model="tagDescription" :placeholder="$t('pages.tags.descriptionPlaceholder')" input="outline" />
-          <NInput v-model="tagCategory" :placeholder="$t('pages.tags.categoryPlaceholder')" input="outline" />
+          <NInput v-model="tagName" :placeholder="$t('pages.tags.tagNamePlaceholder')" input="outline" class="site-tag-dialog-field" autofocus />
+          <NInput v-model="tagDescription" :placeholder="$t('pages.tags.descriptionPlaceholder')" input="outline" class="site-tag-dialog-field" />
+          <NInput v-model="tagCategory" :placeholder="$t('pages.tags.categoryPlaceholder')" input="outline" class="site-tag-dialog-field" />
+          <div class="pt-1">
+            <p class="mb-2 text-sm font-medium">{{ $t('pages.tags.iconLabel') }}</p>
+            <TagIconPicker
+              v-model="tagIcon"
+              :tag-name="tagName"
+              :label="$t('pages.tags.iconLabel')"
+              :letter-label="$t('pages.tags.keepInitial')"
+            />
+          </div>
         </div>
       </NDialogDescription>
 
@@ -220,17 +76,11 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
 import type { ApiTag } from '~~/shared/types/tags'
+import type { TagIconName } from '~~/shared/constants/tag-icons'
 import type { Post as ApiPost } from '~~/shared/types/post'
-import { useHeaderToolbarOffset } from '~/composables/useHeaderToolbarOffset' 
 import { EXCLUDED_TAGS } from '~/utils/tagConstants'
 
 const { enhancePost } = usePost()
-
-import { useRoute, useRouter } from 'vue-router'
-import TagsDrawer from '~~/app/components/TagsDrawer.vue'
-
-const route = useRoute()
-const router = useRouter()
 const config = useRuntimeConfig()
 
 // Tags (use useFetch for SSR-safe hydration)
@@ -238,47 +88,24 @@ const { data: tagsData, pending: tagsPending, error: tagsError } = await useFetc
 const tags = ref<ApiTag[]>(tagsData.value ?? [])
 // keep tags ref in sync with fetched data (works on both server and client)
 watch(tagsData, (v) => { tags.value = v ?? [] })
-// Currently selected tag (may be set from route.query.tag)
-const selectedTag = ref<string | null>(null)
-
-// Dynamic OG image based on selected tag or default for all tags
-const ogImageUrl = computed(() => {
-  if (selectedTag.value) {
-    return `${config.public.siteUrl}/og/tag/${selectedTag.value}.png`
-  }
-  return `${config.public.siteUrl}/og/home/default.png` // fallback to home OG
-})
-
 const { $t, $getLocale } = useI18n()
 useSeoMeta({
-  title: () => selectedTag.value ? `#${selectedTag.value} - ${$t('seo.siteName')}` : `${$t('pages.tags.heading')} - ${$t('seo.siteName')}`,
-  description: () => selectedTag.value ? `${$t('pages.tags.postsUnavailableDesc')} ${selectedTag.value}` : $t('pages.tags.description'),
-  ogTitle: () => selectedTag.value ? `#${selectedTag.value}` : $t('pages.tags.heading'),
-  ogDescription: () => selectedTag.value ? `${$t('pages.tags.description')} ${selectedTag.value}` : $t('pages.tags.description'),
-  ogImage: ogImageUrl,
-  ogUrl: () => `${config.public.siteUrl}/tags${selectedTag.value ? `?tag=${selectedTag.value}` : ''}`,
+  title: () => `${$t('pages.tags.heading')} - ${$t('seo.siteName')}`,
+  description: () => $t('pages.tags.description'),
+  ogTitle: () => $t('pages.tags.heading'),
+  ogDescription: () => $t('pages.tags.description'),
+  ogImage: `${config.public.siteUrl}/og/home/default.png`,
+  ogUrl: () => `${config.public.siteUrl}/tags`,
   twitterCard: 'summary_large_image',
-  twitterImage: ogImageUrl,
+  twitterImage: `${config.public.siteUrl}/og/home/default.png`,
 })
 
 useHead({
-  link: [{ rel: 'canonical', href: () => `${config.public.siteUrl}/tags${selectedTag.value ? `?tag=${selectedTag.value}` : ''}` }],
+  link: [{ rel: 'canonical', href: `${config.public.siteUrl}/tags` }],
 })
 
-// when tags are loaded, if the route has a tag param select it (no route update)
-watch([() => tags.value.length, () => route.query.tag], ([len, t]) => {
-  if (!len) return
-  const tStr = t ? String(t) : ''
-  if (!tStr) {
-    selectTag(null, false)
-    return
-  }
-  const match = tags.value.find(x => x.name.toLowerCase() === tStr.toLowerCase())
-  if (match) selectTag(match.name, false)
-}, { immediate: true })
-
 // Posts
-const { data: postsData, pending: postsPending, error: postsError } = await useFetch<ApiPost[]>('/api/posts')
+const { data: postsData } = await useFetch<ApiPost[]>('/api/posts')
 const posts = computed(() => (postsData.value ?? []).map(p => enhancePost(p)))
 const publicTags = computed(() => {
   const hiddenNames = new Set([...EXCLUDED_TAGS, 'project', 'hero'])
@@ -297,60 +124,24 @@ const publicTags = computed(() => {
     .map(tag => ({ ...tag, count: counts.get(tag.name.trim().toLocaleLowerCase()) ?? 0 }))
     .filter(tag => tag.count > 0 && !hiddenNames.has(tag.name.trim().toLocaleLowerCase()))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-    .map(({ name, count }) => ({ name, count }))
+    .map(tag => ({ ...tag, count: counts.get(tag.name.trim().toLocaleLowerCase()) ?? 0 }))
 })
-
-// UI state
-const search = ref(route.query.q ? String(route.query.q) : '')
-
-// keep search in sync with route query q
-watch(() => route.query.q, (q) => {
-  search.value = q ? String(q) : ''
-})
-
-// keep selectedTag in sync with route query tag (do not push back to route)
-watch(() => route.query.tag, (t) => {
-  const tStr = t ? String(t) : ''
-  if (!tStr) {
-    selectedTag.value = null
-    return
-  }
-  const match = tags.value.find(x => x.name.toLowerCase() === tStr.toLowerCase())
-  // If tags are available and we found a canonical name, prefer that; otherwise use raw tStr
-  selectedTag.value = match ? match.name : tStr
-}, { immediate: true })
-// Initialize selectedTag on first render (SSR-friendly)
-{
-  const t = route.query.tag ? String(route.query.tag) : ''
-  if (t) {
-    const match = tags.value.find(x => x.name.toLowerCase() === t.toLowerCase())
-    selectedTag.value = match ? match.name : t
-  }
-}
 
 // Admin session + UI
 const { user, loggedIn } = useUserSession()
 const isAdmin = computed(() => loggedIn.value && user.value?.role === 'admin')
-const { top: toolbarTop } = useHeaderToolbarOffset({ baseOffsetPx: 24 })
-
 // Tag CRUD UI state
 const tagDialogOpen = ref(false)
 const editingTag = ref<ApiTag | null>(null)
 const tagName = ref('')
 const tagCategory = ref('')
 const tagDescription = ref('')
+const tagIcon = ref<TagIconName | null>(null)
 const saving = ref(false)
 
 const confirmDialogOpen = ref(false)
 const tagPendingDelete = ref<ApiTag | null>(null)
 const deleting = ref(false)
-const tagsDrawerOpen = ref(false)
-
-const filteredTags = computed(() => {
-  const q = search.value.trim().toLowerCase()
-  if (!q) return tags.value
-  return tags.value.filter(t => t.name.toLowerCase().includes(q) || (t.category || '').toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q))
-})
 
 const tagCounts = computed<Record<string, number>>(() => {
   const counts: Record<string, number> = {}
@@ -362,37 +153,14 @@ const tagCounts = computed<Record<string, number>>(() => {
   return counts
 })
 
-const visiblePosts = computed(() => {
-  if (!selectedTag.value) return posts.value
-  return posts.value.filter(p => p.tags?.some(t => t.name === selectedTag.value))
-})
-
-function colorForTag(name: string) {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  const hue = Math.abs(hash) % 360
-  return `hsl(${hue} 80% 85%)`
-}
-
-function selectTag(name: string | null, updateRoute = true) {
-  selectedTag.value = name
-  // Do NOT fill search input when selecting a tag - keep search separate
-  const tagParam = name ?? ''
-  if (!updateRoute) return
-  const currentTag = route.query.tag ? String(route.query.tag) : ''
-  if (currentTag !== tagParam) {
-    const query = { ...route.query }
-    if (tagParam) query.tag = tagParam
-    else delete query.tag
-    router.replace({ path: '/tags', query })
-  }
-}
+const directoryTags = computed(() => isAdmin.value ? tags.value.map(tag => ({ ...tag, count: tagCounts.value[tag.name] ?? 0 })) : publicTags.value)
 
 function openNewTag() {
   editingTag.value = null
   tagName.value = ''
   tagCategory.value = ''
   tagDescription.value = ''
+  tagIcon.value = null
   tagDialogOpen.value = true
 }
 
@@ -401,17 +169,11 @@ function openEditTag(tag: ApiTag) {
   tagName.value = tag.name
   tagCategory.value = tag.category || ''
   tagDescription.value = tag.description || ''
+  tagIcon.value = (tag.icon as TagIconName | null) || null
   tagDialogOpen.value = true
 }
 
-function menuItemsForTag(tag: ApiTag) {
-  return [
-    { label: $t('common.edit'), onSelect: () => openEditTag(tag), leading: 'i-ph-pencil' },
-    { label: $t('common.delete'), onSelect: () => (tagPendingDelete.value = tag, confirmDialogOpen.value = true), leading: 'i-ph-trash', color: 'danger' },
-  ]
-}
-
-function onDeleteFromDrawer(tag: ApiTag) {
+function onDeleteFromDirectory(tag: ApiTag) {
   tagPendingDelete.value = tag
   confirmDialogOpen.value = true
 }
@@ -424,10 +186,10 @@ async function saveTag() {
   saving.value = true
   try {
     if (editingTag.value) {
-      const updated = await $fetch<ApiTag>(`/api/tags/${editingTag.value.id}`, { method: 'PUT' as any, body: { name: tagName.value.trim(), category: tagCategory.value.trim() || 'general', description: tagDescription.value.trim() } })
+      const updated = await $fetch<ApiTag>(`/api/tags/${editingTag.value.id}`, { method: 'PUT' as any, body: { name: tagName.value.trim(), category: tagCategory.value.trim() || 'general', description: tagDescription.value.trim(), icon: tagIcon.value } })
       tags.value = tags.value.map(t => t.id === updated.id ? updated : t)
     } else {
-      const created = await $fetch<ApiTag>('/api/tags', { method: 'POST' as any, body: { name: tagName.value.trim(), category: tagCategory.value.trim() || 'general', description: tagDescription.value.trim() } })
+      const created = await $fetch<ApiTag>('/api/tags', { method: 'POST' as any, body: { name: tagName.value.trim(), category: tagCategory.value.trim() || 'general', description: tagDescription.value.trim(), icon: tagIcon.value } })
       tags.value = [...tags.value, created].sort((a, b) => a.name.localeCompare(b.name))
     }
     tagDialogOpen.value = false
@@ -462,7 +224,6 @@ async function confirmDelete() {
   try {
     await $fetch(`/api/tags/${tagPendingDelete.value.id}`, { method: 'DELETE' as any })
     tags.value = tags.value.filter(t => t.id !== tagPendingDelete.value?.id)
-    if (selectedTag.value === tagPendingDelete.value.name) selectTag(null)
     tagPendingDelete.value = null
     confirmDialogOpen.value = false
   } catch (e) {
@@ -474,32 +235,20 @@ async function confirmDelete() {
 </script>
 
 <style scoped>
-@layer components {
-
-.line-clamp-2 {
-  display: -webkit-box;
-  line-clamp: 2;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* small scrollbar hide for aesthetics */
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 .page-enter-from {
   opacity: 0;
-  transform: translateY(8px) scale(0.997);
-}
-.page-enter-active {
-  transition: opacity 280ms cubic-bezier(0.2, 0, 0.2, 1), transform 280ms cubic-bezier(0.2, 0, 0.2, 1);
-}
-.page-enter-to {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: translateY(8px);
 }
 
-/* Respect reduced motion preferences */
+.page-enter-active {
+  transition: opacity 280ms cubic-bezier(.2, 0, .2, 1), transform 280ms cubic-bezier(.2, 0, .2, 1);
+}
+
+.page-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .page-enter-from,
   .page-enter-to,
@@ -508,61 +257,26 @@ async function confirmDelete() {
     transform: none;
   }
 }
-
-/* Staggered list item entrance */
-.list-enter-from {
-  opacity: 0;
-  transform: translateY(10px) scale(0.997);
-}
-.list-enter-active {
-  transition: opacity 320ms cubic-bezier(0.2, 0, 0.2, 1), transform 320ms cubic-bezier(0.2, 0, 0.2, 1);
-  /* per-item delay via CSS variable set inline on each item */
-  transition-delay: var(--enter-delay, 0ms);
-}
-.list-enter-to {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .list-enter-from,
-  .list-enter-to,
-  .list-enter-active {
-    transition: none;
-    transform: none;
-  }
-}
-
-/* Tags column staggered entrance */
-.tags-enter-from {
-  opacity: 0;
-  transform: translateY(6px) scale(0.985);
-}
-.tags-enter-active {
-  transition: opacity 260ms cubic-bezier(0.2, 0, 0.2, 1), transform 260ms cubic-bezier(0.2, 0, 0.2, 1);
-  transition-delay: var(--enter-delay, 0ms);
-}
-.tags-enter-to {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tags-enter-from,
-  .tags-enter-to,
-  .tags-enter-active {
-    transition: none;
-    transform: none;
-  }
-}
-}
 </style>
 
 <style>
 @layer components {
-
-/* Component and page styles moved from the global stylesheets. */
-.site-shell .site-public-tags-footer .home-newsletter { margin-top: 120px; }
-.site-shell .site-tags > div { width: min(700px, calc(100% - 32px)); max-width: 700px; margin-inline: auto; }
+  .site-tag-dialog-field:focus-visible {
+    border-color: var(--site-color-focus-ring) !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  .site-shell .site-public-tags-footer .home-newsletter { margin-top: 120px; }
+  .site-shell .site-tags-state { padding: 64px 0; }
+  .site-shell .site-tags-state > div { width: min(700px, calc(100% - 32px)); margin-inline: auto; }
+  .site-shell .site-tags-state h1 {
+    margin: 0 0 12px;
+    color: var(--site-color-heading);
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -.03em;
+  }
+  .site-shell .site-tags-state > div > p:not(.site-tags-state-loading) { margin: 0 0 24px; color: var(--site-color-muted); }
+  .site-shell .site-tags-state-loading { color: var(--site-color-muted); }
 }
 </style>

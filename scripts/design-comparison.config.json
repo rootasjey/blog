@@ -70,6 +70,54 @@
       }
     ]
   },
+  "tags": {
+    "description": "Tags archive compared with Core's tags page.",
+    "localUrl": "http://localhost:3000/tags",
+    "referenceUrl": "https://core.primedirection.org/tags/",
+    "viewport": {
+      "width": 1496,
+      "height": 850
+    },
+    "elements": [
+      {
+        "name": "Tags page avatar",
+        "local": ".site-tags-directory .site-collection-avatar",
+        "reference": ".section-hero img"
+      },
+      {
+        "name": "Tags page heading",
+        "local": ".site-tags-directory .site-collection-intro h1",
+        "reference": ".section-hero h1"
+      },
+      {
+        "name": "Tags page description",
+        "local": ".site-tags-directory .site-collection-intro p",
+        "reference": ".section-hero p"
+      },
+      {
+        "name": "Tag icon",
+        "local": ".site-tags-directory-icon",
+        "reference": ".section-tags .image.card-image"
+      },
+      {
+        "name": "Tag name",
+        "local": ".site-tags-directory-name",
+        "reference": ".section-tags .card .label"
+      },
+      {
+        "name": "Tag count",
+        "local": ".site-tags-directory-count",
+        "reference": ".section-tags .card .count"
+      }
+    ],
+    "hoverStates": [
+      {
+        "name": "Tag hover",
+        "local": ".site-tags-directory-row:first-child .site-tags-directory-tag",
+        "reference": ".section-tags .card:first-child"
+      }
+    ]
+  },
   "about": {
     "description": "About page structure and typography compared with Core's Now page.",
     "localUrl": "http://localhost:3000/about",

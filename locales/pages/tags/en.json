@@ -6,6 +6,10 @@
       "filters": "Filters",
       "newTag": "New Tag",
       "searchPlaceholder": "Search tags",
+      "tagActions": "Actions for {name}",
+      "noTagsFound": "No tags match your search.",
+      "noTopics": "No topics to show yet.",
+      "loading": "Loading tags…",
       "unavailable": "Tags unavailable",
       "unavailableDesc": "We couldn't fetch tags right now. Try again later.",
       "general": "General",
@@ -18,6 +22,21 @@
       "tagNamePlaceholder": "Tag name",
       "descriptionPlaceholder": "Description (optional)",
       "categoryPlaceholder": "Category (optional)",
+      "iconLabel": "Tag symbol",
+      "keepInitial": "Keep initial",
+      "icons": {
+        "palette": "Palette",
+        "camera": "Camera",
+        "code": "Code",
+        "film": "Film",
+        "writing": "Writing",
+        "star": "Star",
+        "sparkle": "Sparkle",
+        "lightning": "Lightning",
+        "cube": "Cube",
+        "book": "Book",
+        "heart": "Heart"
+      },
       "deleteTagTitle": "Delete tag",
       "deleteTagConfirm": "Are you sure you want to delete **{name}**? This action cannot be undone and will remove the tag from posts."
     }

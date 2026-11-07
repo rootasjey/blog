@@ -1,6 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
+import { TAG_ICON_OPTIONS } from './shared/constants/tag-icons'
 
 const nitroPreset = process.env.NITRO_PRESET
   || (process.env.NODE_ENV === 'development' ? 'node-server' : 'cloudflare_module')
@@ -129,6 +130,7 @@ export default defineNuxtConfig({
   unocss: {
     preflight: false,
     autoImport: false,
+    safelist: TAG_ICON_OPTIONS.map(option => option.value),
     icons: {
       scale: 1.0,
       extraProperties: {
