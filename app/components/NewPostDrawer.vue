@@ -204,11 +204,11 @@ const create = async () => {
 <style scoped>
 @layer components {
 
-.site-new-content-dialog {
+:global(.site-new-content-dialog) {
   max-height: min(88vh, 720px);
   overflow-y: auto;
   border: 1px solid var(--site-color-border);
-  border-radius: 12px;
+  border-radius: var(--site-radius-panel);
   background: var(--site-color-background);
   color: var(--site-color-text);
   box-shadow: 0 24px 72px rgb(0 0 0 / 20%);
@@ -253,7 +253,7 @@ const create = async () => {
   box-sizing: border-box;
   width: 100%;
   border: 1px solid var(--site-color-border);
-  border-radius: 6px;
+  border-radius: var(--site-radius-control);
   background: transparent;
   color: var(--site-color-heading);
   font-size: 14px;
@@ -277,11 +277,9 @@ const create = async () => {
   opacity: 0.8;
 }
 
-.site-new-content-field :deep(input:focus),
-.site-new-content-field :deep(textarea:focus) {
+.site-new-content-field :deep(input:focus-visible),
+.site-new-content-field :deep(textarea:focus-visible) {
   border-color: var(--site-color-focus-ring);
-  outline: 2px solid color-mix(in srgb, var(--site-color-focus-ring) 24%, transparent);
-  outline-offset: 1px;
 }
 
 .site-new-content-assigned {
@@ -295,7 +293,7 @@ const create = async () => {
 .site-new-content-assigned-tag {
   padding: 3px 8px;
   border: 1px solid var(--site-color-border);
-  border-radius: 5px;
+  border-radius: var(--site-radius-tag);
   color: var(--site-color-text);
   line-height: 18px;
 }
@@ -319,7 +317,7 @@ const create = async () => {
 .site-new-content-cancel,
 .site-new-content-submit {
   min-height: 36px;
-  border-radius: 6px;
+  border-radius: var(--site-radius-control);
   font-size: 13px;
 }
 
