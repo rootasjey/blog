@@ -3,6 +3,8 @@
     "profile": {
       "heading": "Profil",
       "editAvatar": "Modifier l'avatar",
+      "useTroncheAvatar": "Utiliser un avatar Tronche",
+      "uploadAvatar": "Importer une image",
       "namePlaceholder": "Votre nom",
       "jobTitlePlaceholder": "Ajouter un titre",
       "bioPlaceholder": "\u00c9crivez une courte biographie\u2026",

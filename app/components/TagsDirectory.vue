@@ -10,6 +10,7 @@
         <div class="site-tags-directory-search">
           <NIcon name="i-ph-magnifying-glass" class="site-tags-directory-search-icon" aria-hidden="true" />
           <input
+            ref="searchInput"
             v-model="search"
             type="search"
             :placeholder="$t('pages.tags.searchPlaceholder')"
@@ -91,6 +92,7 @@ const emit = defineEmits<{
 
 const { $t, $getLocale } = useI18n()
 const search = ref('')
+const searchInput = ref<HTMLInputElement | null>(null)
 const locale = computed(() => $getLocale())
 
 const filteredTags = computed(() => {
@@ -101,6 +103,25 @@ const filteredTags = computed(() => {
     .slice()
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, locale.value, { sensitivity: 'base' }))
 })
+
+function handleTypeToSearch(event: KeyboardEvent) {
+  if (!props.isAdmin || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return
+  if (event.key.length !== 1 || !event.key.trim()) return
+
+  const target = event.target instanceof HTMLElement ? event.target : null
+  if (target?.isContentEditable || target?.closest('input, textarea, select, [role="combobox"]')) return
+
+  event.preventDefault()
+  search.value = event.key
+  nextTick(() => {
+    const input = searchInput.value
+    input?.focus()
+    input?.setSelectionRange(input.value.length, input.value.length)
+  })
+}
+
+onMounted(() => window.addEventListener('keydown', handleTypeToSearch))
+onBeforeUnmount(() => window.removeEventListener('keydown', handleTypeToSearch))
 
 function tagHref(tag: DirectoryTag) {
   return localizedPath('/posts', locale.value) + '?tag=' + encodeURIComponent(tag.name)

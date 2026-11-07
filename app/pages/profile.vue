@@ -16,6 +16,14 @@
           </div>
           
           <div class="flex items-center gap-2">
+            <NButton
+              v-if="hasChanges"
+              @click="resetForm"
+              btn="ghost-gray"
+              size="sm"
+              class="hidden md:flex"
+              :disabled="isSaving"
+            >{{ $t('pages.profile.resetChanges') }}</NButton>
             <NButton 
               :disabled="!hasChanges || isSaving" 
               @click="onSubmit" 
@@ -26,17 +34,6 @@
               <NIcon :name="isSaving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': isSaving }" />
               <span class="ml-2">{{ isSaving ? $t('common.saving') : $t('common.save') }}</span>
             </NButton>
-            
-            <!-- Mobile: Icon-only save button -->
-            <NButton 
-              :disabled="!hasChanges || isSaving" 
-              @click="onSubmit" 
-              btn="solid-black"
-              size="sm"
-              icon
-              label="i-lucide-save"
-              class="site-profile-save md:hidden"
-            />
           </div>
         </div>
         
@@ -53,76 +50,88 @@
     </div>
     
     <div class="container mx-auto px-4 sm:px-6 max-w-7xl py-4 sm:py-6 md:py-10 pb-24 md:pb-10">
-      <!-- Mobile-first hero: avatar on top, name below -->
-      <div class="flex flex-col md:flex-row items-center md:items-start gap-4 sm:gap-6 md:gap-8 animate-entrance" style="animation-delay:80ms;">
-        <!-- Avatar section - appears first on mobile -->
-        <div class="w-full md:w-auto md:order-2 flex justify-center">
-          <button
-            type="button"
-            class="site-profile-avatar relative group overflow-hidden flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-950"
-            :class="avatarDragOver ? 'site-profile-avatar--dragging scale-105' : ''"
-            @dragover.prevent="onAvatarDragOver"
-            @dragleave.prevent="onAvatarDragLeave"
-            @drop.prevent="onAvatarDrop"
-            @click="openAvatarDrawer"
-            :aria-label="$t('pages.profile.editAvatar')"
-          >
-            <NuxtImg v-if="displayAvatar" provider="hubblob" :src="displayAvatar" :alt="form.name" class="object-cover w-full h-full" />
-            <div v-else class="site-profile-avatar-fallback w-full h-full flex items-center justify-center font-semibold">
-              {{ userInitials }}
-            </div>
-            
-            <div v-if="avatarUploading" class="absolute left-0 bottom-0 w-full h-1.5 bg-black/20 overflow-hidden">
-              <div class="site-profile-progress h-full transition-all duration-300" :style="{ width: avatarUploadProgress + '%' }" />
-            </div>
-            <input ref="avatarFileInput" type="file" accept="image/*" class="hidden" @change="handleAvatarFileChange" />
-          </button>
+      <h1 class="site-profile-visually-hidden">{{ $t('pages.profile.heading') }}</h1>
+      <section class="site-profile-identity animate-entrance" :aria-label="$t('pages.profile.heading')" style="animation-delay:80ms;">
+        <div class="site-profile-avatar-wrap">
+          <NDropdownMenu :items="avatarMenuItems" :_dropdownMenuContent="{ side: 'right', align: 'center', sideOffset: 8 }">
+            <button
+              type="button"
+              class="site-profile-avatar relative group overflow-hidden flex items-center justify-center transition-all duration-300 focus:outline-none"
+              :class="avatarDragOver ? 'site-profile-avatar--dragging scale-105' : ''"
+              @dragover.prevent="onAvatarDragOver"
+              @dragleave.prevent="onAvatarDragLeave"
+              @drop.prevent="onAvatarDrop"
+              :aria-label="$t('pages.profile.editAvatar')"
+              :aria-busy="avatarUploading"
+            >
+              <NuxtImg
+                v-if="displayAvatar.startsWith('/users/')"
+                provider="hubblob"
+                :src="displayAvatar"
+                :alt="form.name"
+                class="object-cover w-full h-full"
+              />
+              <img
+                v-else-if="displayAvatar"
+                :src="displayAvatar"
+                :alt="form.name"
+                class="object-cover w-full h-full"
+              />
+              <div v-else class="site-profile-avatar-fallback w-full h-full flex items-center justify-center font-semibold">
+                {{ userInitials }}
+              </div>
+              <div v-if="avatarUploading" class="absolute left-0 bottom-0 w-full h-1.5 bg-black/20 overflow-hidden">
+                <div class="site-profile-progress h-full transition-all duration-300" :style="{ width: avatarUploadProgress + '%' }" />
+              </div>
+            </button>
+          </NDropdownMenu>
+          <input ref="avatarFileInput" type="file" accept="image/*" class="hidden" @change="handleAvatarFileChange" />
+          <span class="site-profile-avatar-hint">{{ $t('pages.profile.editAvatar') }}</span>
         </div>
 
-        <!-- Name and bio section - appears second on mobile -->
-        <div class="flex-1 w-full md:max-w-3xl md:order-1">
-          <!-- Big editable name -->
+        <div class="site-profile-identity-copy">
           <textarea
             ref="nameTextarea"
             v-model="form.name"
             rows="1"
-            class="site-profile-name w-full resize-none overflow-hidden leading-tight bg-transparent outline-none focus:outline-none text-center md:text-left"
+            class="site-profile-name w-full resize-none overflow-hidden leading-tight bg-transparent outline-none focus:outline-none"
             :placeholder="$t('pages.profile.namePlaceholder')"
+            :aria-label="$t('pages.profile.namePlaceholder')"
             @input="autoResizeName"
           />
-          <NInput 
-            v-model="form.job" 
-            :placeholder="$t('pages.profile.jobTitlePlaceholder')" 
-            input="~" 
-            class="mt-3 sm:mt-4 bg-transparent text-center md:text-left text-base sm:text-lg text-gray-700 dark:text-gray-300 placeholder:text-gray-400" 
+          <NInput
+            v-model="form.job"
+            :placeholder="$t('pages.profile.jobTitlePlaceholder')"
+            :aria-label="$t('pages.profile.job')"
+            input="~"
+            class="site-profile-job"
           />
           <NInput
-            input="~"
             v-model="form.biography"
             type="textarea"
-            :rows="3"
-            class="mt-3 sm:mt-4 bg-transparent text-center md:text-left text-sm sm:text-base text-gray-600 dark:text-gray-400 placeholder:text-gray-400"
+            :rows="2"
+            input="~"
+            class="site-profile-biography"
+            :aria-label="$t('pages.profile.biography')"
             :placeholder="$t('pages.profile.bioPlaceholder')"
           />
+          <NButton @click="openSocialsDialog" btn="ghost-gray" size="sm" class="site-profile-socials-action">
+            <NIcon name="i-lucide-link" />
+            <span class="ml-2">{{ $t('pages.profile.editSocials') }}</span>
+          </NButton>
         </div>
-      </div>
+      </section>
 
-      <!-- Profile fields in card format -->
-      <div class="mt-6 sm:mt-8 md:mt-10 animate-entrance" style="animation-delay:180ms;">
+      <div class="site-profile-form-wrap">
         <form @submit.prevent="onSubmit">
-          <!-- Mobile: stacked cards, Desktop: grid -->
-          <div class="flex flex-col md:grid gap-3 sm:gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div class="site-profile-fields">
             <!-- Email -->
-            <div class="site-profile-field group flex flex-col gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-xl border transition-colors">
-              <div class="flex items-center justify-between">
-                <NIcon name="i-lucide-mail" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
-                <div class="text-xs uppercase font-bold tracking-wide">{{ $t('pages.profile.required') }}</div>
-              </div>
+            <div class="site-profile-field">
               <div class="site-profile-field-label">{{ $t('pages.profile.email') }}</div>
-              <NInput 
-                v-model="form.email" 
-                :placeholder="$t('pages.profile.emailPlaceholder')" 
-                input="outline" 
+              <NInput
+                v-model="form.email"
+                :placeholder="$t('pages.profile.emailPlaceholder')"
+                input="outline"
                 type="email"
                 class="w-full"
                 size="md"
@@ -130,29 +139,11 @@
             </div>
 
             <!-- Location -->
-            <div class="site-profile-field group flex flex-col gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-xl border transition-colors">
-              <div class="flex items-center justify-between">
-                <NIcon name="i-lucide-map-pin" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
-              </div>
+            <div class="site-profile-field">
               <div class="site-profile-field-label">{{ $t('pages.profile.location') }}</div>
-              <NInput 
-                v-model="form.location" 
-                :placeholder="$t('pages.profile.locationPlaceholder')" 
-                input="outline"
-                class="w-full"
-                size="md"
-              />
-            </div>
-
-            <!-- Job -->
-            <div class="site-profile-field group flex flex-col gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-xl border transition-colors">
-              <div class="flex items-center justify-between">
-                <NIcon name="i-lucide-briefcase" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
-              </div>
-              <div class="site-profile-field-label">{{ $t('pages.profile.job') }}</div>
-              <NInput 
-                v-model="form.job" 
-                :placeholder="$t('pages.profile.jobPlaceholder')" 
+              <NInput
+                v-model="form.location"
+                :placeholder="$t('pages.profile.locationPlaceholder')"
                 input="outline"
                 class="w-full"
                 size="md"
@@ -160,89 +151,17 @@
             </div>
 
             <!-- Language -->
-            <div class="site-profile-field group flex flex-col gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-xl border transition-colors">
-              <div class="flex items-center justify-between">
-                <NIcon name="i-lucide-globe" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
-              </div>
+            <div class="site-profile-field">
               <div class="site-profile-field-label">{{ $t('pages.profile.language') }}</div>
-              <NInput 
-                v-model="form.language" 
-                :placeholder="$t('pages.profile.languagePlaceholder')" 
+              <NInput
+                v-model="form.language"
+                :placeholder="$t('pages.profile.languagePlaceholder')"
                 input="outline"
                 class="w-full"
                 size="md"
               />
             </div>
 
-            <!-- Socials -->
-            <div class="site-profile-field group flex flex-col gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-xl border transition-colors">
-              <div class="flex items-center justify-between">
-                <NIcon name="i-lucide-link" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
-                <NBadge v-if="socialsSummary !== 'No socials'" badge="soft-gray" size="sm">{{ socialsSummary }}</NBadge>
-              </div>
-              <div class="site-profile-field-label">{{ $t('pages.profile.socials') }}</div>
-              <NButton 
-                @click="openSocialsDialog" 
-                btn="outline-gray" 
-                size="md"
-                class="w-full justify-center"
-              >
-                <NIcon name="i-lucide-edit" />
-                <span class="ml-2">{{ $t('pages.profile.editSocials') }}</span>
-              </NButton>
-            </div>
-
-            <!-- Avatar URL -->
-            <div class="site-profile-field group flex flex-col gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-xl border transition-colors">
-              <div class="flex items-center justify-between">
-                <NIcon name="i-ph-image" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
-              </div>
-              <div class="site-profile-field-label">{{ $t('pages.profile.avatarUrl') }}</div>
-              <NInput 
-                v-model="form.avatar" 
-                :placeholder="$t('pages.profile.avatarUrlPlaceholder')" 
-                input="outline"
-                class="w-full"
-                size="md"
-              />
-            </div>
-
-            <!-- Biography (full-width) -->
-            <div class="site-profile-field md:col-span-2 lg:col-span-3 group flex flex-col gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-xl border transition-colors">
-              <div class="flex items-center justify-between">
-                <NIcon name="i-lucide-align-left" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
-              </div>
-              <div class="site-profile-field-label">{{ $t('pages.profile.biography') }}</div>
-              <NInput 
-                v-model="form.biography" 
-                input="outline" 
-                type="textarea" 
-                :rows="4"
-                class="w-full"
-                :placeholder="$t('pages.profile.biographyPlaceholder')"
-              />
-            </div>
-          </div>
-
-          <!-- Desktop action buttons -->
-          <div class="hidden md:flex items-center gap-3 mt-6 lg:mt-8">
-            <NButton 
-              :disabled="isSaving || !hasChanges" 
-              type="submit" 
-              btn="solid-black"
-              size="lg"
-            >
-              <NIcon :name="isSaving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': isSaving }" />
-              <span class="ml-2">{{ isSaving ? $t('common.saving') : $t('pages.profile.saveChanges') }}</span>
-            </NButton>
-            <NButton 
-              @click="resetForm" 
-              btn="outline-gray" 
-              size="lg"
-              :disabled="isSaving || !hasChanges"
-            >
-              {{ $t('pages.profile.resetChanges') }}
-            </NButton>
           </div>
         </form>
       </div>
@@ -275,46 +194,6 @@
         </div>
       </div>
 
-      <!-- Avatar actions drawer (mobile) -->
-      <NDrawer v-model:open="avatarDrawerOpen" placement="bottom">
-        <template #body>
-          <div class="p-5 space-y-3">
-            <div class="flex justify-between items-center mb-2">
-              <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $t('pages.profile.avatar') }}</div>
-              <NButton
-                @click="avatarDrawerOpen = false"
-                btn="ghost-gray"
-                size="md"
-                icon
-                label="i-ph-x-bold"
-              />
-            </div>
-
-            <NButton
-              @click="onAvatarChange"
-              btn="solid-black"
-              size="md"
-              class="w-full justify-center"
-              :disabled="avatarUploading"
-            >
-              <NIcon name="i-ph-image" />
-              <span class="ml-2">{{ avatarUploading ? $t('pages.profile.uploading') : displayAvatar ? $t('pages.profile.changeAvatar') : $t('pages.profile.addAvatar') }}</span>
-            </NButton>
-            <NButton
-              @click="onAvatarRemove"
-              btn="outline-gray"
-              color="danger"
-              size="md"
-              class="w-full justify-center"
-              :disabled="!displayAvatar"
-            >
-              <NIcon name="i-ph-trash" />
-              <span class="ml-2">{{ $t('pages.profile.removeAvatar') }}</span>
-            </NButton>
-          </div>
-        </template>
-      </NDrawer>
-      
       <!-- Socials editor dialog -->
       <NDialog v-model:open="socialsDialogOpen" :closeOnEsc="true">
           <NDialogContent class="max-w-full sm:max-w-2xl">
@@ -376,6 +255,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import { troncheAvatarUrl } from '~/utils/troncheAvatar'
 
 const router = useRouter()
 const { $t } = useI18n()
@@ -429,7 +309,6 @@ const avatarFileInput = ref<HTMLInputElement | null>(null)
 const avatarUploading = ref(false)
 const avatarUploadProgress = ref(0)
 const avatarDragOver = ref(false)
-const avatarDrawerOpen = ref(false)
   // Preview avatar shown immediately after upload until the session/user data refreshes
   const previewAvatar = ref<string | null>(null)
   // Delete avatar confirmation dialog state & loading indicator
@@ -485,10 +364,15 @@ const userInitials = computed(() => {
 })
 
 const displayAvatar = computed(() => {
-  // Prefer a temporary preview after upload/delete, otherwise use persisted user profile avatar
-  if (previewAvatar.value !== null) return previewAvatar.value
-  return userProfile.value?.avatar ?? ''
+  if (previewAvatar.value !== null && previewAvatar.value) return previewAvatar.value
+  return form.avatar || troncheAvatarUrl(form.name, 64)
 })
+
+const avatarMenuItems = computed(() => [
+  { label: `${$t('pages.profile.changeAvatar')} · Tronche`, leading: 'i-ph-sparkle', onSelect: useTroncheAvatar },
+  { label: $t('pages.profile.addAvatar'), leading: 'i-ph-upload-simple', disabled: avatarUploading.value, onSelect: triggerAvatarFileInput },
+  ...(form.avatar ? [{ label: $t('pages.profile.removeAvatar'), leading: 'i-ph-trash', onSelect: onAvatarRemove }] : []),
+])
 
 const nameTextarea = ref<HTMLTextAreaElement | null>(null)
 
@@ -525,25 +409,21 @@ const hasChanges = computed(() => {
 
 function resetForm() {
   Object.assign(form, initialForm.value)
+  previewAvatar.value = null
   errorMessage.value = ''
   successMessage.value = ''
 }
 
 const triggerAvatarFileInput = () => avatarFileInput.value?.click()
 
-function openAvatarDrawer() {
-  if (import.meta.client && window.innerWidth >= 768) return
-  avatarDrawerOpen.value = true
-}
-
-function onAvatarChange() {
-  avatarDrawerOpen.value = false
-  triggerAvatarFileInput()
-}
-
 function onAvatarRemove() {
-  avatarDrawerOpen.value = false
   openDeleteAvatarDialog()
+}
+
+function useTroncheAvatar() {
+  const avatar = troncheAvatarUrl(form.name, 64)
+  form.avatar = avatar
+  previewAvatar.value = avatar
 }
 
 const onAvatarDragOver = () => { avatarDragOver.value = true }
@@ -565,6 +445,8 @@ async function uploadAvatarWithUi(file: File) {
     if (res.success && res.image?.src) {
       // show a temporary preview while we refresh the session
       previewAvatar.value = res.image.src
+      form.avatar = res.image.src
+      if (userProfile.value) userProfile.value.avatar = res.image.src
       showSuccess('Avatar updated')
       await refreshSession()
       // Keep preview until userProfile watcher confirms the update
@@ -625,6 +507,7 @@ const deleteAvatar = async () => {
       // Set preview to empty string to immediately clear the image
       previewAvatar.value = ''
       form.avatar = ''
+      if (userProfile.value) userProfile.value.avatar = ''
       showSuccess(res.message || 'Avatar removed')
       await refreshSession()
       // The watch on userProfile will clear previewAvatar when the update is confirmed
@@ -770,6 +653,7 @@ async function onSubmit() {
   try {
     const res: any = await $fetch('/api/user/profile', { method: 'PUT', body: payload })
     showSuccess(res?.message || $t('pages.profile.updatedSuccess'))
+    if (userProfile.value) Object.assign(userProfile.value, payload)
     // refresh session data if available
     await refreshSession()
     initialForm.value = { ...form }

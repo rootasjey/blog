@@ -3,6 +3,8 @@
     "profile": {
       "heading": "Profile",
       "editAvatar": "Edit avatar",
+      "useTroncheAvatar": "Use Tronche avatar",
+      "uploadAvatar": "Upload an image",
       "namePlaceholder": "Your name",
       "jobTitlePlaceholder": "Add a job title",
       "bioPlaceholder": "Write a short biography about yourself\u2026",

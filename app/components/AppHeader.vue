@@ -240,15 +240,17 @@
             <template v-else>
               <NDropdownMenu :items="dropdownItems">
                 <NButton btn="~" rounded="full" class="site-interactive-hover site-header-avatar-trigger min-w-0 p-0">
-                  <img
-                    v-if="currentUser.value?.avatar"
-                    :src="currentUser.value.avatar"
+                  <NuxtImg
+                    v-if="currentAvatarProvider === 'hubblob' && !generatedAvatarFailed"
+                    provider="hubblob"
+                    :src="currentAvatarUrl"
                     :alt="currentUser.value?.name || $t('common.profile')"
                     class="site-header-avatar-image w-6 h-6 rounded-full"
+                    @error="generatedAvatarFailed = true"
                   />
                   <img
-                    v-else-if="generatedAvatarUrl && !generatedAvatarFailed"
-                    :src="generatedAvatarUrl"
+                    v-else-if="currentAvatarUrl && !generatedAvatarFailed"
+                    :src="currentAvatarUrl"
                     :alt="currentUser.value?.name || $t('common.profile')"
                     class="site-header-avatar-image w-6 h-6 rounded-full"
                     @error="generatedAvatarFailed = true"
@@ -262,6 +264,7 @@
             </NuxtLink>
 
             <NCombobox
+              v-if="!isLoggedIn"
               :items="themeOptions"
               by="value"
               :model-value="currentThemeObj"
@@ -281,10 +284,11 @@
                 </div>
               </template>
             </NCombobox>
-            <button type="button" @click="openSearch" class="site-interactive-hover site-header-search text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors" :aria-label="$t('nav.openSearch')">
+            <button v-if="!isLoggedIn" type="button" @click="openSearch" class="site-interactive-hover site-header-search text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors" :aria-label="$t('nav.openSearch')">
               <div class="i-ph-magnifying-glass w-3.5 h-3.5"></div>
             </button>
             <NCombobox
+              v-if="!isLoggedIn"
               :items="localeOptions"
               by="code"
               :model-value="currentLocaleObj"
@@ -319,6 +323,7 @@ import { useHeaderScroll } from '../composables/useHeaderScroll'
 import useGlobalSearch from '~/composables/useGlobalSearch'
 import useSiteSettings from '~/composables/useSiteSettings'
 import { localizedPath } from '~/utils/presentationPosts'
+import { troncheAvatarUrl } from '~/utils/troncheAvatar'
 
 type ThemePreference = 'light' | 'dark' | 'system'
 type ThemeMenuScope = 'desktop' | 'mobile'
@@ -333,13 +338,9 @@ const isLoggedIn = computed(() => (typeof loggedIn === 'boolean' ? loggedIn : lo
 const currentUser = computed(() => (isRef(user) ? (user.value as any) : user as any))
 const userInitial = computed(() => (currentUser.value?.name ? currentUser.value.name.charAt(0).toUpperCase() : ''))
 const generatedAvatarFailed = ref(false)
-const generatedAvatarUrl = computed(() => {
-  const name = currentUser.value?.name?.trim()
-  if (!name) return ''
-
-  return `https://tronche.cc/api/avatar/${encodeURIComponent(name)}?variant=marble&size=64`
-})
-watch(generatedAvatarUrl, () => { generatedAvatarFailed.value = false })
+const currentAvatarUrl = computed(() => currentUser.value?.avatar || troncheAvatarUrl(currentUser.value?.name || '', 64))
+const currentAvatarProvider = computed(() => currentAvatarUrl.value.startsWith('/users/') ? 'hubblob' : undefined)
+watch(currentAvatarUrl, () => { generatedAvatarFailed.value = false })
 const isAdmin = computed(() => isLoggedIn.value && currentUser.value?.role === 'admin')
 
 const isMobileMenuOpen = ref(false)
@@ -395,20 +396,6 @@ function onLocaleChange(item: { code: string } | null) {
   if (item?.code) $switchLocale(item.code)
 }
 
-const dropdownItems = computed(() => {
-  const items = [
-    { label: $t('common.settings'), onSelect: () => { router.push(localizedPath('/settings', $getLocale())) } },
-    { label: $t('common.profile'), onSelect: () => { router.push(localizedPath('/profile', $getLocale())) } },
-    { label: $t('common.signout'), onSelect: async () => { await handleLogout() } },
-  ]
-
-  if (isAdmin.value) {
-    items.unshift({ label: $t('nav.siteSocials'), onSelect: () => { siteSettingsDrawerOpen.value = true } })
-  }
-
-  return items
-})
-
 const themeOptions = computed(() => [
   { value: 'light', label: $ts('nav.light'), icon: 'i-ph-sun' },
   { value: 'dark', label: $ts('nav.dark'), icon: 'i-ph-moon' },
@@ -419,6 +406,38 @@ const currentThemeObj = computed(() => {
   const pref = colorMode.preference as ThemePreference
   return themeOptions.value.find(o => o.value === pref) || themeOptions.value[0]
 })
+
+const dropdownItems = computed(() => [
+  { label: $t('common.search'), leading: 'i-ph-magnifying-glass', onSelect: openSearch },
+  { class: 'site-header-user-menu-separator', _dropdownMenuSeparator: { class: 'site-header-user-menu-separator' } },
+  {
+    label: $t('common.language'),
+    leading: 'i-ph-globe',
+    items: localeOptions.value.map(locale => ({
+      label: locale.displayName,
+      trailing: locale.code === $getLocale() ? 'i-ph-check' : undefined,
+      onSelect: () => onLocaleChange(locale),
+    })),
+  },
+  {
+    label: $t('nav.theme'),
+    leading: 'i-ph-sun',
+    items: themeOptions.value.map(theme => ({
+      label: theme.label,
+      leading: theme.icon,
+      trailing: theme.value === currentThemeObj.value.value ? 'i-ph-check' : undefined,
+      onSelect: () => onThemeChange(theme),
+    })),
+  },
+  { class: 'site-header-user-menu-separator', _dropdownMenuSeparator: { class: 'site-header-user-menu-separator' } },
+  ...(isAdmin.value
+    ? [{ label: $t('nav.siteSocials'), leading: 'i-ph-share-network', onSelect: () => { siteSettingsDrawerOpen.value = true } }]
+    : []),
+  { label: $t('common.settings'), leading: 'i-ph-gear-six', onSelect: () => { router.push(localizedPath('/settings', $getLocale())) } },
+  { label: $t('common.profile'), leading: 'i-ph-user-circle', onSelect: () => { router.push(localizedPath('/profile', $getLocale())) } },
+  { class: 'site-header-user-menu-separator', _dropdownMenuSeparator: { class: 'site-header-user-menu-separator' } },
+  { label: $t('common.signout'), leading: 'i-ph-sign-out', onSelect: async () => { await handleLogout() } },
+])
 
 function onThemeChange(item: { value: string } | null) {
   if (item?.value) setThemePreference(item.value as ThemePreference)
