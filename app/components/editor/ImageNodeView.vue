@@ -88,13 +88,13 @@ watch(() => props.selected, (val) => { if (val) updateDimensions() })
 .image-figure.is-selected[contenteditable="true"] {
   outline: 2px solid var(--un-primary-color, #3b82f6);
   outline-offset: 4px;
-  border-radius: 0.75rem;
+  border-radius: var(--site-radius-inline-media);
 }
 
 .editor-image {
   max-width: 100%;
   height: auto;
-  border-radius: 0.75rem;
+  border-radius: var(--site-radius-inline-media);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   cursor: default;
 }

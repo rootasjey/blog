@@ -350,7 +350,7 @@ useHead({
     display: block;
     overflow: hidden;
     border: 1px solid var(--site-color-border);
-    border-radius: 10px;
+    border-radius: var(--site-radius-control);
   }
 
   .site-credits-media-image {

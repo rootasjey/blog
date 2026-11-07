@@ -77,7 +77,8 @@ async function copyLink() {
 /* Component and page styles moved from the global stylesheets. */
 .site-shell .site-post-share-actions { position: relative; display: flex; flex: 0 0 auto; align-items: center; gap: 6px; }
 .site-shell .site-post-share-actions > a,
-.site-shell .site-post-share-actions > button { position: relative; display: grid; width: 36px; height: 36px; box-sizing: border-box; padding: 4px; place-items: center; border: 1px solid color-mix(in srgb, var(--site-color-text) 12%, var(--site-color-background)); border-radius: 12px; background: transparent; color: var(--site-color-muted); cursor: pointer; font-size: 18px; text-decoration: none; transition: transform 180ms cubic-bezier(.2,.8,.2,1), background-color 150ms ease-in-out, border-color 150ms ease-in-out, color 150ms ease-in-out; }
+.site-shell .site-post-share-actions > a,
+.site-shell .site-post-share-actions > button { position: relative; display: grid; width: 36px; height: 36px; box-sizing: border-box; padding: 4px; place-items: center; border: 1px solid color-mix(in srgb, var(--site-color-text) 12%, var(--site-color-background)); border-radius: var(--site-radius-control); background: transparent; color: var(--site-color-muted); cursor: pointer; font-size: 18px; text-decoration: none; transition: transform 180ms cubic-bezier(.2,.8,.2,1), background-color 150ms ease-in-out, border-color 150ms ease-in-out, color 150ms ease-in-out; }
 .site-shell .site-post-share-actions > a > span:first-child,
 .site-shell .site-post-share-actions > button > span:first-child { font-size: 16px; }
 .site-shell .site-post-share-actions > a:hover,

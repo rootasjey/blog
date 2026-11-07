@@ -24,6 +24,25 @@
   --site-color-hover-background: #f2f2f2;
   --site-font-heading: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif;
   --site-font-body: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif;
+  --site-radius-icon: 8px;
+  --site-radius-tag: 10px;
+  --site-radius-control: 12px;
+  --site-radius-inline-media: 12px;
+  --site-radius-card: 16px;
+  --site-radius-panel: 20px;
+  --site-radius-cover: 26px;
+  --site-radius-pill: 9999px;
+  --site-space-1: 4px;
+  --site-space-2: 8px;
+  --site-space-3: 12px;
+  --site-space-4: 16px;
+  --site-space-6: 24px;
+  --site-space-8: 32px;
+  --site-space-12: 48px;
+  --site-space-16: 64px;
+  --site-motion-fast: 160ms;
+  --site-motion-standard: 220ms;
+  --site-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 :root.dark {
@@ -93,7 +112,7 @@ body {
   justify-content: center;
   padding: 0 14px;
   border: 1px solid var(--site-color-border);
-  border-radius: 12px;
+  border-radius: var(--site-radius-control);
   background: transparent;
   color: var(--site-color-heading);
   cursor: pointer;
@@ -167,7 +186,7 @@ body {
   box-sizing: border-box;
   padding: 4px 8px;
   border: 1px solid color-mix(in srgb, var(--post-tag-color) 35%, transparent);
-  border-radius: 10px;
+  border-radius: var(--site-radius-tag);
   color: var(--post-tag-color);
   font-size: 13px;
   font-weight: 500;
@@ -302,8 +321,9 @@ body {
   width: 100%;
   height: 56.25vw;
   max-height: 405px;
+  overflow: hidden;
   object-fit: cover;
-  border-radius: 24px;
+  border-radius: var(--site-radius-cover);
 }
 
 .site-shell .site-post > .border-b > .container > div,
@@ -333,7 +353,7 @@ body {
   margin: 40px auto 0;
   padding: 20px;
   border: 1px solid color-mix(in srgb, var(--site-color-text) 8%, var(--site-color-background));
-  border-radius: 16px;
+  border-radius: var(--site-radius-card);
   color: inherit;
   text-decoration: none;
   transition: border-color 200ms ease, background-color 200ms ease, color 200ms ease, opacity 200ms ease, transform 300ms cubic-bezier(0.4, 0, 0.2, 2.4);

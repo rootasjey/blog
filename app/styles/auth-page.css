@@ -21,7 +21,7 @@
     width: min(100%, 440px);
     padding: 32px;
     border: 1px solid var(--site-color-border);
-    border-radius: 20px;
+    border-radius: var(--site-radius-panel);
     background: var(--site-color-surface);
   }
 
@@ -73,7 +73,7 @@
     box-sizing: border-box;
     padding: 0 15px;
     border: 1px solid var(--site-color-border);
-    border-radius: 12px;
+    border-radius: var(--site-radius-control);
     background: var(--site-color-background);
     color: var(--site-color-heading);
     font: inherit;

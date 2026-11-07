@@ -168,7 +168,7 @@
 .site-shell .site-project-admin-image {
   overflow: hidden;
   aspect-ratio: 16 / 9;
-  border-radius: 16px;
+  border-radius: var(--site-radius-card);
   background: var(--site-color-hover-background);
 }
 
@@ -307,7 +307,7 @@
   grid-column: 1;
   grid-row: 1 / span 2;
   align-self: center;
-  border-radius: 16px;
+  border-radius: var(--site-radius-card);
   object-fit: cover;
 }
 

@@ -54,7 +54,7 @@ function formatDate(value: string) {
 /* Component and page styles moved from the global stylesheets. */
 .site-shell .site-demo-post-grid { display: grid; width: 720px; max-width: calc(100vw - 32px); grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin: 0 0 64px -10px; }
 .site-shell .site-demo-post { display: grid; min-width: 0; grid-template-columns: 100px minmax(0, 1fr); align-items: center; gap: 16px; color: var(--site-color-text); text-decoration: none; }
-.site-shell .site-demo-post-image { width: 100px; height: 100px; border-radius: 16px; object-fit: cover; }
+.site-shell .site-demo-post-image { width: 100px; height: 100px; border-radius: var(--site-radius-card); object-fit: cover; }
 .site-shell .site-demo-post-copy { display: grid; min-width: 0; gap: 6px; }
 .site-shell .site-demo-post-title { color: var(--site-color-heading); font-size: 18px; font-weight: 550; line-height: 24px; }
 .site-shell .site-demo-post-meta { display: flex; flex-wrap: wrap; gap: 12px; color: var(--site-color-muted); font-size: 13px; line-height: 20px; }

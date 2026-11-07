@@ -125,7 +125,7 @@ const projects = computed(() => {
 .site-shell .home-projects .site-home-project-image {
   overflow: hidden;
   aspect-ratio: 16 / 9;
-  border-radius: 16px;
+  border-radius: var(--site-radius-card);
   background: #2b2b30;
 }
 .site-shell .site-home-project-image img {
@@ -163,7 +163,7 @@ const projects = computed(() => {
 }
 .site-shell .site-home-project-skeleton {
   aspect-ratio: 4 / 3;
-  border-radius: 16px;
+  border-radius: var(--site-radius-card);
   background: var(--site-color-border);
 }
 @media (max-width: 1023px) {

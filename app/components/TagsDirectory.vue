@@ -212,7 +212,7 @@ function menuItems(tag: DirectoryTag) {
     place-items: center;
     box-sizing: border-box;
     border: 1px solid color-mix(in srgb, var(--tag-accent) 30%, transparent);
-    border-radius: 12px;
+    border-radius: var(--site-radius-control);
     background: color-mix(in srgb, var(--tag-accent) 5%, transparent);
     color: var(--tag-accent);
     font-size: 15px;

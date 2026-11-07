@@ -176,7 +176,7 @@ useHead({
     width: min(720px, calc(100% - 32px));
     margin: 80px auto 0;
     overflow: hidden;
-    border-radius: 24px;
+    border-radius: var(--site-radius-cover);
     aspect-ratio: 16 / 9;
   }
 
@@ -265,7 +265,7 @@ useHead({
 
     .site-about-cover {
       margin-top: 48px;
-      border-radius: 18px;
+      border-radius: var(--site-radius-card);
     }
 
     .site-about-content {

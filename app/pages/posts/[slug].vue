@@ -555,7 +555,7 @@ useHead({
   max-width: min(90vw, 1200px);
   max-height: 90vh;
   overflow: hidden;
-  border-radius: 1.5rem;
+  border-radius: var(--site-radius-cover);
   box-shadow: 0 25px 75px rgba(0, 0, 0, 0.45);
 }
 
@@ -578,12 +578,12 @@ useHead({
 
 /* Component and page styles moved from the global stylesheets. */
 .site-shell .site-preview-topic-nav .site-post-nav-spacer { display: block; width: 28px; height: 28px; flex: none; }
-.site-shell .site-preview-topic-nav > .site-post-nav-link { position: relative; display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid transparent; border-radius: 10px; color: var(--site-color-muted); transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease; }
+.site-shell .site-preview-topic-nav > .site-post-nav-link { position: relative; display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid transparent; border-radius: var(--site-radius-control); color: var(--site-color-muted); transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease; }
 .site-shell .site-preview-topic-nav > .site-post-nav-link:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--site-color-text) 12%, transparent); background: color-mix(in srgb, var(--site-color-text) 5%, transparent); color: var(--site-color-heading); }
 .site-shell .site-post-nav-link:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 3px; }
-.site-shell .site-preview-cover-trigger { display: block; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
+.site-shell .site-preview-cover-trigger { display: block; overflow: hidden; padding: 0; border: 0; border-radius: var(--site-radius-cover); background: transparent; cursor: zoom-in; }
 .site-shell .site-preview-cover-trigger:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 4px; }
-.site-shell .site-preview-cover-image { display: block; width: 100%; height: 100%; object-fit: cover; }
+.site-shell .site-preview-cover-image { display: block; width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
 .site-shell .site-post-author-heading { display: flex; width: fit-content; align-items: center; gap: 12px; color: var(--site-color-heading); font-size: 16px; font-weight: 550; }
 .site-shell .site-post-author-heading > img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
 .site-shell .site-post-author-bio { margin: 14px 0 0; color: var(--site-color-muted); font-size: 14px; line-height: 1.55; }

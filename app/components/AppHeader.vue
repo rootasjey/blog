@@ -638,10 +638,11 @@ function iconClass(platform?: string) {
 .site-shell .site-header-nav button,
 .site-shell .site-header-controls a { color: var(--site-color-text); font-weight: 400; text-decoration: none; }
 .site-shell .site-header-nav a,
-.site-shell .site-header-nav button { display: inline-flex; min-height: 30px; align-items: center; padding: 4px 7px; border: 1px solid transparent; border-radius: 10px; background: transparent; font-weight: 500; }
+.site-shell .site-header-nav a,
+.site-shell .site-header-nav button { display: inline-flex; min-height: 30px; align-items: center; padding: 4px 7px; border: 1px solid transparent; border-radius: var(--site-radius-control); background: transparent; font-weight: 500; }
 .site-shell .site-header-nav button { font: inherit; font-weight: 500; text-transform: capitalize; cursor: pointer; }
 .site-shell .site-header-pages { position: relative; }
-.site-shell .site-header-pages-menu { position: absolute; z-index: 30; top: calc(100% + 8px); left: 50%; display: grid; width: max-content; min-width: 160px; gap: 0; padding: 8px; border: 1px solid var(--site-color-border); border-radius: 10px; background: var(--site-color-background); box-shadow: 0 8px 24px rgb(0 0 0 / 8%); opacity: 0; visibility: hidden; pointer-events: none; transform: translate(-50%, 5px); transition: opacity 160ms ease, transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 180ms; }
+.site-shell .site-header-pages-menu { position: absolute; z-index: 30; top: calc(100% + 8px); left: 50%; display: grid; width: max-content; min-width: 160px; gap: 0; padding: 8px; border: 1px solid var(--site-color-border); border-radius: var(--site-radius-control); background: var(--site-color-background); box-shadow: 0 8px 24px rgb(0 0 0 / 8%); opacity: 0; visibility: hidden; pointer-events: none; transform: translate(-50%, 5px); transition: opacity 160ms ease, transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 180ms; }
 .site-shell .site-header-pages::after { position: absolute; top: 100%; left: calc(50% - 80px); width: 160px; height: 13px; content: ""; }
 .site-shell .site-header-pages:hover .site-header-pages-menu,
 .site-shell .site-header-pages:focus-within .site-header-pages-menu,

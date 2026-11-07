@@ -151,7 +151,7 @@ function recentTagColor(tag: string) {
 .site-shell .home-recent-posts .site-recent-header > a:nth-child(2) { display: none; }
 .site-shell .home-recent-posts article { min-width: 0; }
 .site-shell .home-recent-posts article > a { display: grid; grid-template-columns: 100px minmax(0, 1fr); align-items: center; gap: 16px; color: inherit; text-decoration: none; }
-.site-shell .home-recent-posts article > a > div:first-child { width: 100px; height: 100px; flex: 0 0 100px; margin: 0; border-radius: 16px; aspect-ratio: 1; transition: transform 300ms cubic-bezier(.4, 0, .21, 1.8); }
+.site-shell .home-recent-posts article > a > div:first-child { width: 100px; height: 100px; flex: 0 0 100px; margin: 0; border-radius: var(--site-radius-card); aspect-ratio: 1; transition: transform 300ms cubic-bezier(.4, 0, .21, 1.8); }
 .site-shell .home-recent-posts article:hover > a > div:first-child { transform: scale(1.03); }
 .site-shell .home-recent-content { display: flex; min-width: 0; flex-direction: column; justify-content: center; gap: 2px; padding-block: 6px; transition: transform 250ms ease; }
 .site-shell .home-recent-posts article:hover .home-recent-content { transform: translateX(2px); }
