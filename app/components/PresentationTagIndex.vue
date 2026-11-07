@@ -29,6 +29,7 @@
 
 <script setup lang="ts">
 import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
+import { postTagColor } from '~/utils/postTagColor'
 
 type TagItem = { name: string; count: number }
 
@@ -36,16 +37,6 @@ const props = defineProps<{ tags?: TagItem[] }>()
 
 const { $getLocale } = useI18n()
 const locale = computed(() => $getLocale() === 'fr' ? 'fr' : 'en')
-const tagAccents = [
-  '#a467d5',
-  '#ef716e',
-  '#f79c5f',
-  '#56b3fb',
-  '#36c96e',
-  '#e0529e',
-  '#85858d',
-  '#b8b8c0',
-]
 const tagIcons = ['triangle', 'heart', 'crown', 'bookmark'] as const
 const copy = computed(() => locale.value === 'fr'
   ? {
@@ -60,7 +51,7 @@ const tags = computed(() => {
   if (props.tags) {
     return props.tags.map((item, index) => ({
       ...item,
-      color: tagAccents[index % tagAccents.length],
+      color: postTagColor(item.name),
       icon: tagIcons[index],
     }))
   }
@@ -69,7 +60,7 @@ const tags = computed(() => {
   return [...new Set(posts.map(post => post.tag[locale.value]))].map((name, index) => ({
     name,
     count: posts.filter(post => post.tag[locale.value] === name).length,
-    color: tagAccents[index % tagAccents.length],
+    color: postTagColor(name),
     icon: tagIcons[index],
   }))
 })

@@ -16,6 +16,14 @@
   --site-color-heading: #171719;
   --site-color-muted: #606064;
   --site-color-accent: #5343df;
+  --site-color-tag-default: #5343df;
+  --site-color-tag-violet: #6d28d9;
+  --site-color-tag-coral: #c2413a;
+  --site-color-tag-amber: #b45309;
+  --site-color-tag-blue: #0369a1;
+  --site-color-tag-green: #15803d;
+  --site-color-tag-pink: #be185d;
+  --site-color-tag-neutral: #52525b;
   --site-color-border: #e5e5e7;
   --site-color-focus-ring: #737378;
   --site-color-input-focus-background: #f2f2f2;
@@ -52,7 +60,15 @@
   --site-color-text: #cdcdcd;
   --site-color-heading: #fff;
   --site-color-muted: #a0a0a4;
-  --site-color-accent: #5343df;
+  --site-color-accent: #a79bff;
+  --site-color-tag-default: #a79bff;
+  --site-color-tag-violet: #c4b5fd;
+  --site-color-tag-coral: #fca5a5;
+  --site-color-tag-amber: #fdba74;
+  --site-color-tag-blue: #7dd3fc;
+  --site-color-tag-green: #86efac;
+  --site-color-tag-pink: #f9a8d4;
+  --site-color-tag-neutral: #d4d4d8;
   --site-color-border: #39393c;
   --site-color-focus-ring: #858589;
   --site-color-input-focus-background: #343437;
@@ -157,7 +173,7 @@ body {
 .site-shell .site-preview-tag {
   color: var(--site-color-accent);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 0.2em;
 }
 
 .site-shell .site-preview-topic-nav {

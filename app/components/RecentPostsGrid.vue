@@ -43,7 +43,7 @@
             <div class="home-recent-content">
               <h3 class="line-clamp-2">{{ post.title }}</h3>
               <div class="home-recent-meta">
-                <span class="home-recent-tag" :style="{ color: recentTagColor(post.tag) }">{{ post.tag }}</span>
+                <span class="home-recent-tag" :style="{ color: postTagColor(post.tag) }">{{ post.tag }}</span>
                 <time>{{ post.date }}</time>
               </div>
             </div>
@@ -71,7 +71,7 @@
                 {{ post.name }}
               </h3>
               <div v-if="post.tags?.length || post.formattedDate" class="home-recent-meta">
-                <span v-if="post.tags?.length" class="home-recent-tag" :style="{ color: recentTagColor(post.tags[0].name) }">{{ post.tags[0].name }}</span>
+                <span v-if="post.tags?.length" class="home-recent-tag" :style="{ color: postTagColor(post.tags[0].name) }">{{ post.tags[0].name }}</span>
                 <time v-if="post.formattedDate">{{ post.formattedDate }}</time>
               </div>
             </div>
@@ -86,6 +86,7 @@
 import type { Post } from '~~/shared/types/post'
 import { EXCLUDED_TAGS } from '~/utils/tagConstants'
 import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
+import { postTagColor } from '~/utils/postTagColor'
 
 const { $t, $getLocale } = useI18n()
 const { enhancePost } = usePost()
@@ -110,22 +111,6 @@ const demoPosts = computed(() => {
     date: new Date(post.publishedAt).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' }),
   }))
 })
-
-const RECENT_TAG_COLORS: Record<string, string> = {
-  'minimalisme': '#a467d5',
-  'minimalism': '#a467d5',
-  'design': '#a467d5',
-  'études de cas': '#36c86b',
-  'case studies': '#36c86b',
-  'créativité': '#efaa68',
-  'creative': '#efaa68',
-  'culture numérique': '#77b9ec',
-  'digital culture': '#77b9ec',
-}
-
-function recentTagColor(tag: string) {
-  return RECENT_TAG_COLORS[tag.toLocaleLowerCase()] ?? 'var(--site-color-muted)'
-}
 
 </script>
 

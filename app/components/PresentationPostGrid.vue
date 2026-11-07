@@ -59,7 +59,7 @@ function formatDate(value: string) {
 .site-shell .site-demo-post-title { color: var(--site-color-heading); font-size: 18px; font-weight: 550; line-height: 24px; }
 .site-shell .site-demo-post-meta { display: flex; flex-wrap: wrap; gap: 12px; color: var(--site-color-muted); font-size: 13px; line-height: 20px; }
 .site-shell .site-demo-post-meta > span { color: var(--site-color-accent); }
-.site-shell .site-demo-post:hover .site-demo-post-title { text-decoration: underline; text-underline-offset: 3px; }
+.site-shell .site-demo-post:hover .site-demo-post-title { text-decoration: underline; text-underline-offset: 0.2em; }
 .site-shell .site-demo-post-empty { grid-column: 1 / -1; color: var(--site-color-muted); }
 .site-shell .site-demo-post-grid { width: 100%; max-width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 28px; margin: 0 0 64px; }
 .site-shell .site-demo-post { grid-template-columns: 128px minmax(0, 1fr); gap: 16px; }

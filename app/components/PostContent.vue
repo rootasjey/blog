@@ -58,7 +58,14 @@ function forwardEditor(ed: any) { emit('editor-ready', ed) }
 .site-shell .site-post-content .post-content h2,
 .site-shell .site-post-content .post-content h3 { color: var(--site-color-heading); font-family: var(--site-font-body); font-weight: 550; letter-spacing: 0; }
 .site-shell .site-post-content .post-content p { margin-block: 0 24px; font-size: 16px; line-height: 1.7; }
-.site-shell .site-post-content .post-content a { color: var(--site-color-accent); }
+.site-shell .site-post-content .post-content a {
+  color: var(--site-color-accent);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.2em;
+  transition: color 160ms ease;
+}
+.site-shell .site-post-content .post-content a:hover { color: var(--site-color-heading); }
 .site-shell .site-post-content .post-content blockquote { border-color: var(--site-color-accent); background: transparent; color: var(--site-color-muted); }
 .site-shell .site-post-content .post-content img { border-radius: var(--site-radius-inline-media); }
 .post-content figure.image-figure--full-bleed { width: 100vw; max-width: none; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); padding-inline: 16px; box-sizing: border-box; }

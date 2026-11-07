@@ -146,7 +146,14 @@ watch(() => props.content, (newContent) => {
 .post-content .ProseMirror h4 { @apply text-xl font-serif font-500 mt-6 mb-3; }
 .post-content .ProseMirror p { @apply text-base md:text-lg leading-relaxed mb-8 text-foreground/80 font-body font-400; }
 .post-content .ProseMirror ul[data-type="taskList"] p { @apply mb-0; line-height: 1rem; }
-.post-content .ProseMirror a { @apply text-primary hover:text-primary/80 underline decoration-2 underline-offset-2 transition-colors; }
+.post-content .ProseMirror a {
+  color: var(--site-color-accent);
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
+  transition: color 160ms ease;
+}
+.post-content .ProseMirror a:hover { color: var(--site-color-heading); }
 .post-content .ProseMirror strong { @apply font-800 text-foreground; }
 .post-content .ProseMirror em { @apply italic; }
 .post-content .ProseMirror blockquote { @apply border-l-4 border-primary/40 pl-6 py-4 my-8 italic text-lg md:text-xl text-slate-500 dark:text-slate-400 bg-muted/20 rounded-r-lg font-body font-400; }

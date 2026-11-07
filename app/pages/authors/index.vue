@@ -100,7 +100,7 @@ const authors = computed(() => data.value ?? [])
 .site-shell .site-author-index-name { color: var(--site-color-heading); font-size: 20px; font-weight: 550; line-height: 28px; }
 .site-shell .site-author-index-biography { color: var(--site-color-text); font-size: 16px; line-height: 24px; }
 .site-shell .site-author-index-count { color: var(--site-color-muted); font-size: 14px; line-height: 20px; }
-.site-shell .site-author-index-entry:hover .site-author-index-name { text-decoration: underline; text-underline-offset: 3px; }
+.site-shell .site-author-index-entry:hover .site-author-index-name { text-decoration: underline; text-underline-offset: 0.2em; }
 .site-shell .site-author-index-entry:focus-visible { outline: 2px solid var(--site-color-accent); outline-offset: 6px; border-radius: 3px; }
 .site-shell .site-author-index-message { color: var(--site-color-muted); }
 .site-shell .site-author-index-skeleton { width: 100%; height: 104px; border-radius: 16px; background: var(--site-color-hover-background); animation: pulse 1.5s ease-in-out infinite; }

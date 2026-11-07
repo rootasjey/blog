@@ -43,7 +43,7 @@ const headingId = useId()
 .site-shell .site-post-related-card > img { width: 96px; height: 80px; border-radius: 12px; object-fit: cover; }
 .site-shell .site-post-related-copy { display: grid; min-width: 0; gap: 6px; }
 .site-shell .site-post-related-title { color: var(--site-color-heading); font-size: 15px; font-weight: 550; line-height: 1.4; }
-.site-shell .site-post-related-card:hover .site-post-related-title { text-decoration: underline; text-underline-offset: 3px; }
+.site-shell .site-post-related-card:hover .site-post-related-title { text-decoration: underline; text-underline-offset: 0.2em; }
 .site-shell .site-post-related-meta { display: flex; flex-wrap: wrap; gap: 10px; color: var(--site-color-muted); font-size: 12px; line-height: 18px; }
 .site-shell .site-post-related-meta > span { color: var(--site-color-accent); }
 @media (max-width: 640px) {
