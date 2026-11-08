@@ -223,13 +223,13 @@
 
           <!-- Center: Navigation Links -->
           <nav class="site-header-nav">
-            <NuxtLink :to="localizedPath('/', $getLocale())" class="site-interactive-hover font-600 text-gray-700 dark:text-gray-100 hover:text-black dark:hover:text-white">
+            <NuxtLink :to="localizedPath('/', $getLocale())" class="site-interactive-hover font-600">
               {{ $t('nav.home') }}
             </NuxtLink>
-            <NuxtLink :to="localizedPath('/posts', $getLocale())" class="site-interactive-hover font-600 text-gray-700 dark:text-gray-100 hover:text-black dark:hover:text-white">
+            <NuxtLink :to="localizedPath('/posts', $getLocale())" class="site-interactive-hover font-600">
               {{ $t('nav.posts') }}
             </NuxtLink>
-            <NuxtLink :to="localizedPath('/projects', $getLocale())" class="site-interactive-hover font-600 text-gray-700 dark:text-gray-100 hover:text-black dark:hover:text-white">
+            <NuxtLink :to="localizedPath('/projects', $getLocale())" class="site-interactive-hover font-600">
               {{ $t('nav.projects') }}
             </NuxtLink>
             <div
