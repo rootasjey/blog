@@ -48,13 +48,12 @@
                     {{ post.description }}
                   </p>
                   <div class="flex flex-wrap items-center gap-3">
-                    <NuxtLink
-                      :to="post.slug ? `/posts/${post.slug}` : '#'"
+                    <span
                       class="inline-flex items-center gap-2 rounded-full bg-white text-gray-900 px-4 py-2 font-semibold shadow-lg shadow-black/20"
                     >
                       {{ $t('components.featuredHero.readArticle') }}
-                      <div class="i-ph-arrow-right-bold" />
-                    </NuxtLink>
+                      <span class="i-ph-arrow-right-bold" aria-hidden="true" />
+                    </span>
                     <div class="flex items-center gap-2 text-xs text-white/70">
                       <span v-if="post.readingTime">{{ post.readingTime }}</span>
                       <span v-if="post.readingTime && post.user?.name">•</span>
