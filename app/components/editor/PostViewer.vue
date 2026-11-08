@@ -169,11 +169,18 @@ watch(() => props.content, (newContent) => {
   line-height: 1.65;
 }
 .post-content .ProseMirror blockquote p { margin-bottom: 0; }
-.post-content .ProseMirror ul, .post-content .ProseMirror ol { @apply my-6 pl-6 space-y-2; }
+.post-content .ProseMirror ul:not([data-type="taskList"]), .post-content .ProseMirror ol { @apply my-6 pl-6; }
 .post-content .ProseMirror ul { @apply list-disc; }
 .post-content .ProseMirror ol { @apply list-decimal; }
 .post-content .ProseMirror li { @apply text-base md:text-lg leading-relaxed text-foreground/90 font-body font-400; }
-.post-content .ProseMirror li > p { @apply mb-2; }
+.post-content .ProseMirror ul:not([data-type="taskList"]) > li + li,
+.post-content .ProseMirror ol > li + li { margin-top: 12px; }
+.post-content .ProseMirror ul:not([data-type="taskList"]) li > p,
+.post-content .ProseMirror ol li > p { margin-block: 0; }
+.post-content .ProseMirror ul:not([data-type="taskList"]) li > ul,
+.post-content .ProseMirror ul:not([data-type="taskList"]) li > ol,
+.post-content .ProseMirror ol li > ul,
+.post-content .ProseMirror ol li > ol { margin-block: 12px 0; }
 .post-content .ProseMirror code { @apply bg-muted px-2 py-1 rounded text-sm font-mono; color: var(--site-color-accent); }
 .post-content .ProseMirror pre { @apply bg-muted rounded-lg overflow-x-auto my-6; }
 .post-content .ProseMirror pre code { @apply bg-transparent p-0 text-foreground; }

@@ -53,6 +53,14 @@ function forwardEditor(ed: any) { emit('editor-ready', ed) }
 .site-shell .site-post-content .post-content .ProseMirror h4 { margin-block: 28px 14px; color: var(--site-color-heading); font-family: var(--site-font-body); font-size: 16px; font-weight: 600; letter-spacing: 0; line-height: 1.5; }
 .site-shell .site-post-content .post-content .ProseMirror ul,
 .site-shell .site-post-content .post-content .ProseMirror ol { margin-block: 0 24px; padding-inline-start: 24px; }
+.site-shell .site-post-content .post-content .ProseMirror ul:not([data-type="taskList"]) > li + li,
+.site-shell .site-post-content .post-content .ProseMirror ol > li + li { margin-top: 12px; }
+.site-shell .site-post-content .post-content .ProseMirror ul:not([data-type="taskList"]) li > p,
+.site-shell .site-post-content .post-content .ProseMirror ol li > p { margin-block: 0; }
+.site-shell .site-post-content .post-content .ProseMirror ul:not([data-type="taskList"]) li > ul,
+.site-shell .site-post-content .post-content .ProseMirror ul:not([data-type="taskList"]) li > ol,
+.site-shell .site-post-content .post-content .ProseMirror ol li > ul,
+.site-shell .site-post-content .post-content .ProseMirror ol li > ol { margin-block: 12px 0; }
 .site-shell .site-post-content .post-content .ProseMirror blockquote {
   margin-block: 32px;
   padding: 20px 24px;
