@@ -52,44 +52,47 @@
     <div class="container mx-auto px-4 sm:px-6 max-w-7xl py-4 sm:py-6 md:py-10 pb-24 md:pb-10">
       <h1 class="site-profile-visually-hidden">{{ $t('pages.profile.heading') }}</h1>
       <section class="site-profile-identity animate-entrance" :aria-label="$t('pages.profile.heading')" style="animation-delay:80ms;">
-        <ProfileAvatarEditor
-          v-model:avatar="form.avatar"
-          :name="form.name"
-          @saved="onAvatarSaved"
-          @error="errorMessage = $event"
-        />
+        <div class="site-profile-identity-header">
+          <ProfileAvatarEditor
+            v-model:avatar="form.avatar"
+            :name="form.name"
+            @saved="onAvatarSaved"
+            @error="errorMessage = $event"
+          />
 
-        <div class="site-profile-identity-copy">
-          <textarea
-            ref="nameTextarea"
-            v-model="form.name"
-            rows="1"
-            class="site-profile-name w-full resize-none overflow-hidden leading-tight bg-transparent outline-none focus:outline-none"
-            :placeholder="$t('pages.profile.namePlaceholder')"
-            :aria-label="$t('pages.profile.namePlaceholder')"
-            @input="autoResizeName"
-          />
-          <NInput
-            v-model="form.job"
-            :placeholder="$t('pages.profile.jobTitlePlaceholder')"
-            :aria-label="$t('pages.profile.job')"
-            input="~"
-            class="site-profile-job"
-          />
-          <NInput
-            v-model="form.biography"
-            type="textarea"
-            :rows="2"
-            input="~"
-            class="site-profile-biography"
-            :aria-label="$t('pages.profile.biography')"
-            :placeholder="$t('pages.profile.bioPlaceholder')"
-          />
-          <NButton @click="openSocialsDialog" btn="ghost-gray" size="sm" class="site-profile-socials-action">
-            <NIcon name="i-lucide-link" />
-            <span class="ml-2">{{ $t('pages.profile.editSocials') }}</span>
-          </NButton>
+          <div class="site-profile-identity-copy">
+            <textarea
+              ref="nameTextarea"
+              v-model="form.name"
+              rows="1"
+              class="site-profile-name w-full resize-none overflow-hidden leading-tight bg-transparent outline-none focus:outline-none"
+              :placeholder="$t('pages.profile.namePlaceholder')"
+              :aria-label="$t('pages.profile.namePlaceholder')"
+              @input="autoResizeName"
+            />
+            <NInput
+              v-model="form.job"
+              :placeholder="$t('pages.profile.jobTitlePlaceholder')"
+              :aria-label="$t('pages.profile.job')"
+              input="~"
+              class="site-profile-job"
+            />
+          </div>
         </div>
+
+        <NInput
+          v-model="form.biography"
+          type="textarea"
+          :rows="2"
+          input="~"
+          class="site-profile-biography"
+          :aria-label="$t('pages.profile.biography')"
+          :placeholder="$t('pages.profile.bioPlaceholder')"
+        />
+        <NButton @click="openSocialsDialog" btn="ghost-gray" size="sm" class="site-profile-socials-action">
+          <NIcon name="i-lucide-link" />
+          <span class="ml-2">{{ $t('pages.profile.editSocials') }}</span>
+        </NButton>
       </section>
 
       <div class="site-profile-form-wrap">
