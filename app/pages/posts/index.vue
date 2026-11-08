@@ -61,6 +61,25 @@
         <NewPostDrawer v-model="isNewDrawerOpen" @created="onPostCreated" />
       </ClientOnly>
 
+      <div
+        v-if="isAdmin && activeTab === 'published' && publicTagFilter && visiblePosts.length"
+        class="site-admin-post-active-filter"
+        role="status"
+      >
+        <span class="site-admin-post-active-filter-label">
+          <NIcon name="i-ph-tag" aria-hidden="true" />
+          {{ $t('pages.posts.filteredByTag', { tag: publicTagFilter }) }}
+        </span>
+        <NuxtLink
+          :to="localizedPath('/posts', $getLocale())"
+          class="site-admin-post-active-filter-clear"
+          :aria-label="$t('pages.posts.clearTagFilter')"
+          :title="$t('pages.posts.clearTagFilter')"
+        >
+          <NIcon name="i-ph-x" aria-hidden="true" />
+        </NuxtLink>
+      </div>
+
       <PostsList
         v-if="isAdmin && activeTab === 'published' && posts && visiblePosts.length > 0"
         :posts="visiblePosts"

@@ -12,6 +12,8 @@
       "archived": "Archiv\u00e9s",
       "publishedHeading": "Le journal",
       "publishedDescription": "Essais, observations et notes de travail autour du design, de la création et des idées qui prennent forme.",
+      "filteredByTag": "Tag : {tag}",
+      "clearTagFilter": "Effacer le filtre de tag",
       "noMatchingPresentationPosts": "Aucun article de démonstration ne correspond à ce tag.",
       "draftsHeading": "Brouillons",
       "draftsDescription": "Ces articles ne sont pas visibles du public.",

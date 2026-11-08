@@ -4,6 +4,7 @@
 @import '@una-ui/preset/una.css' layer(unaui);
 @import './site-global.css';
 @import './admin-pages.css';
+@import './post-tag-filter.css';
 @import './post-editor.css';
 @import './post-metadata-editor.css';
 @import './admin-settings.css';
