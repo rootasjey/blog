@@ -11,8 +11,8 @@
             <span class="ml-2">{{ $t('common.back') }}</span>
           </NButton>
           
-          <div class="flex-1 text-center md:hidden">
-            <div class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ $t('pages.profile.heading') }}</div>
+          <div class="flex-1 text-center">
+            <div class="text-base font-semibold text-gray-900 dark:text-gray-100 lowercase">{{ $t('pages.profile.heading') }}</div>
           </div>
           
           <div class="flex items-center gap-2">
