@@ -217,7 +217,7 @@
 }
 
 .site-shell .site-post-editor .post-content--editor .ProseMirror {
-  min-height: 440px;
+  min-height: 160px;
   padding-block: 0 28px;
 }
 
