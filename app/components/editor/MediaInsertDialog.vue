@@ -22,7 +22,8 @@
 
         <!-- Upload tab -->
         <div v-if="activeTab === 'upload'" class="upload-section">
-          <div 
+          <button
+            type="button"
             :class="['drop-zone', isDragging && 'dragging']"
             @drop.prevent="handleDrop"
             @dragover.prevent="isDragging = true"
@@ -31,16 +32,18 @@
           >
             <span class="i-lucide-file-audio text-4xl mb-2" v-if="mediaType === 'audio'" />
             <span class="i-lucide-film text-4xl mb-2" v-else />
-            <p class="text-sm">Drag & drop {{ mediaType === 'audio' ? 'audio' : 'video' }} file here</p>
-            <p class="text-xs text-muted mt-1">or click to browse</p>
-            <input 
-              ref="fileInput" 
-              type="file" 
-              :accept="mediaType === 'audio' ? 'audio/*' : 'video/*'" 
-              class="hidden" 
-              @change="handleFileSelected"
-            />
-          </div>
+            <span class="text-sm">Drag & drop {{ mediaType === 'audio' ? 'audio' : 'video' }} file here</span>
+            <span class="text-xs text-muted mt-1">or click to browse</span>
+          </button>
+          <input
+            ref="fileInput"
+            type="file"
+            :accept="mediaType === 'audio' ? 'audio/*' : 'video/*'"
+            class="sr-only"
+            tabindex="-1"
+            aria-hidden="true"
+            @change="handleFileSelected"
+          />
         </div>
 
         <!-- Link tab -->
@@ -145,13 +148,13 @@ function insertLink() {
   border: none;
   border-bottom: 2px solid transparent;
   cursor: pointer;
-  color: var(--un-foreground-muted, #64748b);
-  transition: all 0.2s;
+  color: var(--site-color-muted);
+  transition: color 160ms ease, border-color 160ms ease;
 }
 
 .tab.active {
-  color: var(--un-primary, #3b82f6);
-  border-bottom-color: var(--un-primary, #3b82f6);
+  color: var(--site-color-accent);
+  border-bottom-color: var(--site-color-accent);
 }
 
 .drop-zone {
@@ -160,26 +163,26 @@ function insertLink() {
   align-items: center;
   justify-content: center;
   padding: 3rem 2rem;
-  border: 2px dashed var(--un-border, #e2e8f0);
-  border-radius: 0.5rem;
-  background: var(--un-surface, #f8fafc);
+  border: 2px dashed var(--site-color-border);
+  border-radius: var(--site-radius-control);
+  background: var(--site-color-background);
+  color: var(--site-color-text);
+  font: inherit;
+  text-align: center;
+  width: 100%;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.drop-zone:focus-visible {
+  outline: 2px solid var(--site-color-focus-ring);
+  outline-offset: 3px;
 }
 
 .drop-zone:hover,
 .drop-zone.dragging {
-  border-color: var(--un-primary, #3b82f6);
-  background: var(--un-primary-50, #eff6ff);
-}
-
-.dark .drop-zone {
-  background: var(--un-surface, #1e293b);
-}
-
-.dark .drop-zone:hover,
-.dark .drop-zone.dragging {
-  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--site-color-accent);
+  background: color-mix(in srgb, var(--site-color-accent) 8%, var(--site-color-background));
 }
 
 .link-section {

@@ -9,9 +9,12 @@ export default defineEventHandler(async (event) => {
     if (!user) return apiError(event, 404, 'NOT_FOUND', 'User not found')
 
     if (user.avatar) {
-      const folderPrefix = user.avatar.replace(/^\/+/, '').replace(/\/[^\/]+$/, '')
-      const blobList = await blob.list({ prefix: folderPrefix })
-      for (const b of blobList.blobs) await blob.del(b.pathname)
+      const avatarFolder = `users/${session.user.id}/avatar/`
+      const avatarPath = user.avatar.replace(/^\/+/, '')
+      if (avatarPath.startsWith(avatarFolder)) {
+        const blobList = await blob.list({ prefix: avatarFolder })
+        for (const b of blobList.blobs) await blob.del(b.pathname)
+      }
     }
 
     await db.update(schema.users).set({ avatar: '', updated_at: new Date().toISOString() }).where(eq(schema.users.id, session.user.id)).run()

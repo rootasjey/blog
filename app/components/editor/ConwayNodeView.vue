@@ -349,7 +349,7 @@ const selected = computed(() => !!props.selected)
 }
 
 .conway-figure.is-selected {
-  outline: 2px solid var(--un-primary-color, #3b82f6);
+  outline: 2px solid var(--site-color-focus-ring, #737378);
 }
 
 .conway-controls {
@@ -428,9 +428,13 @@ const selected = computed(() => !!props.selected)
   transition: transform .12s ease, background .12s ease, color .12s ease;
 }
 
-.spin-btn:hover { transform: translateY(-1px); background: rgba(59,130,246,0.04); color: var(--un-primary-color, #3b82f6); }
+.spin-btn:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--site-color-accent) 6%, var(--site-color-background)); color: var(--site-color-accent); }
 
-.spin-btn:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(59,130,246,0.12); border-radius: 9999px; }
+.spin-btn:focus-visible {
+  outline: 2px solid var(--site-color-focus-ring);
+  outline-offset: 2px;
+  border-radius: 9999px;
+}
 
 .spin-btn svg { width: 14px; height: 14px; }
 

@@ -1,1 +1,15 @@
-{}
+{
+  "pages": {
+    "profile": {
+      "avatarUpdated": "Avatar aktualisiert",
+      "avatarRemoved": "Avatar entfernt",
+      "avatarUploadFailed": "Avatar konnte nicht hochgeladen werden",
+      "avatarUploadNetworkError": "Netzwerkfehler beim Hochladen des Avatars",
+      "avatarUploadCanceled": "Avatar-Upload abgebrochen",
+      "avatarUploadTimedOut": "Zeitüberschreitung beim Avatar-Upload",
+      "avatarRemoveFailed": "Avatar konnte nicht entfernt werden",
+      "socialsUpdated": "Social-Media-Links aktualisiert",
+      "socialsUpdateFailed": "Social-Media-Links konnten nicht aktualisiert werden"
+    }
+  }
+}

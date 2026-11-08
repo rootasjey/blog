@@ -18,10 +18,13 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const folderPrefix = user.avatar.replace(/^\/+/, '').replace(/\/[^\/]+$/, '')
-    const blobList = await hb.list({ prefix: folderPrefix })
-    for (const b of blobList.blobs) {
-      await hb.del(b.pathname)
+    const avatarFolder = `users/${userId}/avatar/`
+    const avatarPath = user.avatar.replace(/^\/+/, '')
+    if (avatarPath.startsWith(avatarFolder)) {
+      const blobList = await hb.list({ prefix: avatarFolder })
+      for (const b of blobList.blobs) {
+        await hb.del(b.pathname)
+      }
     }
 
     await database.update(schema.users).set({ avatar: '', updated_at: new Date().toISOString() }).where(eq(schema.users.id, userId)).run()

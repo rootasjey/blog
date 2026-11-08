@@ -52,42 +52,12 @@
     <div class="container mx-auto px-4 sm:px-6 max-w-7xl py-4 sm:py-6 md:py-10 pb-24 md:pb-10">
       <h1 class="site-profile-visually-hidden">{{ $t('pages.profile.heading') }}</h1>
       <section class="site-profile-identity animate-entrance" :aria-label="$t('pages.profile.heading')" style="animation-delay:80ms;">
-        <div class="site-profile-avatar-wrap">
-          <NDropdownMenu :items="avatarMenuItems" :_dropdownMenuContent="{ side: 'right', align: 'center', sideOffset: 8 }">
-            <button
-              type="button"
-              class="site-profile-avatar relative group overflow-hidden flex items-center justify-center transition-all duration-300 focus:outline-none"
-              :class="avatarDragOver ? 'site-profile-avatar--dragging scale-105' : ''"
-              @dragover.prevent="onAvatarDragOver"
-              @dragleave.prevent="onAvatarDragLeave"
-              @drop.prevent="onAvatarDrop"
-              :aria-label="$t('pages.profile.editAvatar')"
-              :aria-busy="avatarUploading"
-            >
-              <NuxtImg
-                v-if="displayAvatar.startsWith('/users/')"
-                provider="hubblob"
-                :src="displayAvatar"
-                :alt="form.name"
-                class="object-cover w-full h-full"
-              />
-              <img
-                v-else-if="displayAvatar"
-                :src="displayAvatar"
-                :alt="form.name"
-                class="object-cover w-full h-full"
-              />
-              <div v-else class="site-profile-avatar-fallback w-full h-full flex items-center justify-center font-semibold">
-                {{ userInitials }}
-              </div>
-              <div v-if="avatarUploading" class="absolute left-0 bottom-0 w-full h-1.5 bg-black/20 overflow-hidden">
-                <div class="site-profile-progress h-full transition-all duration-300" :style="{ width: avatarUploadProgress + '%' }" />
-              </div>
-            </button>
-          </NDropdownMenu>
-          <input ref="avatarFileInput" type="file" accept="image/*" class="hidden" @change="handleAvatarFileChange" />
-          <span class="site-profile-avatar-hint">{{ $t('pages.profile.editAvatar') }}</span>
-        </div>
+        <ProfileAvatarEditor
+          v-model:avatar="form.avatar"
+          :name="form.name"
+          @saved="onAvatarSaved"
+          @error="errorMessage = $event"
+        />
 
         <div class="site-profile-identity-copy">
           <textarea
@@ -206,28 +176,6 @@
         @save="saveSocialsDialog"
       />
 
-      <!-- Confirm delete avatar dialog -->
-      <NDialog v-model:open="deleteAvatarDialogOpen" :closeOnEsc="true">
-        <NDialogContent class="max-w-sm">
-          <NDialogHeader>
-            <NDialogTitle>{{ $t('pages.profile.removeAvatarTitle') }}</NDialogTitle>
-          </NDialogHeader>
-
-          <div class="p-6 text-sm text-gray-600 dark:text-gray-400">{{ $t('pages.profile.removeAvatarConfirm') }}</div>
-
-          <NDialogFooter class="flex items-center gap-2 justify-end p-0">
-            <div class="flex items-center gap-2">
-              <NButton @click="deleteAvatarDialogOpen = false" btn="ghost-gray" size="xs" :disabled="isDeletingAvatar">{{ $t('common.cancel') }}</NButton>
-            </div>
-            <div class="ml-auto flex items-center gap-2">
-              <NButton @click="confirmDeleteAvatar" :disabled="isDeletingAvatar" btn="soft-pink" size="xs" color="danger">
-                <NIcon :name="isDeletingAvatar ? 'i-lucide-loader' : 'i-lucide-trash'" :class="{ 'animate-spin': isDeletingAvatar }" />
-                <span class="ml-2">{{ $t('common.remove') }}</span>
-              </NButton>
-            </div>
-          </NDialogFooter>
-        </NDialogContent>
-      </NDialog>
     </div>
   </section>
 </template>
@@ -235,7 +183,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { troncheAvatarUrl } from '~/utils/troncheAvatar'
 
 const router = useRouter()
 const { $t } = useI18n()
@@ -295,31 +242,6 @@ const errorMessage = ref('')
 const successMessage = ref('')
 // Auto-hide timeout for success messages
 const successTimeout = ref<number | null>(null)
-const avatarFileInput = ref<HTMLInputElement | null>(null)
-const avatarUploading = ref(false)
-const avatarUploadProgress = ref(0)
-const avatarDragOver = ref(false)
-  // Preview avatar shown immediately after upload until the session/user data refreshes
-  const previewAvatar = ref<string | null>(null)
-  // Delete avatar confirmation dialog state & loading indicator
-  const deleteAvatarDialogOpen = ref(false)
-  const isDeletingAvatar = ref(false)
-
-  function openDeleteAvatarDialog() { deleteAvatarDialogOpen.value = true }
-
-  async function confirmDeleteAvatar() {
-    isDeletingAvatar.value = true
-    errorMessage.value = ''
-    try {
-      await deleteAvatar()
-      // close dialog on success
-      deleteAvatarDialogOpen.value = false
-    } catch (e) {
-      // deleteAvatar already sets errorMessage
-    } finally {
-      isDeletingAvatar.value = false
-    }
-  }
 
 watch(userProfile, (val) => {
   if (!val) return
@@ -332,13 +254,6 @@ watch(userProfile, (val) => {
   form.language = val.language ?? ''
   form.socials = typeof val.socials === 'string' ? val.socials : JSON.stringify(val.socials ?? '')
   initialForm.value = { ...form }
-  // Clear preview avatar once the actual user profile has updated
-  if (previewAvatar.value !== null) {
-    // If the persisted avatar matches the preview, or the preview was set to empty string and the persisted avatar is now absent, clear the preview
-    if (val.avatar === previewAvatar.value || (previewAvatar.value === '' && !val.avatar)) {
-      previewAvatar.value = null
-    }
-  }
   // Ensure textarea is sized after we update the form value
   nextTick(() => autoResizeName(nameTextarea.value))
 }, { immediate: true })
@@ -347,22 +262,6 @@ watch(userProfile, (val) => {
 if (error?.value?.statusCode === 401) {
   router.push('/signin')
 }
-
-const userInitials = computed(() => {
-  const n = userProfile.value?.name ?? ''
-  return n ? n.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase() : ''
-})
-
-const displayAvatar = computed(() => {
-  if (previewAvatar.value !== null && previewAvatar.value) return previewAvatar.value
-  return form.avatar || troncheAvatarUrl(form.name, 64)
-})
-
-const avatarMenuItems = computed(() => [
-  { label: `${$t('pages.profile.changeAvatar')} · Tronche`, leading: 'i-ph-sparkle', onSelect: useTroncheAvatar },
-  { label: $t('pages.profile.addAvatar'), leading: 'i-ph-upload-simple', disabled: avatarUploading.value, onSelect: triggerAvatarFileInput },
-  ...(form.avatar ? [{ label: $t('pages.profile.removeAvatar'), leading: 'i-ph-trash', onSelect: onAvatarRemove }] : []),
-])
 
 const nameTextarea = ref<HTMLTextAreaElement | null>(null)
 
@@ -399,119 +298,17 @@ const hasChanges = computed(() => {
 
 function resetForm() {
   Object.assign(form, initialForm.value)
-  previewAvatar.value = null
   errorMessage.value = ''
   successMessage.value = ''
 }
 
-const triggerAvatarFileInput = () => avatarFileInput.value?.click()
-
-function onAvatarRemove() {
-  openDeleteAvatarDialog()
-}
-
-function useTroncheAvatar() {
-  const avatar = troncheAvatarUrl(form.name, 64)
+async function onAvatarSaved(avatar: string, message: string) {
   form.avatar = avatar
-  previewAvatar.value = avatar
-}
-
-const onAvatarDragOver = () => { avatarDragOver.value = true }
-const onAvatarDragLeave = () => { avatarDragOver.value = false }
-
-const onAvatarDrop = async (event: DragEvent) => {
-  avatarDragOver.value = false
-  const file = event.dataTransfer?.files?.[0]
-  if (!file) return
-  await uploadAvatarWithUi(file)
-}
-
-async function uploadAvatarWithUi(file: File) {
-  avatarUploading.value = true
-  avatarUploadProgress.value = 0
+  if (userProfile.value) userProfile.value.avatar = avatar
   errorMessage.value = ''
-  try {
-    const res: any = await uploadAvatar(file)
-    if (res.success && res.image?.src) {
-      // show a temporary preview while we refresh the session
-      previewAvatar.value = res.image.src
-      form.avatar = res.image.src
-      if (userProfile.value) userProfile.value.avatar = res.image.src
-      showSuccess('Avatar updated')
-      await refreshSession()
-      // Keep preview until userProfile watcher confirms the update
-      // The watch on userProfile will clear previewAvatar when val.avatar matches
-      initialForm.value = { ...form }
-    }
-  } catch (e: any) {
-    errorMessage.value = e?.message || e?.data?.message || 'Failed to upload avatar'
-    console.error('Failed to upload avatar:', e)
-  } finally {
-    avatarUploading.value = false
-    avatarUploadProgress.value = 0
-  }
-}
-
-const uploadAvatar = (file: File) => {
-  return new Promise<any>((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
-    xhr.open('POST', `/api/user/avatar`)
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState === 4) {
-        try {
-          const json = JSON.parse(xhr.responseText || '{}')
-          if (xhr.status >= 200 && xhr.status < 300) resolve(json)
-          else reject(json)
-        } catch (e) {
-          reject(e)
-        }
-      }
-    }
-    xhr.upload.onprogress = (evt) => {
-      if (evt.lengthComputable) {
-        avatarUploadProgress.value = Math.round((evt.loaded / evt.total) * 100)
-      }
-    }
-    xhr.onerror = () => reject(new Error('Network error'))
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('fileName', file.name)
-    formData.append('type', file.type)
-    xhr.send(formData)
-  })
-}
-
-const handleAvatarFileChange = async (event: Event) => {
-  const input = event.target as HTMLInputElement
-  if (!input?.files?.length) return
-  const file = input.files[0]
-  if (!file) return
-  await uploadAvatarWithUi(file)
-  input.value = ''
-}
-
-const deleteAvatar = async () => {
-  try {
-    const res: any = await $fetch('/api/user/avatar', { method: 'DELETE' })
-    if (res.success) {
-      // Set preview to empty string to immediately clear the image
-      previewAvatar.value = ''
-      form.avatar = ''
-      if (userProfile.value) userProfile.value.avatar = ''
-      showSuccess(res.message || 'Avatar removed')
-      await refreshSession()
-      // The watch on userProfile will clear previewAvatar when the update is confirmed
-      initialForm.value = { ...form }
-      return res
-    }
-    // treat non-success payloads as errors
-    const err = new Error(res?.message || 'Failed to remove avatar')
-    errorMessage.value = res?.message || 'Failed to remove avatar'
-    throw err
-  } catch (e: any) {
-    errorMessage.value = e?.data?.message || e?.message || 'Failed to remove avatar'
-    throw e
-  }
+  showSuccess(message)
+  await refreshSession()
+  initialForm.value = { ...form }
 }
 
 const socialsDialogOpen = ref(false)
@@ -528,14 +325,15 @@ async function saveSocialsDialog(socials: string) {
   successMessage.value = ''
   try {
     const payload: any = { socials: form.socials }
-    const res: any = await $fetch('/api/user/profile', { method: 'PUT', body: payload })
-    showSuccess(res?.message || 'Socials updated')
+    await $fetch('/api/user/profile', { method: 'PUT', body: payload })
+    showSuccess($t('pages.profile.socialsUpdated'))
     // Refresh session/profile data
     await refreshSession()
     initialForm.value = { ...form }
     socialsDialogOpen.value = false
-  } catch (e: any) {
-    errorMessage.value = e?.statusMessage || e?.data?.message || 'Failed to update socials'
+  } catch (error: any) {
+    console.error('Failed to update social links:', error)
+    errorMessage.value = $t('pages.profile.socialsUpdateFailed')
     // keep dialog open so user can retry
   } finally {
     socialsSaving.value = false
@@ -573,14 +371,15 @@ async function onSubmit() {
   }
 
   try {
-    const res: any = await $fetch('/api/user/profile', { method: 'PUT', body: payload })
-    showSuccess(res?.message || $t('pages.profile.updatedSuccess'))
+    await $fetch('/api/user/profile', { method: 'PUT', body: payload })
+    showSuccess($t('pages.profile.updatedSuccess'))
     if (userProfile.value) Object.assign(userProfile.value, payload)
     // refresh session data if available
     await refreshSession()
     initialForm.value = { ...form }
-  } catch (e: any) {
-    errorMessage.value = e?.statusMessage || e?.data?.message || $t('pages.profile.updateFailed')
+  } catch (error: any) {
+    console.error('Failed to update profile:', error)
+    errorMessage.value = $t('pages.profile.updateFailed')
   } finally {
     isSaving.value = false
   }

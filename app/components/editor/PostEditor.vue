@@ -8,7 +8,7 @@
           <div class="flex-1">
             <div class="text-xs truncate">{{ u.name }}</div>
             <div class="h-2 bg-muted rounded mt-1 overflow-hidden">
-              <div class="h-full bg-primary transition-all" :style="{ width: u.progress + '%' }"></div>
+              <div class="h-full bg-[var(--site-color-accent)] transition-all" :style="{ width: u.progress + '%' }"></div>
             </div>
           </div>
           <div class="text-xs w-10 text-right">{{ u.progress }}%</div>
@@ -27,7 +27,7 @@
           <div class="flex-1">
             <div class="text-xs truncate">{{ u.name }}</div>
             <div class="h-2 bg-muted rounded mt-1 overflow-hidden">
-              <div class="h-full bg-primary transition-all" :style="{ width: u.progress + '%' }"></div>
+              <div class="h-full bg-[var(--site-color-accent)] transition-all" :style="{ width: u.progress + '%' }"></div>
             </div>
           </div>
           <div class="text-xs w-10 text-right">{{ u.progress }}%</div>
@@ -46,7 +46,7 @@
           <div class="flex-1">
             <div class="text-xs truncate">{{ u.name }}</div>
             <div class="h-2 bg-muted rounded mt-1 overflow-hidden">
-              <div class="h-full bg-primary transition-all" :style="{ width: u.progress + '%' }"></div>
+              <div class="h-full bg-[var(--site-color-accent)] transition-all" :style="{ width: u.progress + '%' }"></div>
             </div>
           </div>
           <div class="text-xs w-10 text-right">{{ u.progress }}%</div>

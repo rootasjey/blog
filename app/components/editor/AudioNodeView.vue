@@ -36,7 +36,7 @@
 
             <NTooltip :show-arrow="true" :disable-closing-trigger="true" :delay-duration="0" :skip-delay-duration="0">
               <button class="icon-btn" @click.prevent="toggleLoop" :aria-pressed="loop" :title="loop ? 'Disable Loop' : 'Enable Loop'">
-                <NIcon name="i-lucide-infinity" :class="{ 'text-blue-500': loop, 'text-muted': !loop }" />
+                <NIcon name="i-lucide-infinity" :class="{ 'text-[var(--site-color-accent)]': loop, 'text-muted': !loop }" />
               </button>
               <template #content>
                 <span class="font-600 font-size-3">{{ loop ? 'Loop Enabled' : 'Loop Disabled' }}</span>

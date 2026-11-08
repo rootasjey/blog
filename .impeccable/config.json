@@ -10,7 +10,16 @@
           "app/components/editor/PostViewer.vue"
         ],
         "createdAt": "2026-11-07T22:16:42.023Z",
-        "reason": "false positive: the flagged blockquote rule explicitly sets border: 0 and renders no side-tab accent"
+        "reason": "False positive: the flagged ProseMirror blockquote selector explicitly sets border: 0; no side-tab accent border is present."
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "app/components/TagsDrawer.vue"
+        ],
+        "createdAt": "2026-11-08T06:05:19.238Z",
+        "reason": "Codex review: unrendered legacy component; rg -n \"TagsDrawer\" app finds no imports or template references, so this border is not part of the site UI."
       }
     ]
   }

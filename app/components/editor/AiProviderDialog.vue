@@ -20,7 +20,7 @@
               <div class="text-sm text-slate-600 dark:text-slate-400">Fast defaults; translation/summarize stay on Cloudflare.</div>
             </div>
           </div>
-          <span v-if="internalProvider === 'cloudflare'" class="i-ph-check-fat text-primary" />
+          <span v-if="internalProvider === 'cloudflare'" class="provider-check i-ph-check-fat" />
         </button>
 
         <button
@@ -36,7 +36,7 @@
               <div class="text-sm text-slate-600 dark:text-slate-400">Community models via OpenRouter (streaming completions).</div>
             </div>
           </div>
-          <span v-if="internalProvider === 'openrouter'" class="i-ph-check-fat text-primary" />
+          <span v-if="internalProvider === 'openrouter'" class="provider-check i-ph-check-fat" />
         </button>
       </div>
 
@@ -46,7 +46,7 @@
         </NuxtLink>
         <div class="flex items-center gap-2">
           <NButton btn="ghost-gray" size="sm" @click="emit('update:open', false)">Cancel</NButton>
-          <NButton btn="solid-blue" size="sm" class="min-w-24 font-600" @click="confirm">Save</NButton>
+          <NButton btn="solid-black" size="sm" class="min-w-24 font-600" @click="confirm">Save</NButton>
         </div>
       </NDialogFooter>
     </NDialogContent>
@@ -85,10 +85,19 @@ function confirm() {
 @layer components {
 
 .provider-tile {
-  @apply flex items-center justify-between gap-3 w-full rounded-xl border border-border bg-background px-4 py-3 text-left transition-all hover:border-primary/40 hover:shadow-sm;
+  @apply flex items-center justify-between gap-3 w-full rounded-xl border border-border bg-background px-4 py-3 text-left hover:shadow-sm;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.provider-tile:hover,
+.provider-tile:focus-visible {
+  border-color: color-mix(in srgb, var(--site-color-accent) 45%, var(--site-color-border));
 }
 .provider-tile.is-active {
-  @apply border-primary/60 shadow-sm;
+  border-color: var(--site-color-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--site-color-accent) 35%, transparent);
+}
+.provider-check {
+  color: var(--site-color-accent);
 }
 }
 </style>

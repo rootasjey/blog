@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { TAG_ICON_OPTIONS } from './shared/constants/tag-icons'
 
 const nitroPreset = process.env.NITRO_PRESET
-  || (process.env.NODE_ENV === 'development' ? 'node-server' : 'cloudflare_module')
+  || (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test' ? 'node-server' : 'cloudflare_module')
 const usesCloudflarePreset = nitroPreset === 'cloudflare_module'
 
 export default defineNuxtConfig({

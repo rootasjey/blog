@@ -39,7 +39,16 @@
       "emailValid": "Entrez un email valide",
       "socialsJson": "Les r\u00e9seaux doivent \u00eatre un JSON valide",
       "updatedSuccess": "Profil mis \u00e0 jour avec succ\u00e8s",
-      "updateFailed": "\u00c9chec de la mise \u00e0 jour du profil"
+      "updateFailed": "\u00c9chec de la mise \u00e0 jour du profil",
+      "avatarUpdated": "Avatar mis \u00e0 jour",
+      "avatarRemoved": "Avatar supprim\u00e9",
+      "avatarUploadFailed": "Impossible d'importer l'avatar",
+      "avatarUploadNetworkError": "Erreur r\u00e9seau pendant l'import de l'avatar",
+      "avatarUploadCanceled": "Import de l'avatar annul\u00e9",
+      "avatarUploadTimedOut": "L'import de l'avatar a expir\u00e9",
+      "avatarRemoveFailed": "Impossible de supprimer l'avatar",
+      "socialsUpdated": "R\u00e9seaux sociaux mis \u00e0 jour",
+      "socialsUpdateFailed": "Impossible de mettre \u00e0 jour les r\u00e9seaux sociaux"
     }
   }
 }

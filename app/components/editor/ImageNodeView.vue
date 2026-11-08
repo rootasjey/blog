@@ -86,7 +86,7 @@ watch(() => props.selected, (val) => { if (val) updateDimensions() })
 }
 
 .image-figure.is-selected[contenteditable="true"] {
-  outline: 2px solid var(--un-primary-color, #3b82f6);
+  outline: 2px solid var(--site-color-focus-ring, #737378);
   outline-offset: 4px;
   border-radius: var(--site-radius-inline-media);
 }

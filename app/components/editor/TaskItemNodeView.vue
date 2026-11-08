@@ -46,7 +46,7 @@ function onToggle(value: boolean) {
   margin: 0.25rem 0;
 }
 .task-item.is-selected {
-  outline: 2px solid var(--un-primary-color, #3b82f6);
+  outline: 2px solid var(--site-color-focus-ring, #737378);
   border-radius: 6px;
   padding: 0.25rem 0.5rem;
 }

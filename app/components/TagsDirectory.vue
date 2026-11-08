@@ -105,11 +105,14 @@ const filteredTags = computed(() => {
 })
 
 function handleTypeToSearch(event: KeyboardEvent) {
-  if (!props.isAdmin || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return
+  if (!props.isAdmin || event.defaultPrevented || event.isComposing || event.metaKey || event.ctrlKey || event.altKey) return
   if (event.key.length !== 1 || !event.key.trim()) return
 
   const target = event.target instanceof HTMLElement ? event.target : null
-  if (target?.isContentEditable || target?.closest('input, textarea, select, [role="combobox"]')) return
+  const interactiveTarget = target?.closest(
+    'input, textarea, select, button, a[href], [contenteditable="true"], [role="button"], [role="combobox"], [role="dialog"], [role="menu"], [role="menuitem"], [role="option"]',
+  )
+  if (target?.isContentEditable || interactiveTarget) return
 
   event.preventDefault()
   search.value = event.key

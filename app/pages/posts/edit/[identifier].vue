@@ -57,7 +57,7 @@
       </div>
 
       <div v-if="uploadingCover" class="site-editor-cover-progress">
-        <div class="h-full bg-primary transition-all duration-300" :style="{ width: uploadProgress + '%' }" />
+        <div class="h-full bg-[var(--site-color-accent)] transition-all duration-300" :style="{ width: uploadProgress + '%' }" />
       </div>
 
       <!-- Overlay actions -->
@@ -132,15 +132,15 @@
       <div v-if="aiSession" class="site-editor-ai-session">
         <div class="flex items-center justify-between px-4 pt-3">
           <div class="flex items-center gap-2 font-semibold text-sm">
-            <span class="i-lucide-sparkles text-primary" />
+            <span class="i-lucide-sparkles text-[var(--site-color-accent)]" />
             <span>{{ aiStatus === 'streaming' ? $t('pages.postEditor.aiWriting') : $t('pages.postEditor.aiSuggestionReady') }}</span>
           </div>
-          <NBadge badge="soft" color="primary">{{ aiStatus === 'streaming' ? $t('pages.postEditor.streaming') : $t('common.preview') }}</NBadge>
+          <NBadge badge="soft" class="site-editor-ai-status">{{ aiStatus === 'streaming' ? $t('pages.postEditor.streaming') : $t('common.preview') }}</NBadge>
         </div>
         <div class="flex justify-end gap-2 px-4 py-3">
           <NButton btn="ghost-gray" size="xs" :disabled="aiLoading" @click="retryAI">{{ $t('pages.postEditor.retry') }}</NButton>
           <NButton btn="ghost-gray" size="xs" :disabled="aiLoading" @click="revertAI">{{ $t('pages.postEditor.revert') }}</NButton>
-          <NButton btn="primary" size="xs" :disabled="aiLoading || aiStatus === 'streaming'" @click="commitAiDraft">{{ $t('pages.postEditor.applyChanges') }}</NButton>
+          <NButton btn="solid-black" size="xs" :disabled="aiLoading || aiStatus === 'streaming'" @click="commitAiDraft">{{ $t('pages.postEditor.applyChanges') }}</NButton>
         </div>
       </div>
     </transition>

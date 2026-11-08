@@ -58,9 +58,9 @@
 }
 
 .site-shell .site-profile-avatar {
-  width: 100px;
-  height: 100px;
-  flex: 0 0 100px;
+  width: 96px;
+  height: 96px;
+  flex: 0 0 96px;
   border: 1px solid var(--site-color-border);
   border-radius: var(--site-radius-pill);
   background: var(--site-color-hover-background);
@@ -101,10 +101,10 @@
 .site-shell .site-profile-name {
   color: var(--site-color-heading);
   font-family: var(--site-font-body);
-  font-size: 28px;
-  font-weight: 550;
-  letter-spacing: 0;
-  line-height: 1.25;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.3;
   text-transform: none;
 }
 
@@ -119,8 +119,8 @@
 .site-shell .site-profile-job :is(input, textarea) {
   color: var(--site-color-muted);
   font-family: var(--site-font-body);
-  font-size: 18px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .site-shell .site-profile-biography {
@@ -190,14 +190,6 @@
     width: 80px;
     height: 80px;
     flex-basis: 80px;
-  }
-
-  .site-shell .site-profile-name {
-    font-size: 26px;
-  }
-
-  .site-shell .site-profile-job :is(input, textarea) {
-    font-size: 16px;
   }
 
   .site-shell .site-profile .site-profile-fields {

@@ -1,1 +1,15 @@
-{}
+{
+  "pages": {
+    "profile": {
+      "avatarUpdated": "Avatar aggiornato",
+      "avatarRemoved": "Avatar rimosso",
+      "avatarUploadFailed": "Impossibile caricare l'avatar",
+      "avatarUploadNetworkError": "Errore di rete durante il caricamento dell'avatar",
+      "avatarUploadCanceled": "Caricamento dell'avatar annullato",
+      "avatarUploadTimedOut": "Tempo scaduto durante il caricamento dell'avatar",
+      "avatarRemoveFailed": "Impossibile rimuovere l'avatar",
+      "socialsUpdated": "Link social aggiornati",
+      "socialsUpdateFailed": "Impossibile aggiornare i link social"
+    }
+  }
+}

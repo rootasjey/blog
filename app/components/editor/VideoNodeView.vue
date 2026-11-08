@@ -443,7 +443,7 @@ function removeNode() {
 }
 
 .video-figure.is-selected {
-  outline: 2px solid var(--un-primary-color, #3b82f6);
+  outline: 2px solid var(--site-color-focus-ring, #737378);
   outline-offset: 4px;
   border-radius: 0.75rem;
 }
@@ -459,7 +459,7 @@ function removeNode() {
 }
 
 .video-container:focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--site-color-focus-ring, #737378);
   outline-offset: 2px;
 }
 
@@ -564,7 +564,7 @@ function removeNode() {
   top: 0;
   left: 0;
   height: 100%;
-  background: #3b82f6;
+  background: var(--site-color-accent);
   border-radius: 2px;
   transition: width 0.1s linear;
 }

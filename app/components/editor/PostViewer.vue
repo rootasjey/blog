@@ -204,7 +204,7 @@ watch(() => props.content, (newContent) => {
   border-radius: 0;
 }
 .post-content .ProseMirror hr { @apply my-12 border-t-none border-b border-border h-[16px] bg-transparent transition-colors duration-800 ease-in-out; }
-.post-content .ProseMirror hr:hover { @apply border-blue; }
+.post-content .ProseMirror hr:hover { border-color: var(--site-color-accent); }
 .post-content .ProseMirror hr.separator { @apply; }
 .post-content .ProseMirror hr.separator--dashed { @apply border-border/60 border-b-dashed opacity-80; }
 .post-content .ProseMirror ul[data-type="taskList"] { @apply list-none ml-0 p-0; }
@@ -216,7 +216,11 @@ watch(() => props.content, (newContent) => {
 .post-content .ProseMirror td { @apply p-3 border border-border font-text; }
 .post-content .horizontal-card__toolbar { @apply flex items-center gap-2 mb-2; }
 .post-content .horizontal-card__toolbar button { @apply px-2 py-1 rounded border border-border bg-background text-sm; }
-.post-content .horizontal-card__toolbar button.is-active { @apply bg-primary text-white border-transparent; }
+.post-content .horizontal-card__toolbar button.is-active {
+  border-color: var(--site-color-accent);
+  background: color-mix(in srgb, var(--site-color-accent) 12%, var(--site-color-background));
+  color: var(--site-color-accent);
+}
 /* Code syntax highlighting theme */
 /* Shared Tiptap Editor Styles extracted from legacy PostContent.vue */
 /* Placeholder handling */

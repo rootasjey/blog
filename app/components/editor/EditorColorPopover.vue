@@ -11,7 +11,7 @@
       <button 
         @click="visible = !visible" 
         type="button" 
-        class="p-1.5 rounded-md text-foreground/80 hover:bg-muted hover:text-primary transition-colors flex items-center justify-center min-w-[28px]"
+        class="site-editor-color-trigger p-1.5 rounded-md text-foreground/80 hover:bg-muted transition-colors flex items-center justify-center min-w-[28px]"
       >
         <span class="i-lucide-droplet" />
         <span
@@ -116,6 +116,7 @@ const hasAnyColor = computed(() => !!(selectionTextColor.value || selectionBackg
 @layer components {
 
 .color-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.25rem; }
+.site-editor-color-trigger:hover { color: var(--site-color-accent); }
 .color-swatch { width: 1.25rem; height: 1.25rem; border-radius: 0.45rem; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 0 0 1px rgba(0,0,0,0.02) inset; transition: all 0.2s; }
 .color-swatch.clear { display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--un-foreground-color, #111827); background: transparent; }
 .dark .color-swatch.clear { color: var(--un-foreground-color, #f9fafb); border: 1px solid rgba(255,255,255,0.3); }

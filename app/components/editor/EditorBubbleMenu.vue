@@ -136,7 +136,7 @@
         :items="aiDropdownItems"
         :_dropdown-menu-content="blockDropDownMenuContent"
         :_dropdown-menu-item="{
-          class: 'px-6 py-2 dark:focus:bg-#18181A focus:bg-#F5F5F5 dark:focus:text-blue',
+          class: 'px-6 py-2 focus:bg-[var(--site-color-hover-background)] focus:text-[var(--site-color-accent)]',
         }"
       >
         <NButton btn="ghost-gray" size="xs" class="px-4!" :disabled="aiLoading">
@@ -639,8 +639,9 @@ function resetEditor() {
 
 /* Tiptap styles for this component. */
 .bubble-menu, .floating-menu, .link-popover { @apply bg-background border border-border rounded-lg shadow-lg flex items-center gap-1 p-1; }
-.bubble-menu button, .floating-menu > button, .link-popover button { @apply p-1.5 rounded-md text-foreground/80 hover:bg-muted hover:text-primary transition-colors flex items-center justify-center min-w-[28px]; }
-.bubble-menu button.is-active, .floating-menu > button.is-active, .link-popover button.is-active { @apply bg-primary/10 text-primary; }
+.bubble-menu button, .floating-menu > button, .link-popover button { @apply p-1.5 rounded-md text-foreground/80 hover:bg-muted transition-colors flex items-center justify-center min-w-[28px]; }
+.bubble-menu button:hover, .floating-menu > button:hover, .link-popover button:hover { color: var(--site-color-accent); }
+.bubble-menu button.is-active, .floating-menu > button.is-active, .link-popover button.is-active { background: color-mix(in srgb, var(--site-color-accent) 12%, var(--site-color-background)); color: var(--site-color-accent); }
 .bubble-menu .divider, .link-popover .divider { @apply w-px h-5 bg-border mx-1; }
 .menu-block-type .n-dropdown-menu__trigger { @apply p-0 min-w-[120px]; }
 }

@@ -586,13 +586,9 @@ watch(
 
 .floating-menu .menu-item:focus {
   outline: none;
-  background: rgba(245, 245, 244, 1);
-  color: var(--un-primary-color, #2563eb);
+  background: var(--site-color-hover-background);
+  color: var(--site-color-accent);
   transform: translateY(-1px);
-}
-
-.dark .floating-menu .menu-item:focus {
-  background: rgba(41, 37, 36, 1);
 }
 
 .floating-menu .menu-item:focus .i-lucide-list,
@@ -602,7 +598,7 @@ watch(
 .floating-menu .menu-item:focus .i-lucide-image,
 .floating-menu .menu-item:focus .i-lucide-heading-1,
 .floating-menu .menu-item:focus .i-lucide-heading-2 {
-  color: var(--un-primary-color, #2563eb);
+  color: var(--site-color-accent);
 }
 
 .ai-popover {
@@ -610,15 +606,17 @@ watch(
 }
 
 .ai-option {
-  @apply outline-none flex w-full justify-start items-center gap-2 rounded-lg px-2 py-1.5 font-500 text-left text-sm text-foreground/90 transition-colors hover:bg-muted focus:bg-muted focus:color-blue-500;
+  @apply outline-none flex w-full justify-start items-center gap-2 rounded-lg px-2 py-1.5 font-500 text-left text-sm text-foreground/90 transition-colors hover:bg-muted focus:bg-muted;
 }
+
+.ai-option:focus { color: var(--site-color-accent); }
 
 .ai-option-icon {
   @apply text-base text-foreground/80;
 }
 
 .ai-ask-input {
-  @apply w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60;
+  @apply w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--site-color-focus-ring)];
 }
 }
 </style>

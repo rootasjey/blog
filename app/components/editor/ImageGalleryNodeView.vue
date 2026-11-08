@@ -302,7 +302,7 @@ onBeforeUnmount(() => {
 }
 
 .image-gallery.is-selected {
-  outline: 2px solid var(--un-primary-color, #3b82f6);
+  outline: 2px solid var(--site-color-focus-ring, #737378);
   outline-offset: 4px;
   border-radius: 0.75rem;
 }
@@ -360,7 +360,7 @@ onBeforeUnmount(() => {
   width: 70px;
   height: 10px;
   border-radius: 999px;
-  background: var(--un-primary-color, #3b82f6);
+  background: var(--site-color-accent);
   opacity: 0.8;
   cursor: ns-resize;
   box-shadow: 0 2px 6px rgba(0,0,0,0.18);

@@ -36,7 +36,7 @@
         <select
           id="translate-target"
           v-model="translateTargetLanguage"
-          class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
+          class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--site-color-focus-ring)]"
         >
           <option
             v-for="option in languageOptions"
@@ -53,7 +53,7 @@
         <NButton btn="ghost-gray" size="sm" :disabled="aiLoading" @click="$emit('cancel-translate')">
           {{ $t('pages.postEditor.cancel') }}
         </NButton>
-        <NButton btn="primary" size="sm" :disabled="aiLoading" @click="$emit('confirm-translate')">
+        <NButton btn="solid-black" size="sm" :disabled="aiLoading" @click="$emit('confirm-translate')">
           {{ $t('pages.postEditor.translate') }}
         </NButton>
       </NDialogFooter>

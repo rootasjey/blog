@@ -329,11 +329,15 @@ onBeforeUnmount(() => {
   transition-timing-function: ease-in-out, ease-in-out, ease;
 }
 
+.site-cursor-tooltip-content.is-committing .site-cursor-tooltip-label-current,
+.site-cursor-tooltip-content.is-committing .site-cursor-tooltip-label-incoming {
+  transition: none;
+}
+
 .site-cursor-tooltip-content.is-committing .site-cursor-tooltip-label-current {
   opacity: 1;
   filter: blur(0);
   transform: translateY(0);
-  transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

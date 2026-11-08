@@ -39,7 +39,16 @@
       "emailValid": "Enter a valid email address",
       "socialsJson": "Socials must be valid JSON",
       "updatedSuccess": "Profile updated successfully",
-      "updateFailed": "Failed to update profile"
+      "updateFailed": "Failed to update profile",
+      "avatarUpdated": "Avatar updated",
+      "avatarRemoved": "Avatar removed",
+      "avatarUploadFailed": "Could not upload the avatar",
+      "avatarUploadNetworkError": "Network error while uploading the avatar",
+      "avatarUploadCanceled": "Avatar upload canceled",
+      "avatarUploadTimedOut": "Avatar upload timed out",
+      "avatarRemoveFailed": "Could not remove the avatar",
+      "socialsUpdated": "Social links updated",
+      "socialsUpdateFailed": "Could not update social links"
     }
   }
 }

@@ -1,14 +1,39 @@
 /* Post editing controls layered onto the public article composition. */
 
 @layer components {
+.site-shell:has(.site-post-editor) {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.site-shell:has(.site-post-editor) > main {
+  min-height: 0;
+  margin-bottom: calc(68px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 0;
+  scrollbar-gutter: stable;
+}
+
+.site-shell:has(.site-post-editor) > :is(.site-bottom-blur, .site-footer) { display: none; }
+
 .site-shell .site-post-editor {
-  min-height: 100vh;
-  padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  min-height: 100%;
+  padding-bottom: 24px;
   background: var(--site-color-background);
   color: var(--site-color-text);
 }
 
 .site-shell .site-post-editor .site-post-header { padding-block-end: 97px; }
+
+.site-shell .site-post-editor .site-editor-ai-status {
+  border: 1px solid color-mix(in srgb, var(--site-color-accent) 24%, var(--site-color-border));
+  border-radius: var(--site-radius-tag);
+  background: color-mix(in srgb, var(--site-color-accent) 8%, var(--site-color-background));
+  color: var(--site-color-accent);
+}
 
 /* The global page-edge blur sits behind the editor's fixed action dock. */
 .site-shell:has(.site-post-editor) .site-bottom-blur { display: none; }

@@ -205,7 +205,6 @@
 import type { Post } from '~~/shared/types/post'
 import { onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useStorage } from '@vueuse/core'
-import { usePostsApi } from '~/composables/usePostsApi'
 import PublicPostArchive from '~/components/PublicPostArchive.vue'
 import EditPostDialog from '~/components/EditPostDialog.vue' 
 import PresentationPostGrid from '~/components/PresentationPostGrid.vue'
@@ -244,13 +243,6 @@ function onPostCreated(p: Post) {
   }
 }
 
-// Import file handling
-const fileInput = ref<HTMLInputElement | null>(null)
-const coverFileInput = ref<HTMLInputElement | null>(null)
-const coverTargetPost = ref<Post | null>(null)
-const coverUploadingPosts = ref(new Set<string | number>())
-const { uploadCoverFile, deleteCover } = usePostsApi()
-
 // Quick edit dialog state
 const editDialogOpen = ref(false)
 const postToEdit = ref<Post | null>(null)
@@ -259,118 +251,6 @@ function onPostSaved(updated: Post) {
   postToEdit.value = null
   editDialogOpen.value = false
   refreshAllLists()
-}
-
-function triggerImportFile() {
-  fileInput.value?.click()
-}
-
-function triggerCoverUpload(post: Post) {
-  coverTargetPost.value = post
-  coverFileInput.value?.click()
-}
-
-async function onCoverFileSelected(e: Event) {
-  const inputEl = e.target as HTMLInputElement | null
-  const file = inputEl?.files?.[0]
-  const target = coverTargetPost.value
-  if (!file || !target) return
-  const identifier = target.slug || String(target.id)
-  coverUploadingPosts.value = new Set([...coverUploadingPosts.value, identifier])
-  
-  try {
-    const res = await uploadCoverFile(identifier, file)
-    if (res?.success && res.image) {
-      if (!target.image) target.image = { alt: '', ext: '', src: '' }
-      target.image.src = res.image.src ?? target.image.src ?? ''
-      target.image.alt = res.image.alt ?? target.image.alt ?? ''
-    }
-  } catch (err) {
-    console.error('Cover upload failed', err)
-    alert('Cover upload failed: ' + String(err))
-  } finally {
-    coverTargetPost.value = null
-    if (inputEl) inputEl.value = ''
-    const next = new Set(coverUploadingPosts.value)
-    next.delete(identifier)
-    coverUploadingPosts.value = next
-  }
-}
-
-async function removeCover(post: Post) {
-  if (!post?.image?.src) return
-  const identifier = post.slug || String(post.id)
-  coverUploadingPosts.value = new Set([...coverUploadingPosts.value, identifier])
-  
-  try {
-    await deleteCover(identifier)
-    if (post.image) {
-      post.image.src = ''
-      post.image.alt = ''
-    }
-  } catch (err) {
-    console.error('Failed to remove cover', err)
-    alert('Failed to remove cover: ' + String(err))
-  } finally {
-    const next = new Set(coverUploadingPosts.value)
-    next.delete(identifier)
-    coverUploadingPosts.value = next
-  }
-}
-
-async function onImportFileSelected(e: Event) {
-  const inputEl = e.target as HTMLInputElement | null
-  const file = inputEl?.files?.[0]
-  if (!file) return
-  
-  try {
-    // Read file as text for JSON files, otherwise just note the selection
-    if (file.type === 'application/json' || file.name.endsWith('.json')) {
-      const text = await file.text()
-      const parsed = JSON.parse(text)
-      console.debug('Import JSON file parsed:', parsed)
-      try {
-        const created: any = await $fetch('/api/posts/import', { method: 'POST' as any, body: parsed })
-        const importedPosts = Array.isArray(created?.posts) ? created.posts : (created ? [created] : [])
-        if (importedPosts.length === 1) {
-          router.push(`/posts/edit/${importedPosts[0].slug}`)
-          return
-        }
-        await refreshAllLists()
-        alert(`Import completed (${importedPosts.length || 0} posts)`)           
-      } catch (err) {
-        console.warn('Import endpoint failed', err)
-        alert('Import failed: ' + String(err))
-      }
-    } else if (file.type === 'application/zip' || file.name.endsWith('.zip')) {
-      // Upload ZIP to server import endpoint
-      try {
-        const fd = new FormData()
-        fd.append('file', file)
-        const res = await fetch('/api/posts/import', { method: 'POST', body: fd })
-        if (!res.ok) throw new Error(await res.text())
-        const created = await res.json()
-        const importedPosts = Array.isArray(created?.posts) ? created.posts : (created ? [created] : [])
-        if (importedPosts.length === 1) {
-          router.push(`/posts/edit/${importedPosts[0].slug}`)
-        }
-        else {
-          await refreshAllLists()
-          alert(`Import completed (${importedPosts.length || 0} posts)`)          
-        }
-      } catch (err) {
-        console.error('ZIP import failed', err)
-        alert('ZIP import failed: ' + String(err))
-      }
-    } else {
-      alert('Unsupported file type: ' + file.type)
-    }
-  } catch (err) {
-    console.error('Failed to process import file', err)
-    alert('Failed to process import file')
-  } finally {
-    if (fileInput.value) fileInput.value.value = ''
-  }
 }
 
 const { $t, $getLocale } = useI18n()
@@ -419,6 +299,19 @@ const { data: archived, pending: archivedPending, execute: fetchArchived } = use
 // previously used toggles: replaced by admin tab (`activeTab`) and setTab()
 // Admin tab state – controls which list is shown for admins (published/drafts/archived)
 const activeTab = useStorage<'published'|'drafts'|'archived'>('posts.activeTab', 'published')
+const {
+  fileInput,
+  coverFileInput,
+  coverUploadingPosts,
+  triggerImportFile,
+  triggerCoverUpload,
+  onCoverFileSelected,
+  removeCover,
+  onImportFileSelected,
+} = usePostCollectionAssets({
+  refreshLists: refreshAllLists,
+  navigate: path => router.push(path),
+})
 const copySlideDirection = ref(1)
 const tabOrder = ['published', 'drafts', 'archived'] as const
 const adminTabs = computed(() => [
@@ -775,95 +668,6 @@ function onPostCardClick(evt: MouseEvent, post: Post) {
   }
 }
 </script>
-
-<style scoped>
-@layer components {
-
-.error-code {
-  color: transparent;
-  -webkit-text-stroke: 2px #F5E5E1;
-  cursor: default;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-
-/* Duplicating overlay animation */
-.duplicate-overlay {
-  background-image: linear-gradient(90deg, rgba(59,130,246,0.06) 0%, rgba(59,130,246,0.02) 50%, rgba(59,130,246,0.06) 100%);
-  background-size: 200% 100%;
-  animation: duplicate-sweep 2.5s linear infinite;
-}
-
-@keyframes duplicate-sweep {
-  0% { background-position: -100% 0; }
-  100% { background-position: 100% 0; }
-}
-
-.dark .error-code {
-  -webkit-text-stroke: 2px #374151;
-}
-
-.error-code:hover {
-  -webkit-text-stroke: 3px #FF8F8F;
-  transform: scale(0.99);
-  animation: stroke-rainbow 3s linear infinite;
-}
-
-.select-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.3rem 0.6rem;
-  border-radius: 9999px;
-  border: 1px solid var(--border-color, #e5e7eb);
-  background-color: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-}
-
-.select-checkbox {
-  width: 1rem;
-  height: 1rem;
-  accent-color: var(--una-color-primary, #111827);
-}
-
-:global(.dark) .select-pill {
-  background-color: rgba(15, 23, 42, 0.82);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
-}
-
-.dark .error-code:hover {
-  -webkit-text-stroke: 3px #FF8F8F;
-}
-
-@keyframes stroke-pulse {
-  0%, 100% {
-    -webkit-text-stroke-width: 3px;
-    filter: drop-shadow(0 0 0px #FF8F8F);
-  }
-  50% {
-    -webkit-text-stroke-width: 4px;
-    filter: drop-shadow(0 0 20px rgba(234, 179, 8, 0.6));
-  }
-}
-
-@keyframes stroke-rainbow {
-  0% { -webkit-text-stroke-color: #FF8F8F; }
-  25% { -webkit-text-stroke-color: #FFF1CB; }
-  50% { -webkit-text-stroke-color: #C2E2FA; }
-  75% { -webkit-text-stroke-color: #B7A3E3; }
-  100% { -webkit-text-stroke-color: #FF8F8F; }
-}
-
-.break-inside-avoid {
-  break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-  page-break-inside: avoid;
-  display: inline-block;
-  width: 100%;
-}
-}
-</style>
 
 <style>
 @layer components {
