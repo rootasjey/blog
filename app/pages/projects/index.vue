@@ -55,7 +55,7 @@
         @long-press-start="startLongPress"
         @long-press-cancel="cancelLongPress"
         @post-click="onPostCardClick"
-        :linkForPost="(p) => `/posts/${p.slug}`"
+        :linkForPost="(p) => localizedPath(`/posts/${p.slug}`, $getLocale())"
         :entered="entered"
         projectCardLayout
       />
@@ -101,7 +101,7 @@
           @long-press-start="startLongPress"
           @long-press-cancel="cancelLongPress"
           @post-click="onPostCardClick"
-          :linkForPost="(p) => `/posts/edit/${p.slug}`"
+          :linkForPost="(p) => localizedPath(`/posts/edit/${p.slug}`, $getLocale())"
           :entered="entered"
           projectCardLayout
         />
@@ -122,7 +122,7 @@
           @long-press-start="startLongPress"
           @long-press-cancel="cancelLongPress"
           @post-click="onPostCardClick"
-          :linkForPost="(p) => `/posts/${p.slug}`"
+          :linkForPost="(p) => localizedPath(`/posts/${p.slug}`, $getLocale())"
           :entered="entered"
           projectCardLayout
         />
@@ -428,7 +428,7 @@ const publicProjects = computed(() => {
 
     return {
       slug: post.slug,
-      to: localizedPath(`/posts/${post.slug}`, locale),
+      to: localizedPath(`/posts/${post.slug}`, $getLocale()),
       title: post.name,
       image: post.image?.src || '',
       category: category || (locale === 'fr' ? 'Projet' : 'Project'),
@@ -506,7 +506,7 @@ function menuItemsForPost(post: Post) {
 }
 
 function previewPost(post: Post) {
-  window.open(`/posts/${post.slug}`, '_blank')
+  window.open(localizedPath(`/posts/${post.slug}`, $getLocale()), '_blank')
 }
 
 async function confirmDelete() {

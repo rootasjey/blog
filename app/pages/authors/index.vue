@@ -13,7 +13,7 @@
         <NuxtLink
           v-for="author in authors"
           :key="author.id"
-          :to="localizedPath(`/authors/${author.slug || author.id}`, locale)"
+          :to="localizedPath(`/authors/${author.slug || author.id}`, $getLocale())"
           class="site-author-index-entry"
         >
           <NuxtImg

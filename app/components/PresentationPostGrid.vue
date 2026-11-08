@@ -3,7 +3,7 @@
     <NuxtLink
       v-for="post in visiblePosts"
       :key="post.slug"
-      :to="localizedPath(`/preview/${post.slug}`, locale)"
+      :to="localizedPath(`/preview/${post.slug}`, $getLocale())"
       class="site-demo-post"
     >
       <img :src="post.image" :alt="post.title[locale]" class="site-demo-post-image" loading="lazy" decoding="async">

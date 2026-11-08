@@ -190,8 +190,8 @@ const { data: publishedPosts } = await useFetch<Post[]>('/api/posts', {
   default: () => [],
 })
 
-const editPostUrl = computed(() => `/posts/edit/${post.value?.slug || post.value?.id}`)
-const locale = computed(() => post.value?.language || $getLocale())
+const editPostUrl = computed(() => localizedPath(`/posts/edit/${post.value?.slug || post.value?.id}`, $getLocale()))
+const locale = computed(() => $getLocale())
 const primaryTag = computed(() => post.value?.tags?.[0])
 const currentPostIndex = computed(() => (publishedPosts.value ?? []).findIndex(item => item.slug === post.value?.slug))
 const previousPost = computed(() => {
@@ -244,7 +244,7 @@ const relatedArticles = computed(() => {
   ].slice(0, 2)
 
   return selected.map(candidate => ({
-    to: localizedPath(`/posts/${candidate.slug}`, current.language),
+    to: localizedPath(`/posts/${candidate.slug}`, $getLocale()),
     title: candidate.name,
     image: candidate.image?.src || '/images/presentation/esc.webp',
     tag: candidate.tags?.[0]?.name || $t('components.relatedPosts.heading'),

@@ -19,7 +19,7 @@
             :style="{ animationDelay: `${index * 100}ms` }"
           >
             <NuxtLink
-              :to="post.slug ? `/posts/${post.slug}` : '#'"
+              :to="post.slug ? localizedPath(`/posts/${post.slug}`, $getLocale()) : '#'"
               class="block h-[82vh] overflow-hidden rounded-[32px] border border-white/10 bg-slate-900"
             >
               <PostImage v-if="post.image?.src" :src="post.image.src" :alt="post.image.alt || post.name" class="absolute inset-0 h-full w-full object-cover" format="webp" loading="lazy" />

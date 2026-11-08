@@ -4,13 +4,13 @@
       <div class="container">
         <div>
           <nav class="site-preview-topic-nav" :aria-label="locale === 'fr' ? 'Articles associés' : 'Related posts'">
-            <NuxtLink :to="localizedPath(`/preview/${previousPost.slug}`, locale)" :aria-label="locale === 'fr' ? 'Article précédent' : 'Previous post'">
+            <NuxtLink :to="localizedPath(`/preview/${previousPost.slug}`, $getLocale())" :aria-label="locale === 'fr' ? 'Article précédent' : 'Previous post'">
               <span class="i-ph-arrow-left" aria-hidden="true" />
             </NuxtLink>
-            <NuxtLink class="site-preview-tag" :to="`${localizedPath('/posts', locale)}?tag=${encodeURIComponent(post.tag[locale])}`">
+            <NuxtLink class="site-preview-tag" :to="`${localizedPath('/posts', $getLocale())}?tag=${encodeURIComponent(post.tag[locale])}`">
               {{ post.tag[locale] }}
             </NuxtLink>
-            <NuxtLink :to="localizedPath(`/preview/${nextPost.slug}`, locale)" :aria-label="locale === 'fr' ? 'Article suivant' : 'Next post'">
+            <NuxtLink :to="localizedPath(`/preview/${nextPost.slug}`, $getLocale())" :aria-label="locale === 'fr' ? 'Article suivant' : 'Next post'">
               <span class="i-ph-arrow-right" aria-hidden="true" />
             </NuxtLink>
           </nav>
@@ -34,7 +34,7 @@
           <p>{{ locale === 'fr'
             ? 'Cette page présente le parcours éditorial de Corpinot. Les articles réels publiés depuis le CMS prennent automatiquement la place de ces exemples.'
             : 'This page previews Corpinot’s editorial flow. Articles published from the CMS automatically take the place of these examples.' }}</p>
-          <NuxtLink class="site-preview-back" :to="localizedPath('/posts', locale)">{{ locale === 'fr' ? 'Retour aux articles' : 'Back to the journal' }}</NuxtLink>
+          <NuxtLink class="site-preview-back" :to="localizedPath('/posts', $getLocale())">{{ locale === 'fr' ? 'Retour aux articles' : 'Back to the journal' }}</NuxtLink>
         </div>
       </div>
     </article>
@@ -44,7 +44,7 @@
         <div class="site-post-author-card">
           <img src="/images/presentation/jc-pp.jpg" :alt="$t('components.postEndMatter.authorName')" width="48" height="48" loading="lazy">
           <div class="site-post-author-copy">
-            <NuxtLink :to="localizedPath('/about', locale)">{{ $t('components.postEndMatter.authorName') }}</NuxtLink>
+            <NuxtLink :to="localizedPath('/about', $getLocale())">{{ $t('components.postEndMatter.authorName') }}</NuxtLink>
             <p>{{ $t('components.postEndMatter.authorBio') }}</p>
           </div>
           <PostShareActions :title="post.title[locale]" />
@@ -76,7 +76,7 @@ const relatedArticles = computed(() => {
   const selected = [...sameTag, ...otherPosts.filter(item => !sameTag.includes(item))].slice(0, 2)
 
   return selected.map(item => ({
-    to: localizedPath(`/preview/${item.slug}`, locale.value),
+    to: localizedPath(`/preview/${item.slug}`, $getLocale()),
     title: item.title[locale.value],
     image: item.image,
     tag: item.tag[locale.value],

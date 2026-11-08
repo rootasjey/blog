@@ -6,7 +6,7 @@
         <NuxtLink
           v-for="item in tags"
           :key="item.name"
-          :to="`${localizedPath('/posts', locale)}?tag=${encodeURIComponent(item.name)}`"
+          :to="`${localizedPath('/posts', $getLocale())}?tag=${encodeURIComponent(item.name)}`"
           :aria-label="`${item.name} x${item.count}`"
           :style="{ '--tag-accent': item.color }"
         >

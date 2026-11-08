@@ -34,7 +34,7 @@
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-          <NButton btn="ghost-gray" size="xs" :to="`/posts/edit/${t.id}`" leading="i-ph-pencil">
+          <NButton btn="ghost-gray" size="xs" :to="localizedPath(`/posts/edit/${t.id}`, $getLocale())" leading="i-ph-pencil">
             {{ $t('editor.translationsManager.edit') }}
           </NButton>
           <NButton btn="ghost-gray" size="xs" leading="i-ph-link-break" @click="unlinkTranslation(t.id)" :disabled="unlinking">

@@ -94,7 +94,7 @@
         @long-press-start="longPress.startLongPress"
         @long-press-cancel="longPress.cancelLongPress"
         @post-click="onPostCardClick"
-        :linkForPost="(p) => `/posts/${p.slug}`"
+        :linkForPost="(p) => localizedPath(`/posts/${p.slug}`, $getLocale())"
         :entered="entered"
       />
 
@@ -148,7 +148,7 @@
           @long-press-start="longPress.startLongPress"
           @long-press-cancel="longPress.cancelLongPress"
           @post-click="onPostCardClick"
-          :linkForPost="(p) => `/posts/edit/${p.slug}`"
+          :linkForPost="(p) => localizedPath(`/posts/edit/${p.slug}`, $getLocale())"
           :entered="entered"
         />
       </ClientOnly>
@@ -168,7 +168,7 @@
           @long-press-start="longPress.startLongPress"
           @long-press-cancel="longPress.cancelLongPress"
           @post-click="onPostCardClick"
-          :linkForPost="(p) => `/posts/${p.slug}`"
+          :linkForPost="(p) => localizedPath(`/posts/${p.slug}`, $getLocale())"
           :entered="entered"
         />
       </ClientOnly>
@@ -625,7 +625,7 @@ function menuItemsForPost(post: Post) {
 }
 
 function previewPost(post: Post) {
-  window.open(`/posts/${post.slug}`, '_blank')
+  window.open(localizedPath(`/posts/${post.slug}`, $getLocale()), '_blank')
 }
 
 async function confirmDelete() {

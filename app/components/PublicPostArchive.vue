@@ -7,7 +7,7 @@
         class="site-public-post"
       >
         <NuxtLink
-          :to="localizedPath(`/posts/${post.slug}`, locale)"
+          :to="localizedPath(`/posts/${post.slug}`, $getLocale())"
           :aria-label="post.name"
           class="site-public-post-image-link"
         >
@@ -22,7 +22,7 @@
         </NuxtLink>
         <div class="site-public-post-caption">
           <NuxtLink
-            :to="localizedPath(`/posts/${post.slug}`, locale)"
+            :to="localizedPath(`/posts/${post.slug}`, $getLocale())"
             class="site-public-post-title"
           >
             {{ post.name }}
@@ -30,7 +30,7 @@
           <span class="site-public-post-meta">
             <NuxtLink
               v-if="post.tags?.[0]?.name"
-              :to="`${localizedPath('/posts', locale)}?tag=${encodeURIComponent(post.tags[0].name)}`"
+              :to="`${localizedPath('/posts', $getLocale())}?tag=${encodeURIComponent(post.tags[0].name)}`"
               :style="{ '--tag-accent': postTagColor(post.tags[0].name) }"
               class="site-public-post-tag"
             >
