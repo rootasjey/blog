@@ -9,7 +9,28 @@
       "contentAndEditing": "Content & Editing",
       "imagesAndMedia": "Images & Media Pipeline",
       "thankYou": "Thank you",
-      "thankYouText": "We're grateful to all maintainers, contributors, and communities behind these tools and services. If we missed anyone, please let us know and we'll add the credit."
+      "thankYouText": "We're grateful to all maintainers, contributors, and communities behind these tools and services. If we missed anyone, please let us know and we'll add the credit.",
+      "cloudflareTools": "Cloudflare tooling",
+      "woordsTemplate": "Woords template",
+      "items": {
+        "nuxt": "app framework (server routes via Nitro)",
+        "vue": "UI runtime",
+        "pinia": "state management",
+        "vueRouter": "routing",
+        "nuxtImage": "image optimization",
+        "authUtils": "authentication helpers",
+        "nuxtHub": "file storage, cache, database, KV, and browser features",
+        "cloudflare": "Wrangler and Cloudflare Workers-compatible utilities",
+        "unaUi": "component primitives (prefix N)",
+        "unocss": "utility CSS with Wind3, Attributify, Tagify, Icons, and Animations presets",
+        "iconify": "icon system: Phosphor, Lucide, Tabler, Radix Icons, and Line-MD",
+        "googleFonts": "webfonts: Oi, Manrope, Fraunces, and Playwrite FR Moderne",
+        "colorMode": "light and dark theme management",
+        "woords": "layout inspiration",
+        "tiptap": "rich-text editor and extensions",
+        "jimp": "image processing",
+        "puppeteer": "automation tools and Cloudflare-compatible builds"
+      }
     }
   }
 }
