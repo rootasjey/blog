@@ -8,7 +8,7 @@
   color: var(--site-color-text);
 }
 
-.site-shell .site-post-editor .site-post-header { padding-block-end: 16px; }
+.site-shell .site-post-editor .site-post-header { padding-block-end: 97px; }
 
 /* The global page-edge blur sits behind the editor's fixed action dock. */
 .site-shell:has(.site-post-editor) .site-bottom-blur { display: none; }
@@ -246,6 +246,10 @@
   .site-shell .site-post-editor .site-editor-byline-author { align-items: flex-start; flex-direction: column; justify-content: center; gap: 8px; }
   .site-shell .site-post-editor .site-editor-end-meta { justify-content: flex-start; }
   .site-shell .site-post-editor .site-editor-save-status { justify-content: flex-start; }
+}
+
+@media (max-width: 1023px) {
+  .site-shell .site-post-editor .site-post-header { padding-block-end: 28px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
