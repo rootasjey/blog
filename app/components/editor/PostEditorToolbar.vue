@@ -1,5 +1,5 @@
 <template>
-  <div class="site-editor-toolbar" :class="{ 'is-hidden': toolbarHidden }">
+  <div class="site-editor-toolbar">
     <div class="site-editor-toolbar-inner">
       <div class="flex items-center justify-between gap-2">
         <NButton link :to="localizedPath('/posts', $getLocale())" btn="ghost-gray" size="xs" class="site-editor-toolbar-back" :aria-label="$t('pages.postEditor.allPosts')">
@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed } from 'vue'
 import { localizedPath } from '~/utils/presentationPosts'
 
 type PostStatus = 'draft' | 'published' | 'archived'
@@ -104,28 +104,6 @@ const emit = defineEmits<{
 }>()
 
 const { $t, $getLocale } = useI18n()
-
-const toolbarHidden = ref(false)
-let previousScrollY = 0
-
-function updateToolbarVisibility() {
-  const currentScrollY = window.scrollY
-  const scrollDelta = currentScrollY - previousScrollY
-
-  if (currentScrollY <= 24 || scrollDelta < -4) toolbarHidden.value = false
-  else if (scrollDelta > 4) toolbarHidden.value = true
-
-  previousScrollY = currentScrollY
-}
-
-onMounted(() => {
-  previousScrollY = window.scrollY
-  window.addEventListener('scroll', updateToolbarVisibility, { passive: true })
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('scroll', updateToolbarVisibility)
-})
 
 const undoTooltip = computed(() => $t(props.canUndo ? 'pages.postEditor.undo' : 'pages.postEditor.undoEmpty'))
 const redoTooltip = computed(() => $t(props.canRedo ? 'pages.postEditor.redo' : 'pages.postEditor.redoEmpty'))

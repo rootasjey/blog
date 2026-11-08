@@ -10,6 +10,9 @@
 
 /* The global page-edge blur sits behind the editor's fixed action dock. */
 .site-shell:has(.site-post-editor) .site-bottom-blur { display: none; }
+.site-shell:has(.site-post-editor) .site-footer {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
 
 .site-shell .site-post-editor .site-editor-toolbar {
   position: fixed;
@@ -20,23 +23,6 @@
   max-width: calc(100% - 32px);
   transform: translateX(-50%);
   transition: transform 180ms ease, opacity 180ms ease;
-}
-
-.site-shell .site-post-editor .site-editor-toolbar.is-hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.site-shell .site-post-editor .site-editor-toolbar.is-hidden:has([aria-expanded="true"]) {
-  transform: translateX(-50%);
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.site-shell .site-post-editor .site-editor-toolbar.is-hidden:focus-within {
-  transform: translateX(-50%);
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .site-shell .site-post-editor .site-editor-toolbar-inner {
