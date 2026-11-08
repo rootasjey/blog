@@ -16,7 +16,15 @@
           target="_blank"
           rel="noopener noreferrer"
         >
-          <img :src="item.icon" alt="" width="22" height="22" loading="lazy" decoding="async">
+          <img
+            :src="item.icon"
+            :class="{ 'site-home-recommendation-icon--github': item.name === 'GitHub' }"
+            alt=""
+            width="22"
+            height="22"
+            loading="lazy"
+            decoding="async"
+          >
           <span class="site-home-recommendation-title">
             <span>{{ item.name }}</span>
             <span class="i-ph-arrow-up-right" aria-hidden="true" />
@@ -115,6 +123,9 @@ const recommendations = computed(() => {
   height: 22px;
   border-radius: 6px;
   object-fit: contain;
+}
+:root.dark .site-shell .site-home-recommendation-icon--github {
+  filter: invert(1);
 }
 .site-shell .site-home-recommendation-title {
   display: flex;
