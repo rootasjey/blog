@@ -35,10 +35,20 @@
             </span>
           </NTooltip>
 
+          <NButton
+            :to="localizedPath(`/posts/${postSlug}`, $getLocale())"
+            btn="~"
+            size="xs"
+            class="site-editor-action site-editor-preview-button"
+            target="_blank"
+            rel="noopener noreferrer"
+            :aria-label="$t('common.preview')"
+          >
+            <span class="i-lucide-external-link site-editor-preview-icon" aria-hidden="true" />
+            <span class="site-editor-preview-label hidden sm:inline">{{ $t('common.preview') }}</span>
+          </NButton>
+
           <div class="hidden sm:flex items-center gap-2">
-            <NButton :to="localizedPath(`/posts/${postSlug}`, $getLocale())" btn="~" size="xs" class="site-editor-action" target="_blank">
-              <span class="i-lucide-external-link mr-2" /><span>{{ $t('common.preview') }}</span>
-            </NButton>
             <NDropdownMenu :items="exportMenuItems" :_dropdownMenuContent="{ side: 'top', align: 'end', sideOffset: 8 }">
               <NButton btn="~" size="xs" class="site-editor-tool-button site-editor-tooltip-control" :aria-label="$t('pages.postEditor.exportOptions')" :data-tooltip="$t('pages.postEditor.exportOptions')">
                 <NIcon :name="exportingZip ? 'i-lucide-loader' : 'i-ph-download-simple'" :class="{ 'animate-spin': exportingZip }" />
