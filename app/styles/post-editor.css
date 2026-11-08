@@ -8,6 +8,8 @@
   color: var(--site-color-text);
 }
 
+.site-shell .site-post-editor .site-post-header { padding-block-end: 16px; }
+
 /* The global page-edge blur sits behind the editor's fixed action dock. */
 .site-shell:has(.site-post-editor) .site-bottom-blur { display: none; }
 .site-shell:has(.site-post-editor) .site-footer {
@@ -180,7 +182,7 @@
 .site-shell .site-post-editor .site-editor-cover-progress > div { background: var(--site-color-accent); }
 
 .site-shell .site-post-editor .site-editor-body {
-  padding-block: 32px 0;
+  padding-block: 0;
 }
 
 .site-shell .site-post-editor .site-editor-canvas {
