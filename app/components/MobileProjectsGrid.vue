@@ -2,13 +2,13 @@
   <section class="mt-6 space-y-5">
     <div class="flex items-center justify-between px-1">
       <div>
-        <NuxtLink to="/projects" class="inline-block mb-1">
+        <NuxtLink :to="localizedPath('/projects', $getLocale())" class="inline-block mb-1">
           <h2 class="text-[11px] uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">{{ $t('components.mobileProjects.heading') }}</h2>
         </NuxtLink>
       </div>
       
       <NuxtLink
-        to="/projects"
+        :to="localizedPath('/projects', $getLocale())"
         class="text-[11px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 flex items-center gap-1"
         :aria-label="$t('common.viewAllPosts')"
       >
@@ -57,7 +57,7 @@
         <NuxtLink
           v-for="project in chunk"
           :key="project.slug"
-          :to="`/posts/${project.slug}`"
+          :to="localizedPath(`/posts/${project.slug}`, $getLocale())"
           class="h-48 w-38 flex flex-col items-center gap-3 rounded-2xl bg-gradient-to-b from-slate-50/80 to-white/90 
             p-1 text-center transition hover:border-primary/60 dark:border-white/10 
             dark:from-white/5 dark:to-white/0"

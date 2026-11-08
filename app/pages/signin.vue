@@ -46,7 +46,7 @@
 
       <p class="site-auth-switch">
         {{ $t('pages.signin.noAccount') }}
-        <NuxtLink to="/signup">{{ $t('pages.signin.signUpLink') }}</NuxtLink>
+        <NuxtLink :to="localizedPath('/signup', $getLocale())">{{ $t('pages.signin.signUpLink') }}</NuxtLink>
       </p>
     </section>
   </section>
@@ -57,7 +57,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const { $t } = useI18n()
+const { $t, $getLocale } = useI18n()
 
 const { fetch: refreshSession } = useUserSession()
 
@@ -95,7 +95,7 @@ async function onSubmit() {
 
     // Refresh session and navigate
     await refreshSession()
-    router.push('/')
+    router.push(localizedPath('/', $getLocale()))
   } catch (e: any) {
     errorMessage.value = e?.data?.message || $t('pages.signin.invalidCredentials')
   } finally {

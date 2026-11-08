@@ -84,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-const { $t } = useI18n()
+const { $t, $getLocale } = useI18n()
 
 const props = defineProps<{
   postId: number
@@ -152,7 +152,7 @@ async function createTranslation() {
     })
     showCreateForm.value = false
     emit('translationCreated', newPost.id)
-    await router.push(`/posts/edit/${newPost.id}`)
+    await router.push(localizedPath(`/posts/edit/${newPost.id}`, $getLocale()))
   } catch (e: any) {
     useToast().toast({
       title: $t('editor.translationsManager.createFailed'),

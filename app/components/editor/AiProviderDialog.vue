@@ -41,7 +41,7 @@
       </div>
 
       <NDialogFooter class="flex items-center justify-between gap-2 mt-6">
-        <NuxtLink to="/settings/ai" class="text-sm text-slate-500 dark:text-slate-400 hover:underline">
+        <NuxtLink :to="localizedPath('/settings/ai', $getLocale())" class="text-sm text-slate-500 dark:text-slate-400 hover:underline">
           Manage models per action
         </NuxtLink>
         <div class="flex items-center gap-2">
@@ -55,6 +55,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+const { $getLocale } = useI18n()
 
 const props = defineProps<{ open: boolean; provider: 'cloudflare' | 'openrouter' }>()
 const emit = defineEmits<{ 'update:open': [boolean]; 'update:provider': ['cloudflare' | 'openrouter'] }>()

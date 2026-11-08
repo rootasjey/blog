@@ -5,8 +5,8 @@
       <div class="container mx-auto px-4 md:px-8 py-3 sm:py-4">
         <div class="flex items-center justify-between gap-3">
           <!-- Mobile: compact layout with title in center -->
-          <NButton link to="/" btn="ghost-gray" size="sm" icon label="i-lucide-arrow-left" class="md:hidden" />
-          <NButton link to="/" btn="ghost-gray" size="sm" class="hidden md:flex">
+          <NButton link :to="localizedPath('/', $getLocale())" btn="ghost-gray" size="sm" icon label="i-lucide-arrow-left" class="md:hidden" />
+          <NButton link :to="localizedPath('/', $getLocale())" btn="ghost-gray" size="sm" class="hidden md:flex">
             <NIcon name="i-lucide-arrow-left" />
             <span class="ml-2">{{ $t('common.back') }}</span>
           </NButton>
@@ -189,13 +189,13 @@ import { computed, reactive, ref, watch, onMounted, onBeforeUnmount, nextTick } 
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const { $t } = useI18n()
+const { $t, $getLocale } = useI18n()
 useHead({ title: `${$t('pages.profile.heading')} - ${$t('seo.siteName')}` })
 const { user, loggedIn, fetch: refreshSession } = useUserSession()
 
 // Redirect unauthenticated users on client-side
 if (typeof loggedIn !== 'boolean' ? !loggedIn.value : !loggedIn) {
-  router.push('/signin')
+  router.push(localizedPath('/signin', $getLocale()))
 }
 
 type UserProfile = {
@@ -264,7 +264,7 @@ watch(userProfile, (val) => {
 
 // If fetching the profile returns a 401 (unauthenticated), redirect to signin
 if (error?.value?.statusCode === 401) {
-  router.push('/signin')
+  router.push(localizedPath('/signin', $getLocale()))
 }
 
 const nameTextarea = ref<HTMLTextAreaElement | null>(null)

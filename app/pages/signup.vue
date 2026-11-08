@@ -67,7 +67,7 @@
 
       <p class="site-auth-switch">
         {{ $t('pages.signup.hasAccount') }}
-        <NuxtLink to="/signin">{{ $t('pages.signup.signInLink') }}</NuxtLink>
+        <NuxtLink :to="localizedPath('/signin', $getLocale())">{{ $t('pages.signup.signInLink') }}</NuxtLink>
       </p>
     </section>
   </section>
@@ -76,7 +76,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 
-const { $t } = useI18n()
+const { $t, $getLocale } = useI18n()
 const { fetch: refreshSession } = useUserSession()
 
 const form = reactive({
@@ -133,7 +133,7 @@ async function onSubmit() {
 
     // Refetch session and go home
     await refreshSession()
-    navigateTo('/')
+    navigateTo(localizedPath('/', $getLocale()))
   } catch (e: any) {
     errorMessage.value = e?.data?.message || $t('pages.signup.createFailed')
   } finally {

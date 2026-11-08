@@ -17,7 +17,7 @@
         v-else-if="error"
         :title="$t('components.topPinned.unavailable')"
         :description="$t('components.topPinned.unavailableDesc')"
-        secondary-to="/posts"
+        :secondary-to="localizedPath('/posts', $getLocale())"
         :secondary-label="$t('common.viewAllPosts')"
         variant="card"
         icon="i-ph-chats-duotone"

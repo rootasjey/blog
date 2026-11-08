@@ -258,7 +258,7 @@ watch($getLocale, (newLocale) => {
   if (!post.value || newLocale === post.value.language) return
   const match = (translations.value || []).find(t => t.language === newLocale)
   if (match?.slug) {
-    navigateTo(`/posts/${match.slug}`)
+    navigateTo(localizedPath(`/posts/${match.slug}`, newLocale))
   }
 })
 

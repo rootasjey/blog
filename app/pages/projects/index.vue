@@ -484,7 +484,7 @@ async function deletePost(post: Post) {
 }
 
 function editPost(post: Post) {
-  router.push(`/posts/edit/${post.slug}`)
+  router.push(localizedPath(`/posts/edit/${post.slug}`, $getLocale()))
 }
 
 function menuItemsForPost(post: Post) {
@@ -529,7 +529,7 @@ async function duplicatePost(post: Post) {
   try {
     const created: any = await $fetch(`/api/posts/${post.slug}/duplicate`, { method: 'POST' as any })
     if (created?.slug) {
-      router.push(`/posts/edit/${created.slug}`)
+      router.push(localizedPath(`/posts/edit/${created.slug}`, $getLocale()))
     }
   } catch (e) {
     console.error('Failed to duplicate post', e)

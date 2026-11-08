@@ -2,7 +2,7 @@
   <div class="site-page site-settings site-settings--theme">
     <div class="site-settings-content">
       <header class="site-settings-header site-settings-header--detail">
-        <NuxtLink to="/settings" class="site-settings-back-link">
+        <NuxtLink :to="localizedPath('/settings', $getLocale())" class="site-settings-back-link">
           <span class="i-ph-arrow-left" aria-hidden="true" />
           <span>{{ $t('pages.settingsTheme.backToSettings') }}</span>
         </NuxtLink>
@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-const { $t } = useI18n()
+const { $t, $getLocale } = useI18n()
 useSeoMeta({ title: `${$t('pages.settingsTheme.heading')} — ${$t('seo.siteName')}` })
 import { useEditorSettings } from '~/composables/useEditorSettings'
 

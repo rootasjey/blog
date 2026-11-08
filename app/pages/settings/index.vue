@@ -15,7 +15,7 @@
           >
             <span :class="[themeIconClass, 'site-settings-row-icon']" aria-hidden="true" />
           </button>
-          <NuxtLink to="/settings/theme" class="site-settings-row-link">
+          <NuxtLink :to="localizedPath('/settings/theme', $getLocale())" class="site-settings-row-link">
             <span class="site-settings-row-copy">
               <span class="site-settings-row-title">{{ $t('pages.settings.theme') }}</span>
               <span class="site-settings-row-description">{{ $t('pages.settings.themeDescription') }}</span>
@@ -24,7 +24,7 @@
           </NuxtLink>
         </div>
 
-        <NuxtLink to="/profile" class="site-settings-item site-settings-row-link">
+        <NuxtLink :to="localizedPath('/profile', $getLocale())" class="site-settings-item site-settings-row-link">
           <span class="i-ph-user-circle-duotone site-settings-row-icon" aria-hidden="true" />
           <span class="site-settings-row-copy">
             <span class="site-settings-row-title">{{ $t('pages.settings.profile') }}</span>
@@ -33,7 +33,7 @@
           <span class="i-ph-caret-right site-settings-row-chevron" aria-hidden="true" />
         </NuxtLink>
 
-        <NuxtLink to="/settings/ai" class="site-settings-item site-settings-row-link">
+        <NuxtLink :to="localizedPath('/settings/ai', $getLocale())" class="site-settings-item site-settings-row-link">
           <span class="i-ph-sparkle-duotone site-settings-row-icon" aria-hidden="true" />
           <span class="site-settings-row-copy">
             <span class="site-settings-row-title">{{ $t('pages.settings.aiSettings') }}</span>
@@ -42,7 +42,7 @@
           <span class="i-ph-caret-right site-settings-row-chevron" aria-hidden="true" />
         </NuxtLink>
 
-        <NuxtLink to="/about" class="site-settings-item site-settings-row-link">
+        <NuxtLink :to="localizedPath('/about', $getLocale())" class="site-settings-item site-settings-row-link">
           <span class="i-ph-newspaper-duotone site-settings-row-icon" aria-hidden="true" />
           <span class="site-settings-row-copy">
             <span class="site-settings-row-title">{{ $t('pages.settings.about') }}</span>
@@ -51,7 +51,7 @@
           <span class="i-ph-caret-right site-settings-row-chevron" aria-hidden="true" />
         </NuxtLink>
 
-        <NuxtLink to="/credits" class="site-settings-item site-settings-row-link">
+        <NuxtLink :to="localizedPath('/credits', $getLocale())" class="site-settings-item site-settings-row-link">
           <span class="i-ph-github-logo-duotone site-settings-row-icon" aria-hidden="true" />
           <span class="site-settings-row-copy">
             <span class="site-settings-row-title">{{ $t('pages.settings.credits') }}</span>
@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-const { $t } = useI18n()
+const { $t, $getLocale } = useI18n()
 useSeoMeta({ title: `${$t('pages.settings.heading')} — ${$t('seo.siteName')}` })
 
 type ThemePreference = 'light' | 'dark' | 'system'

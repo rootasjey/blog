@@ -448,7 +448,7 @@ const saveSlug = async () => {
     isSlugDialogOpen.value = false
 
     if (!isNumericIdentifier.value && post.value?.slug) {
-      await router.replace(`/posts/${post.value.slug}`)
+      await router.replace(localizedPath(`/posts/${post.value.slug}`, $getLocale()))
     }
   } catch (e: any) {
     error.value = e?.data?.message || 'Failed to update slug'
@@ -468,7 +468,7 @@ const fetchPost = async () => {
 
     if (data.user?.id !== user.value?.id) {
       error.value = 'You are not authorized to edit this post'
-      router.push('/posts')
+      router.push(localizedPath('/posts', $getLocale()))
       return
     }
 
@@ -512,7 +512,7 @@ const saveMetadata = async () => {
       slug.value = res.post.slug
       postTags.value = res.post.tags ?? postTags.value
       if (!isNumericIdentifier.value && post.value?.slug) {
-        await router.replace(`/posts/${post.value.slug}`)
+        await router.replace(localizedPath(`/posts/${post.value.slug}`, $getLocale()))
       }
     }
 
@@ -546,7 +546,7 @@ const saveAll = async () => {
       slug.value = res.post.slug
 
       if (!isNumericIdentifier.value && post.value?.slug) {
-        await router.replace(`/posts/${post.value.slug}`)
+        await router.replace(localizedPath(`/posts/${post.value.slug}`, $getLocale()))
       }
     }
 
@@ -604,7 +604,7 @@ const performDeletePost = async () => {
   try {
     await deletePostApi(identifier.value)
     confirmDeleteDialogOpen.value = false
-    router.push('/posts')
+    router.push(localizedPath('/posts', $getLocale()))
   } catch (e: any) {
     error.value = e?.data?.message || 'Failed to delete post'
     console.error('Failed to delete post:', e)

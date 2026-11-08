@@ -6,6 +6,7 @@
       "description": "Explore the writers crafting our stories. Click any author to view their bio and articles.",
       "backToAuthors": "\u2190 Back to authors",
       "articles": "Articles",
+      "socialLinks": "Social links",
       "published": "published",
       "noArticles": "No articles yet.",
       "notFound": "Author not found",

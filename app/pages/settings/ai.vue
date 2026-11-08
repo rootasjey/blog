@@ -2,7 +2,7 @@
   <div class="site-page site-settings site-settings--ai">
     <div class="site-settings-content">
       <header class="site-settings-header site-settings-header--detail">
-        <NuxtLink to="/settings" class="site-settings-back-link">
+        <NuxtLink :to="localizedPath('/settings', $getLocale())" class="site-settings-back-link">
           <span class="i-ph-arrow-left" aria-hidden="true" />
           <span>{{ $t('pages.settingsAi.backToSettings') }}</span>
         </NuxtLink>
@@ -107,7 +107,7 @@
 import { computed } from 'vue'
 import { AI_ACTIONS, useAISettings } from '~/composables/useAISettings'
 
-const { $t } = useI18n()
+const { $t, $getLocale } = useI18n()
 useSeoMeta({ title: `${$t('pages.settingsAi.heading')} — ${$t('seo.siteName')}` })
 
 const actions = computed(() => AI_ACTIONS.map(action => ({

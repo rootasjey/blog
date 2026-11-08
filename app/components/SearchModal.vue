@@ -69,7 +69,7 @@ import { useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import useGlobalSearch from '~/composables/useGlobalSearch'
 import { onMounted, onBeforeUnmount } from 'vue'
-const { $t } = useI18n()
+const { $t, $getLocale } = useI18n()
 
 const { isOpen, close: closeModal, initialQuery } = useGlobalSearch()
 const router = useRouter()
@@ -180,11 +180,11 @@ function selectHighlighted() {
 async function select(item: any) {
   closeModal()
   if (item.type === 'post') {
-    await router.push(`/posts/${item.slug}`)
+    await router.push(localizedPath(`/posts/${item.slug}`, $getLocale()))
   } else if (item.type === 'tag') {
-    await router.push({ path: '/tags', query: { tag: item.name } })
+    await router.push({ path: localizedPath('/tags', $getLocale()), query: { tag: item.name } })
   } else if (item.type === 'author') {
-    await router.push({ path: `/authors/${item.slug || item.id}` })
+    await router.push(localizedPath(`/authors/${item.slug || item.id}`, $getLocale()))
   }
 }
 </script>

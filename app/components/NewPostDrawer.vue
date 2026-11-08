@@ -104,7 +104,7 @@
 import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useMediaQuery } from '@vueuse/core'
 
-const { $t } = useI18n()
+const { $t, $getLocale } = useI18n()
 const props = defineProps({ modelValue: { type: Boolean, default: false }, defaultTag: { type: String, required: false } })
 const emit = defineEmits(['update:modelValue', 'created'])
 
@@ -177,7 +177,7 @@ const create = async () => {
     
     open.value = false
     // navigate to editor for new post
-    await router.push(`/posts/edit/${res.id}`)
+    await router.push(localizedPath(`/posts/edit/${res.id}`, $getLocale()))
   } catch (e: any) {
     console.error('[NewPostDrawer] Create post failed:', {
       error: e,
