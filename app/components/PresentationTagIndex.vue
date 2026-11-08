@@ -75,14 +75,14 @@ const tags = computed(() => {
 .site-shell .site-demo-tag-content .site-collection-intro { margin-bottom: 82px; }
 .site-shell .site-demo-tag-content nav { display: grid; width: 720px; max-width: calc(100vw - 32px); gap: 12px; margin-left: -10px; }
 .site-shell .site-demo-tag-content nav a { display: flex; min-height: 44px; box-sizing: border-box; align-items: center; gap: 12px; padding: 0; border: 0; border-radius: 12px; color: var(--site-color-heading); font-size: 16px; line-height: 20px; text-decoration: none; transition: background-color .2s ease; }
-.site-shell .site-demo-tag-icon { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; box-sizing: border-box; border: 1px solid color-mix(in srgb, var(--tag-accent) 30%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--tag-accent) 5%, transparent); color: var(--tag-accent); font-size: 15px; font-weight: 500; transform: scale(1); transition: background-color .2s ease, border-color .2s ease, transform .42s cubic-bezier(.34, 1.56, .64, 1); }
+.site-shell .site-demo-tag-icon { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; box-sizing: border-box; border: 1px solid color-mix(in srgb, var(--tag-accent) 30%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--tag-accent) 5%, transparent); color: var(--tag-accent); font-size: 15px; font-weight: 500; transform: scale(1); transition: background-color .2s ease, border-color .2s ease, transform 220ms var(--site-ease-standard); }
 .site-shell .site-demo-tag-icon svg { width: 16px; height: 16px; fill: currentColor; }
 .site-shell .site-demo-tag-content nav a .site-demo-tag-name { min-width: 0; color: var(--site-color-heading); font-weight: 500; transition: transform .18s ease-out, font-weight .2s ease; }
 .site-shell .site-demo-tag-content nav a .site-demo-tag-count { margin-left: 4px; color: var(--site-color-muted); font-size: 12px; }
 .site-shell .site-demo-tag-content nav a:hover,
 .site-shell .site-demo-tag-content nav a:focus-visible { background: transparent; color: var(--site-color-heading); }
 .site-shell .site-demo-tag-content nav a:hover .site-demo-tag-icon,
-.site-shell .site-demo-tag-content nav a:focus-visible .site-demo-tag-icon { background: color-mix(in srgb, var(--tag-accent) 11%, transparent); border-color: transparent; transform: scale(1.05); }
+.site-shell .site-demo-tag-content nav a:focus-visible .site-demo-tag-icon { background: color-mix(in srgb, var(--tag-accent) 6%, transparent); border-color: transparent; transform: scale(1.05); }
 .site-shell .site-demo-tag-content nav a:hover .site-demo-tag-name,
 .site-shell .site-demo-tag-content nav a:focus-visible .site-demo-tag-name { font-weight: 600; transform: translateX(2px); }
 .site-shell .site-demo-tag-content nav a:focus-visible { outline: 2px solid var(--tag-accent); outline-offset: 2px; }

@@ -85,8 +85,8 @@
           </NuxtLink>
         </nav>
 
-        <!-- Language Switcher (Mobile) -->
-        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <!-- Keep account controls together when signed in. -->
+        <div v-if="!isLoggedIn" class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
           <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3 px-4">{{ $t('common.language') }}</p>
           <div class="flex flex-wrap gap-2 px-4">
             <NuxtLink
@@ -140,8 +140,39 @@
           {{ $t('nav.brand') }}
         </span>
         </NuxtLink>
-        <div class="flex items-center gap-3">
+        <div class="site-header-controls flex items-center gap-3">
+          <NDropdownMenu
+            v-if="isLoggedIn"
+            :items="dropdownItems"
+            :_dropdownMenuContent="{ class: 'site-header-user-menu' }"
+            :_dropdownMenuSubContent="{ class: 'site-header-user-menu-sub' }"
+          >
+            <NButton
+              btn="~"
+              rounded="full"
+              class="site-interactive-hover site-header-avatar-trigger min-w-0 p-1"
+              :aria-label="$t('common.profile')"
+            >
+              <NuxtImg
+                v-if="currentAvatarProvider === 'hubblob' && !generatedAvatarFailed"
+                provider="hubblob"
+                :src="currentAvatarUrl"
+                :alt="currentUser.value?.name || $t('common.profile')"
+                class="site-header-avatar-image w-6 h-6 rounded-full"
+                @error="generatedAvatarFailed = true"
+              />
+              <img
+                v-else-if="currentAvatarUrl && !generatedAvatarFailed"
+                :src="currentAvatarUrl"
+                :alt="currentUser.value?.name || $t('common.profile')"
+                class="site-header-avatar-image w-6 h-6 rounded-full"
+                @error="generatedAvatarFailed = true"
+              />
+              <NAvatar v-else :label="userInitial" avatar="solid-black" size="xs" class="important:font-600 font-title" />
+            </NButton>
+          </NDropdownMenu>
           <NButton
+            v-else
             icon
             btn="ghost-gray"
             class="hover:scale-105 active:scale-99 transition-transform"
@@ -238,7 +269,11 @@
             </template>
 
             <template v-else>
-              <NDropdownMenu :items="dropdownItems">
+              <NDropdownMenu
+                :items="dropdownItems"
+                :_dropdownMenuContent="{ class: 'site-header-user-menu' }"
+                :_dropdownMenuSubContent="{ class: 'site-header-user-menu-sub' }"
+              >
                 <NButton btn="~" rounded="full" class="site-interactive-hover site-header-avatar-trigger min-w-0 p-0">
                   <NuxtImg
                     v-if="currentAvatarProvider === 'hubblob' && !generatedAvatarFailed"
@@ -259,7 +294,7 @@
                 </NButton>
               </NDropdownMenu>
             </template>
-            <NuxtLink :to="localizedPath('/donate', $getLocale())" class="site-interactive-hover site-header-donate uppercase px-4 py-2 bg-black dark:bg-white text-white dark:text-black text-xs font-bold uppercase tracking-wide rounded-4 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
+            <NuxtLink :to="localizedPath('/donate', $getLocale())" class="site-interactive-hover site-header-donate px-4 py-2 bg-black dark:bg-white text-white dark:text-black text-xs font-bold tracking-wide rounded-4 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
               {{ $t('nav.donate') }}
             </NuxtLink>
 
@@ -299,7 +334,7 @@
               :_combobox-input="{ class: 'border-none' }"
             >
               <template #trigger="{ modelValue }">
-                <span class="text-sm font-semibold uppercase tracking-wide">{{ modelValue?.code?.toUpperCase() || 'EN' }}</span>
+                <span class="text-sm font-semibold tracking-wide">{{ modelValue?.code?.toLowerCase() || 'en' }}</span>
               </template>
               <template #label="{ item }">
                 <span class="text-xs">{{ item.displayName }}</span>
@@ -382,7 +417,7 @@ async function handleLogout() {
 const { $t, $ts, $getLocale, $switchLocale, $getLocales } = useI18n()
 const pagesLabel = computed(() => {
   const translated = $t('nav.pages')
-  return translated.toLocaleLowerCase() === 'nav.pages' ? 'Pages' : translated
+  return (translated.toLocaleLowerCase() === 'nav.pages' ? 'pages' : translated).toLocaleLowerCase()
 })
 
 const localeOptions = computed(() => $getLocales().map(l => ({ code: l.code, displayName: l.displayName || l.code })))
@@ -413,6 +448,7 @@ const dropdownItems = computed(() => [
   {
     label: $t('common.language'),
     leading: 'i-ph-globe',
+    _dropdownMenuSubContent: { class: 'site-header-user-menu-sub' },
     items: localeOptions.value.map(locale => ({
       label: locale.displayName,
       trailing: locale.code === $getLocale() ? 'i-ph-check' : undefined,
@@ -422,6 +458,7 @@ const dropdownItems = computed(() => [
   {
     label: $t('nav.theme'),
     leading: 'i-ph-sun',
+    _dropdownMenuSubContent: { class: 'site-header-user-menu-sub' },
     items: themeOptions.value.map(theme => ({
       label: theme.label,
       leading: theme.icon,
@@ -587,182 +624,3 @@ function iconClass(platform?: string) {
   return 'i-ph-link'
 }
 </script>
-
-<style>
-@layer components {
-
-/* Component and page styles moved from the global stylesheets. */
-.site-shell .site-wordmark { font-family: var(--site-font-body); }
-.site-shell .site-masthead { background: var(--site-color-background); color: var(--site-color-text); }
-.site-shell .site-header-desktop {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  width: min(700px, calc(100% - 32px));
-  max-width: 700px;
-  height: 60px;
-  box-sizing: border-box;
-  margin-inline: auto;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-.site-shell .site-header-brand {
-  grid-column: 1;
-  grid-row: 1;
-  justify-content: flex-start;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-.site-shell .site-header-brand .site-wordmark { color: var(--site-color-heading); font-family: var(--site-font-body); font-size: 16px; font-weight: 600; letter-spacing: 0; line-height: 24px; white-space: nowrap; }
-.site-shell .site-header-grid { display: contents; }
-.site-shell .site-header-social { display: none; }
-.site-shell .site-header-nav {
-  display: flex;
-  grid-column: 2;
-  grid-row: 1;
-  align-items: center;
-  justify-self: center;
-  gap: 2px;
-  color: var(--site-color-text);
-  font-family: var(--site-font-body);
-  font-size: 14px;
-  font-weight: 400;
-  text-transform: lowercase;
-  white-space: nowrap;
-}
-.site-shell .site-header-nav a::first-letter { text-transform: uppercase; }
-.site-shell .site-header-nav a[aria-current="page"] { border-color: var(--site-color-border); color: var(--site-color-heading); }
-.site-shell .site-header-nav a,
-.site-shell .site-header-nav button,
-.site-shell .site-header-controls a { color: var(--site-color-text); font-weight: 400; text-decoration: none; }
-.site-shell .site-header-nav a,
-.site-shell .site-header-nav a,
-.site-shell .site-header-nav button { display: inline-flex; min-height: 30px; align-items: center; padding: 4px 7px; border: 1px solid transparent; border-radius: var(--site-radius-control); background: transparent; font-weight: 500; }
-.site-shell .site-header-nav button { font: inherit; font-weight: 500; text-transform: capitalize; cursor: pointer; }
-.site-shell .site-header-pages { position: relative; }
-.site-shell .site-header-pages-menu { position: absolute; z-index: 30; top: calc(100% + 8px); left: 50%; display: grid; width: max-content; min-width: 160px; gap: 0; padding: 8px; border: 1px solid var(--site-color-border); border-radius: var(--site-radius-control); background: var(--site-color-background); box-shadow: 0 8px 24px rgb(0 0 0 / 8%); opacity: 0; visibility: hidden; pointer-events: none; transform: translate(-50%, 5px); transition: opacity 160ms ease, transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 180ms; }
-.site-shell .site-header-pages::after { position: absolute; top: 100%; left: calc(50% - 80px); width: 160px; height: 13px; content: ""; }
-.site-shell .site-header-pages:hover .site-header-pages-menu,
-.site-shell .site-header-pages:focus-within .site-header-pages-menu,
-.site-shell .site-header-pages[data-open="true"] .site-header-pages-menu { opacity: 1; visibility: visible; pointer-events: auto; transform: translate(-50%, 0); transition-delay: 0s; }
-@media (prefers-reduced-motion: reduce) {
-  .site-shell .site-header-pages-menu { transition: none; }
-}
-.site-shell .site-header-pages-menu a { display: block; padding: 8px 14px; border: 0; border-radius: 6px; color: var(--site-color-text); line-height: 20px; }
-.site-shell .site-header-pages-menu a:hover { background: var(--site-color-hover-background); color: var(--site-color-heading); }
-.site-shell .site-header-controls {
-  grid-column: 3;
-  grid-row: 1;
-  justify-self: end;
-  gap: 2px;
-}
-.site-shell .site-header-controls > a:first-child,
-.site-shell .site-header-controls > a:nth-child(2) { display: none; }
-.site-shell .site-header-controls button { color: var(--site-color-muted); }
-.site-shell .site-header-controls .combobox-trigger-trailing { display: none; }
-.site-shell .site-header-controls .site-header-control-trigger,
-.site-shell .site-header-controls .site-header-search,
-.site-shell .site-header-controls .site-header-avatar-trigger,
-.site-shell .site-header-controls .site-header-donate {
-  transition:
-    color 180ms ease,
-    background-color 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.site-shell .site-header-controls .site-header-control-trigger {
-  border: 0;
-  background-color: transparent;
-  color: var(--site-color-text);
-  box-shadow: none;
-}
-.site-shell .site-header-controls .site-header-control-trigger:hover,
-.site-shell .site-header-controls .site-header-control-trigger:focus-visible {
-  background-color: var(--site-color-hover-background);
-  color: var(--site-color-heading);
-  transform: translateY(-1px);
-}
-.site-shell .site-header-controls .site-header-control-trigger:active,
-.site-shell .site-header-controls .site-header-search:active,
-.site-shell .site-header-controls .site-header-avatar-trigger:active,
-.site-shell .site-header-controls .site-header-donate:active { transform: scale(0.97); }
-.site-shell .site-header-controls .site-header-theme-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-}
-.site-shell .site-header-controls .site-header-locale-trigger {
-  min-height: 31px;
-  padding: 5px 11px;
-  border-radius: 8px;
-}
-.site-shell .site-header-controls .site-header-search {
-  display: inline-flex;
-  width: 28px;
-  min-width: 28px;
-  height: 28px;
-  min-height: 28px;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border-radius: 10px;
-}
-.site-shell .site-header-controls .site-header-search:hover,
-.site-shell .site-header-controls .site-header-search:focus-visible,
-.site-shell .site-header-controls .site-header-avatar-trigger:hover,
-.site-shell .site-header-controls .site-header-avatar-trigger:focus-visible {
-  background-color: var(--site-color-hover-background);
-  color: var(--site-color-heading);
-  transform: translateY(-1px);
-}
-.site-shell .site-header-controls .site-header-avatar-image {
-  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.site-shell .site-header-controls .site-header-avatar-trigger:hover .site-header-avatar-image,
-.site-shell .site-header-controls .site-header-avatar-trigger:focus-visible .site-header-avatar-image { transform: scale(1.04); }
-.site-shell .site-theme-icon { width: 16px; height: 16px; color: var(--site-color-text); }
-.site-shell .site-mobile-brand { background: transparent; border: 0; border-radius: 0; }
-.site-shell .site-mobile-brand .site-wordmark { color: var(--site-color-text); }
-.site-shell .site-masthead a:hover { color: var(--site-color-accent); }
-.site-shell .site-header-nav a:hover,
-.site-shell .site-header-nav button:hover { color: var(--site-color-heading); background: var(--site-color-hover-background); }
-@media (prefers-reduced-motion: reduce) {
-  .site-shell .site-header-controls .site-header-control-trigger,
-  .site-shell .site-header-controls .site-header-search,
-  .site-shell .site-header-controls .site-header-avatar-trigger,
-  .site-shell .site-header-controls .site-header-avatar-image,
-  .site-shell .site-header-controls .site-header-donate {
-    transition: none;
-  }
-  .site-shell .site-header-controls .site-header-control-trigger:hover,
-  .site-shell .site-header-controls .site-header-control-trigger:focus-visible,
-  .site-shell .site-header-controls .site-header-search:hover,
-  .site-shell .site-header-controls .site-header-search:focus-visible,
-  .site-shell .site-header-controls .site-header-avatar-trigger:hover,
-  .site-shell .site-header-controls .site-header-avatar-trigger:focus-visible,
-  .site-shell .site-header-controls .site-header-control-trigger:active,
-  .site-shell .site-header-controls .site-header-search:active,
-  .site-shell .site-header-controls .site-header-avatar-trigger:active,
-  .site-shell .site-header-controls .site-header-donate:active,
-  .site-shell .site-header-controls .site-header-avatar-trigger:hover .site-header-avatar-image,
-  .site-shell .site-header-controls .site-header-avatar-trigger:focus-visible .site-header-avatar-image {
-    transform: none;
-  }
-}
-@media (max-width: 1023px) {
-  .site-shell .site-header-desktop { display: none; }
-}
-@media (max-width: 1023px) {
-  .site-shell .site-masthead > div > div:first-child { border: 0; background: var(--site-color-background); }
-}
-}
-@layer theme-overrides {
-  .site-header-combobox-menu .input-input:focus-visible {
-    outline-offset: 0;
-  }
-}
-</style>

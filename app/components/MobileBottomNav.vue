@@ -1,6 +1,7 @@
 <template>
   <nav
-    class="fixed bottom-2 left-4 right-4 rounded-2 z-20 bg-white/95 dark:bg-gray-950/95 backdrop-blur border-t border-gray-200 dark:border-gray-800 shadow-[0_-6px_24px_-18px_rgba(0,0,0,0.25)] transition-transform transition-opacity duration-200"
+    v-if="!isProfileEditor && !isPostEditor"
+    class="site-mobile-bottom-nav fixed bottom-2 left-4 right-4 rounded-2 z-20 backdrop-blur shadow-[0_-6px_24px_-18px_rgba(0,0,0,0.25)] transition-transform transition-opacity duration-200"
     :class="showNav ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0 pointer-events-none'"
   >
     <div class="mx-auto max-w-3xl px-4 py-0 pb-[calc(env(safe-area-inset-bottom)+6px)]">
@@ -9,8 +10,8 @@
           v-for="item in items"
           :key="item.to"
           :to="item.to"
-          class="flex flex-col items-center justify-center gap-1 py-3 text-xs font-semibold uppercase tracking-wide transition-colors"
-          :class="isActive(item.to) ? 'text-black dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'"
+          class="site-mobile-bottom-nav-link flex flex-col items-center justify-center gap-1 py-3 text-xs font-semibold uppercase tracking-wide transition-colors"
+          :class="{ 'is-active': isActive(item.to) }"
           :aria-current="isActive(item.to) ? 'page' : undefined"
         >
           <span :class="[item.icon, 'text-lg']" />
@@ -25,6 +26,8 @@
 const route = useRoute()
 const showNav = ref(false)
 const lastY = ref(0)
+const isProfileEditor = computed(() => route.path.split('/').filter(Boolean).at(-1) === 'profile')
+const isPostEditor = computed(() => route.path.includes('/posts/edit/'))
 
 const { $t } = useI18n()
 
@@ -85,3 +88,15 @@ onMounted(() => {
   }
 })
 </script>
+
+<style>
+@layer components {
+.site-shell .site-mobile-bottom-nav {
+  border: 1px solid var(--site-color-border);
+  background: color-mix(in srgb, var(--site-color-background) 95%, transparent);
+}
+
+.site-shell .site-mobile-bottom-nav-link { color: var(--site-color-muted); }
+.site-shell .site-mobile-bottom-nav-link:is(:hover, .is-active) { color: var(--site-color-heading); }
+}
+</style>

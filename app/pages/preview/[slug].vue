@@ -99,6 +99,6 @@ useSeoMeta({
 @layer components {
 
 /* Component and page styles moved from the global stylesheets. */
-.site-shell .site-preview-back { color: var(--site-color-accent); text-decoration: underline; text-underline-offset: 0.2em; }
+.site-shell .site-preview-back { color: var(--site-color-accent); text-decoration: underline; text-underline-offset: var(--site-link-underline-offset); }
 }
 </style>

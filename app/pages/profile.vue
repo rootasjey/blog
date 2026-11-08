@@ -1,7 +1,7 @@
 <template>
-  <section class="site-page site-profile min-h-screen bg-white dark:bg-gray-950">
+  <section class="site-page site-profile min-h-screen">
     <!-- Sticky toolbar -->
-    <div class="sticky top-0 z-30 border-b bg-background/95 backdrop-blur-lg supports-[backdrop-filter]:bg-background/80 site-profile-toolbar">
+    <div class="sticky top-0 z-30 site-profile-toolbar">
       <div class="container mx-auto px-4 md:px-8 py-3 sm:py-4">
         <div class="flex items-center justify-between gap-3">
           <!-- Mobile: compact layout with title in center -->
@@ -127,8 +127,9 @@
           <div class="site-profile-fields">
             <!-- Email -->
             <div class="site-profile-field">
-              <div class="site-profile-field-label">{{ $t('pages.profile.email') }}</div>
+              <label for="profile-email" class="site-profile-field-label">{{ $t('pages.profile.email') }}</label>
               <NInput
+                id="profile-email"
                 v-model="form.email"
                 :placeholder="$t('pages.profile.emailPlaceholder')"
                 input="outline"
@@ -140,8 +141,9 @@
 
             <!-- Location -->
             <div class="site-profile-field">
-              <div class="site-profile-field-label">{{ $t('pages.profile.location') }}</div>
+              <label for="profile-location" class="site-profile-field-label">{{ $t('pages.profile.location') }}</label>
               <NInput
+                id="profile-location"
                 v-model="form.location"
                 :placeholder="$t('pages.profile.locationPlaceholder')"
                 input="outline"
@@ -152,8 +154,9 @@
 
             <!-- Language -->
             <div class="site-profile-field">
-              <div class="site-profile-field-label">{{ $t('pages.profile.language') }}</div>
+              <label for="profile-language" class="site-profile-field-label">{{ $t('pages.profile.language') }}</label>
               <NInput
+                id="profile-language"
                 v-model="form.language"
                 :placeholder="$t('pages.profile.languagePlaceholder')"
                 input="outline"
@@ -167,7 +170,7 @@
       </div>
 
       <!-- Mobile sticky bottom action bar (outside form for proper fixed positioning) -->
-      <div class="fixed bottom-0 left-0 right-0 z-2 p-4 bg-white/95 dark:bg-gray-950/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 md:hidden">
+      <div class="site-profile-mobile-actions fixed bottom-0 left-0 right-0 z-2 p-4 backdrop-blur-lg md:hidden">
         <div class="container mx-auto max-w-7xl">
           <div class="flex gap-2">
             <NTooltip :content="$t('pages.profile.resetChanges')">

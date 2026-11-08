@@ -106,7 +106,7 @@ useHead({
 }
 .site-shell .site-intro h1 { margin: 0 0 12px; font-family: var(--site-font-heading); color: var(--site-color-heading); font-size: 20px; font-weight: 550; line-height: 1.4; }
 .site-shell .site-intro p { max-width: 700px; margin: 0 0 8px; font-family: var(--site-font-heading); color: var(--site-color-text); line-height: 1.5; }
-.site-shell .site-intro a:not(.site-outline-action) { color: var(--site-color-accent); text-decoration: underline; text-underline-offset: 0.2em; }
+.site-shell .site-intro a:not(.site-outline-action) { color: var(--site-color-accent); text-decoration: underline; text-underline-offset: var(--site-link-underline-offset); }
 .site-shell .site-intro .site-intro-subscribe { margin-top: 41px; }
 .site-shell:has(.site-home):not(:has(.site-home-recommendations)) > .site-footer { padding-top: 48px; }
 @media (max-width: 1023px) {

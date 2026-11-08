@@ -140,30 +140,41 @@ watch(() => props.content, (newContent) => {
   white-space: pre-wrap;
   z-index: 0;
 }
-.post-content .ProseMirror h1 { @apply text-4xl font-serif font-800 mt-12 mb-6 leading-tight; }
-.post-content .ProseMirror h2 { @apply text-3xl font-serif font-800 mt-10 mb-5 leading-snug; }
-.post-content .ProseMirror h3 { @apply text-2xl font-serif font-500 mt-8 mb-4; }
-.post-content .ProseMirror h4 { @apply text-xl font-serif font-500 mt-6 mb-3; }
-.post-content .ProseMirror p { @apply text-base md:text-lg leading-relaxed mb-8 text-foreground/80 font-body font-400; }
+.post-content .ProseMirror h1 { margin-block: 36px 18px; color: var(--site-color-heading); font-family: var(--site-font-heading); font-size: 32px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.25; }
+.post-content .ProseMirror h2 { margin-block: 32px 16px; color: var(--site-color-heading); font-family: var(--site-font-heading); font-size: 24px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.3; }
+.post-content .ProseMirror h3 { margin-block: 28px 14px; color: var(--site-color-heading); font-family: var(--site-font-heading); font-size: 20px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.4; }
+.post-content .ProseMirror h4 { margin-block: 24px 12px; color: var(--site-color-heading); font-family: var(--site-font-heading); font-size: 18px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.45; }
+.post-content .ProseMirror p { margin: 0 0 24px; color: var(--site-color-text); font-family: var(--site-font-body); font-size: 16px; font-weight: 400; line-height: 1.75; }
 .post-content .ProseMirror ul[data-type="taskList"] p { @apply mb-0; line-height: 1rem; }
 .post-content .ProseMirror a {
   color: var(--site-color-accent);
   text-decoration-line: underline;
   text-decoration-thickness: 2px;
-  text-underline-offset: 0.2em;
+  text-underline-offset: var(--site-link-underline-offset);
   transition: color 160ms ease;
 }
 .post-content .ProseMirror a:hover { color: var(--site-color-heading); }
 .post-content .ProseMirror strong { @apply font-800 text-foreground; }
 .post-content .ProseMirror em { @apply italic; }
-.post-content .ProseMirror blockquote { @apply border-l-4 border-primary/40 pl-6 py-4 my-8 italic text-lg md:text-xl text-slate-500 dark:text-slate-400 bg-muted/20 rounded-r-lg font-body font-400; }
-.post-content .ProseMirror blockquote p { @apply mb-0; }
+.post-content .ProseMirror blockquote {
+  margin-block: 28px;
+  padding: 18px 22px;
+  border: 0;
+  border-radius: var(--site-radius-card);
+  background: var(--site-color-hover-background);
+  color: var(--site-color-text);
+  font-family: var(--site-font-body);
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.65;
+}
+.post-content .ProseMirror blockquote p { margin-bottom: 0; }
 .post-content .ProseMirror ul, .post-content .ProseMirror ol { @apply my-6 pl-6 space-y-2; }
 .post-content .ProseMirror ul { @apply list-disc; }
 .post-content .ProseMirror ol { @apply list-decimal; }
 .post-content .ProseMirror li { @apply text-base md:text-lg leading-relaxed text-foreground/90 font-body font-400; }
 .post-content .ProseMirror li > p { @apply mb-2; }
-.post-content .ProseMirror code { @apply bg-muted px-2 py-1 rounded text-sm font-mono text-primary; }
+.post-content .ProseMirror code { @apply bg-muted px-2 py-1 rounded text-sm font-mono; color: var(--site-color-accent); }
 .post-content .ProseMirror pre { @apply bg-muted rounded-lg overflow-x-auto my-6; }
 .post-content .ProseMirror pre code { @apply bg-transparent p-0 text-foreground; }
 .post-content .ProseMirror img { @apply w-full h-auto rounded-xl my-8 shadow-lg cursor-pointer; }
@@ -172,7 +183,7 @@ watch(() => props.content, (newContent) => {
   @apply font-text;
 }
 .post-content img.ProseMirror-selectednode {
-  outline: 2px solid var(--un-primary-color, #3b82f6);
+  outline: 2px solid var(--site-color-focus-ring);
   outline-offset: 2px;
   border-radius: 6px;
   box-shadow: 0 0 0 2px rgba(0,0,0,0.15);

@@ -102,7 +102,7 @@ const recommendations = computed(() => {
   transition:
     background-color 200ms ease-in-out,
     border-color 200ms ease-in-out,
-    transform 300ms cubic-bezier(0.4, 0, 0.2, 2);
+    transform 220ms var(--site-ease-standard);
 }
 .site-shell .site-home-recommendation:hover,
 .site-shell .site-home-recommendation:focus-visible {

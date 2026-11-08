@@ -1,216 +1,160 @@
 <template>
-  <transition name="page-entrance" appear>
-    <div class="site-page site-donate mx-auto max-w-4xl px-6 py-12 page-entrance-target">
-    <div class="text-center mb-8">
-      <h1 class="site-display-heading font-title text-3xl font-bold mb-2">{{ $t('pages.donate.heading') }}</h1>
-      <p class="text-slate-600 dark:text-slate-400">{{ $t('pages.donate.description') }}</p>
-      <NBadge badge="solid-pink" class="mt-4">{{ $t('pages.donate.notAvailable') }}</NBadge>
-    </div>
+  <main class="site-page site-donate">
+    <div class="site-donate-content">
+      <header class="site-donate-intro">
+        <h1>{{ $t('pages.donate.heading') }}</h1>
+        <p>{{ $t('pages.donate.description') }}</p>
+      </header>
 
-    <div v-if="donationCompleted" class="rounded-lg p-6 border b-dashed border-gray-200 dark:border-gray-800 text-center" role="status" aria-live="polite">
-      <div class="flex flex-col items-center gap-3">
-        <NIcon class="confetti-icon" name="i-ph-confetti" size="16" />
-        <h2 class="text-size-16 font-title font-bold">{{ $t('pages.donate.successHeading') }}</h2>
-        <p class="text-size-8 font-300 text-slate-600 dark:text-slate-400">{{ $t('pages.donate.successMessage') }}</p>
-        <div class="mt-4 space-x-2">
-          <NButton btn="solid-lime" @click="donateAgain">{{ $t('pages.donate.donateAgain') }}</NButton>
-          <NButton btn="soft" to="/">{{ $t('pages.donate.returnHome') }}</NButton>
-        </div>
-        <div v-if="statusMessage" :class="['text-sm mt-2', statusOk ? 'text-lime' : 'text-red']">{{ statusMessage }}</div>
-      </div>
-    </div>
+      <p class="site-donate-status" role="status">
+        <span aria-hidden="true" />
+        {{ $t('pages.donate.notAvailable') }}
+      </p>
 
-    <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <!-- Donation Info -->
-      <div class="rounded-lg p-6 border border-gray-200 dark:border-gray-800">
-        <h2 class="font-600 text-lg mb-4">{{ $t('pages.donate.whyDonate') }}</h2>
-        <ul class="list-disc ml-5 text-sm text-slate-700 dark:text-slate-300 space-y-2">
+      <section class="site-donate-reasons" :aria-labelledby="reasonsHeadingId">
+        <h2 :id="reasonsHeadingId">{{ $t('pages.donate.whyDonate') }}</h2>
+        <ul>
           <li>{{ $t('pages.donate.supportAuthors') }}</li>
           <li>{{ $t('pages.donate.fundImprovements') }}</li>
           <li>{{ $t('pages.donate.perks') }}</li>
         </ul>
+      </section>
 
-        <div class="mt-6">
-          <h3 class="text-sm font-medium text-slate-600 dark:text-slate-400">{{ $t('pages.donate.suggestedAmounts') }}</h3>
-          <div class="flex gap-2 mt-3">
-            <button v-for="a in suggestedAmounts" :key="a" @click="selectAmount(a)" :class="['px-4 py-2 rounded-lg transition-colors', selectedAmount === a ? 'bg-black text-white' : 'bg-gray-100 dark:bg-gray-800 text-slate-800 dark:text-slate-200']">{{ formatAmount(a) }}</button>
-          </div>
-        </div>
-
-        <div class="mt-6">
-          <h3 class="text-sm font-medium text-slate-600 dark:text-slate-400">{{ $t('pages.donate.recurring') }}</h3>
-          <div class="flex items-center gap-3 mt-2">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <NSwitch v-model="recurring" switch-checked="blue" />
-              <span class="text-sm text-slate-700 dark:text-slate-300">{{ $t('pages.donate.recurringLabel') }}</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <!-- Donation Form -->
-      <div class="rounded-lg p-6 border border-gray-200 dark:border-gray-800">
-        <h2 class="font-600 text-lg mb-4">{{ $t('pages.donate.donateSection') }}</h2>
-        <form @submit.prevent="submitDonation" class="space-y-4">
-          <div>
-            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1">{{ $t('pages.donate.amountLabel') }}</label>
-            <NInput v-model="amountInput" input="outline" type="number" min="1" :placeholder="$t('pages.donate.amountPlaceholder')" />
-          </div>
-
-          <div>
-            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1">{{ $t('pages.donate.emailLabel') }}</label>
-            <NInput v-model="email" input="outline" type="email" :placeholder="$t('pages.donate.emailPlaceholder')" />
-          </div>
-
-          <div>
-            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1">{{ $t('pages.donate.messageLabel') }}</label>
-            <NInput v-model="message" input="outline" type="textarea" :rows="4" :placeholder="$t('pages.donate.messagePlaceholder')" />
-          </div>
-
-          <div class="flex items-center gap-3">
-            <NButton type="submit" btn="solid-blue">{{ $t('pages.donate.submitButton', { amount: formatAmount(displayAmount) }) }}</NButton>
-            <NButton btn="ghost" @click.prevent="resetForm">{{ $t('common.reset') }}</NButton>
-          </div>
-
-          <div v-if="statusMessage" :class="['text-sm mt-2', statusOk ? 'text-lime' : 'text-red']">{{ statusMessage }}</div>
-        </form>
-
-        <div class="mt-6 text-xs text-slate-500 dark:text-slate-400">
-          {{ $t('pages.donate.stubNote') }}
-        </div>
-      </div>
+      <NuxtLink class="site-donate-home" :to="localizedPath('/', locale)">
+        {{ $t('pages.donate.returnHome') }}
+      </NuxtLink>
     </div>
-  </div>
-  </transition>
+  </main>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
+import { localizedPath } from '~/utils/presentationPosts'
 
-const { $t } = useI18n()
-
-const suggestedAmounts = [5, 10, 25, 50, 100]
-const selectedAmount = ref<number | null>(25)
-const amountInput = ref<number | null>(25)
-const recurring = ref(false)
-const email = ref('')
-const message = ref('')
-const statusMessage = ref('')
-const statusOk = ref(false)
-const donationCompleted = ref(false)
-const lastDonation = ref<{ amount:number; recurring:boolean; email?:string; message?:string } | null>(null)
-
-function formatAmount(n: number) {
-  return `$${n}`
-}
-
-function selectAmount(a: number) {
-  selectedAmount.value = a
-  amountInput.value = a
-}
-
-const displayAmount = computed(() => {
-  return amountInput.value ?? selectedAmount.value ?? 0
-})
-
-function resetForm() {
-  selectedAmount.value = 25
-  amountInput.value = 25
-  recurring.value = false
-  email.value = ''
-  message.value = ''
-  statusMessage.value = ''
-}
-
-async function submitDonation() {
-  statusMessage.value = ''
-  statusOk.value = false
-  const payload = {
-    amount: Number(displayAmount.value),
-    recurring: recurring.value,
-    email: email.value || undefined,
-    message: message.value || undefined,
-  }
-
-  try {
-    const res = await $fetch('/api/donate', {
-      method: 'POST',
-      body: payload,
-    })
-
-    // When we wire a payment provider, this will respond with a checkout url.
-    // For now we show a success message and the returned payload.
-    statusMessage.value = res?.message ?? 'Donation request received. Thank you!'
-    statusOk.value = true
-    lastDonation.value = payload
-    donationCompleted.value = true
-  } catch (err: any) {
-    statusMessage.value = err?.data?.message || 'Failed to process donation request.'
-    statusOk.value = false
-  }
-}
-
-function donateAgain() {
-  donationCompleted.value = false
-  resetForm()
-}
-
+const { $t, $getLocale } = useI18n()
+const locale = computed(() => $getLocale())
+const reasonsHeadingId = 'donation-reasons-heading'
 </script>
 
 <style scoped>
-@layer components {
-
-.confetti-icon {
-  display: inline-block;
-  color: #34D399; /* start green */
-  transform-origin: center;
-  animation: confetti-color 6s linear infinite, confetti-move 3s ease-in-out infinite;
+.site-donate {
+  min-height: calc(100vh - var(--site-header-height, 72px));
+  padding: clamp(48px, 9vh, 96px) 24px 112px;
+  background: var(--site-color-background);
+  color: var(--site-color-text);
 }
 
-.confetti-icon svg {
-  display: inline-block;
-  width: 1em;
-  height: 1em;
-  fill: currentColor; /* ensure SVG inherits color */
+.site-donate-content {
+  width: min(100%, 700px);
+  margin-inline: auto;
 }
 
-@keyframes confetti-color {
-  0%   { color: #F472B6; } /* pink */
-  25%  { color: #60A5FA; } /* blue */
-  50%  { color: #A78BFA; } /* purple */
-  75%  { color: #FDE047; } /* yellow */
-  100% { color: #34D399; } /* green */
+.site-donate-intro {
+  max-width: 680px;
 }
 
-/* Mostly idle, but briefly pops/shakes once per cycle */
-@keyframes confetti-move {
-  0%, 40% { transform: scale(1) rotate(0) translateX(0); }
-  45%     { transform: scale(1.06) rotate(-6deg) translateX(-3px); }
-  50%     { transform: scale(1.12) rotate(6deg) translateX(3px); }
-  55%     { transform: scale(1.04) rotate(-4deg) translateX(-2px); }
-  60%, 100% { transform: scale(1) rotate(0) translateX(0); }
+.site-donate-intro h1 {
+  margin: 0;
+  color: var(--site-color-heading);
+  font-family: var(--site-font-heading);
+  font-size: clamp(32px, 4vw, 44px);
+  font-weight: 550;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
 }
 
-/* Page entrance animation */
-.page-entrance-enter-active,
-.page-entrance-appear-active {
-  transition: opacity 320ms cubic-bezier(.2,.8,.2,1), transform 320ms cubic-bezier(.2,.8,.2,1);
+.site-donate-intro p {
+  margin: 18px 0 0;
+  color: var(--site-color-muted);
+  font-size: clamp(17px, 2vw, 20px);
+  line-height: 1.55;
 }
-.page-entrance-enter-from,
-.page-entrance-appear-from {
-  opacity: 0;
-  transform: translateY(12px) scale(0.998);
+
+.site-donate-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 32px 0 0;
+  padding: 14px 0;
+  border-top: 1px solid var(--site-color-border);
+  border-bottom: 1px solid var(--site-color-border);
+  color: var(--site-color-muted);
+  font-size: 15px;
 }
-.page-entrance-enter-to,
-.page-entrance-appear-to {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+
+.site-donate-status > span {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--site-color-muted);
+}
+
+.site-donate-reasons {
+  margin-top: 44px;
+}
+
+.site-donate-reasons h2 {
+  margin: 0;
+  color: var(--site-color-heading);
+  font-size: 20px;
+  font-weight: 550;
+  letter-spacing: -0.015em;
+}
+
+.site-donate-reasons ul {
+  display: grid;
+  gap: 0;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-donate-reasons li {
+  padding: 14px 0;
+  border-top: 1px solid var(--site-color-border);
+  color: var(--site-color-text);
+  line-height: 1.55;
+}
+
+.site-donate-home {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 32px;
+  padding: 0 15px;
+  border: 1px solid var(--site-color-border);
+  border-radius: var(--site-radius-control);
+  color: var(--site-color-heading);
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color var(--site-motion-fast) ease, border-color var(--site-motion-fast) ease;
+}
+
+.site-donate-home:hover {
+  border-color: var(--site-color-focus-ring);
+  background: var(--site-color-hover-background);
+}
+
+.site-donate-home:focus-visible {
+  outline: 2px solid var(--site-color-focus-ring);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .site-donate {
+    padding: 40px 20px 96px;
+  }
+
+  .site-donate-status {
+    align-items: flex-start;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .confetti-icon { animation: none; }
-  .page-entrance-enter-active,
-  .page-entrance-appear-active { transition: none; }
-}
+  .site-donate-home {
+    transition: none;
+  }
 }
 </style>

@@ -72,7 +72,7 @@ const { $getLocale, $t } = useI18n()
     background-color 150ms ease-in-out,
     border-color 150ms ease-in-out,
     color 200ms ease,
-    transform 300ms cubic-bezier(0.4, 0, 0.2, 1.8);
+    transform 220ms var(--site-ease-standard);
 }
 .site-shell .site-footer .site-footer-nav-link:hover,
 .site-shell .site-footer .site-footer-nav-link:focus-visible {
@@ -113,7 +113,7 @@ const { $getLocale, $t } = useI18n()
     background-color 150ms ease,
     border-color 150ms ease,
     color 200ms ease,
-    transform 300ms cubic-bezier(0.4, 0, 0.2, 2.4);
+    transform 220ms var(--site-ease-standard);
 }
 .site-shell .site-footer .site-footer-copyright .site-footer-author-link:hover,
 .site-shell .site-footer .site-footer-copyright .site-footer-author-link:focus-visible {

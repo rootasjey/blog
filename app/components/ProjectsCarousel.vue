@@ -133,7 +133,7 @@ const projects = computed(() => {
   height: 100%;
   object-fit: cover;
   transform: scale(1);
-  transition: transform 300ms cubic-bezier(0.4, 0, 0.21, 1.8);
+  transition: transform 220ms var(--site-ease-standard);
 }
 .site-shell .site-home-project-card:hover .site-home-project-image img,
 .site-shell .site-home-project-card:focus-within .site-home-project-image img {

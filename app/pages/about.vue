@@ -126,8 +126,7 @@ const accordionItemUna = {
   accordionPanel: 'pb-4',
 }
 const accordionTriggerUna = {
-  btn: 'w-full justify-between text-left text-[var(--site-color-text)] hover:bg-[var(--site-color-hover-background)] hover:text-[var(--site-color-heading)]',
-  btnLabel: 'text-[var(--site-color-text)]',
+  class: 'text-left text-[var(--site-color-text)] hover:bg-[var(--site-color-hover-background)] hover:text-[var(--site-color-heading)] focus-visible:outline-2 focus-visible:outline-[var(--site-color-focus-ring)] focus-visible:outline-offset-2',
 }
 
 useSeoMeta({
@@ -210,7 +209,7 @@ useHead({
   .site-about-links a {
     color: var(--site-color-accent);
     text-decoration: underline;
-    text-underline-offset: 0.2em;
+    text-underline-offset: var(--site-link-underline-offset);
   }
 
   .site-about-section {

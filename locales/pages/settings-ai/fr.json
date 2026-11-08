@@ -17,7 +17,15 @@
       "cfPlaceholder": "@cf/\u2026",
       "orModels": "Mod\u00e8les OpenRouter",
       "orModelsDesc": "Utilis\u00e9s quand OpenRouter est le fournisseur.",
-      "orPlaceholder": "openrouter/model:variant"
+      "orPlaceholder": "openrouter/model:variant",
+      "actions": {
+        "fix": { "label": "Corriger la grammaire", "description": "Corrige la grammaire, l’orthographe et la ponctuation en préservant le ton." },
+        "shorten": { "label": "Raccourcir", "description": "Condense le texte sélectionné sans en perdre le sens." },
+        "continue": { "label": "Continuer la rédaction", "description": "Poursuit le texte depuis le curseur en conservant le ton." },
+        "summarize": { "label": "Résumer", "description": "Résume le texte sélectionné de façon concise." },
+        "translate": { "label": "Traduire", "description": "Traduit le texte sélectionné vers une autre langue." },
+        "ask": { "label": "Demander à l’IA", "description": "Répond à une consigne ou à une question." }
+      }
     }
   }
 }

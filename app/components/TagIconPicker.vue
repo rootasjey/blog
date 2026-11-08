@@ -62,7 +62,7 @@ const iconOptions = computed(() => TAG_ICON_OPTIONS.map(option => ({
 
 <style scoped>
 .site-tag-icon-picker { display: flex; flex-wrap: wrap; gap: 8px; }
-.site-tag-icon-picker-option { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid var(--site-color-border); border-radius: 10px; background: transparent; color: var(--site-color-muted); cursor: pointer; font-size: 16px; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 220ms cubic-bezier(.34, 1.56, .64, 1); }
+.site-tag-icon-picker-option { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid var(--site-color-border); border-radius: 10px; background: transparent; color: var(--site-color-muted); cursor: pointer; font-size: 16px; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 220ms var(--site-ease-standard); }
 .site-tag-icon-picker-option:hover { border-color: var(--site-color-text); color: var(--site-color-heading); transform: translateY(-1px); }
 .site-tag-icon-picker-option.is-selected { border-color: var(--site-color-heading); color: var(--site-color-heading); background: var(--site-color-hover-background); }
 .site-tag-icon-picker-option:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 2px; }

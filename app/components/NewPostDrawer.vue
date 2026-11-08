@@ -274,12 +274,14 @@ const create = async () => {
 .site-new-content-field :deep(input::placeholder),
 .site-new-content-field :deep(textarea::placeholder) {
   color: var(--site-color-muted);
-  opacity: 0.8;
 }
 
 .site-new-content-field :deep(input:focus-visible),
 .site-new-content-field :deep(textarea:focus-visible) {
+  border-width: 2px;
   border-color: var(--site-color-focus-ring);
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .site-new-content-assigned {

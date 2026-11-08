@@ -42,6 +42,8 @@
       "undoEmpty": "Rien \u00e0 annuler",
       "redo": "R\u00e9tablir la derni\u00e8re action",
       "redoEmpty": "Rien \u00e0 r\u00e9tablir",
+      "exportOptions": "Options d’export",
+      "moreActions": "Autres actions",
       "editSlug": "Modifier le slug",
       "exportZip": "Exporter (ZIP)",
       "exportJson": "Exporter JSON",

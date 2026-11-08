@@ -207,7 +207,7 @@ onBeforeUnmount(() => {
   color: var(--site-color-heading);
   opacity: 0;
   pointer-events: none;
-  transition: max-width .35s cubic-bezier(.4, 0, .2, 1.3), height .25s ease, opacity .2s ease, transform .35s cubic-bezier(.4, 0, .2, 1.8), background-color .25s ease;
+  transition: max-width .35s var(--site-ease-standard), height .25s ease, opacity .2s ease, transform .22s var(--site-ease-standard), background-color .25s ease;
 }
 .site-shell .site-reading-progress.is-visible,
 .site-shell .site-reading-progress:focus-within { transform: translateX(-50%) scale(1); opacity: 1; pointer-events: auto; }

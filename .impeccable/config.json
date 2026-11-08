@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "app/components/editor/PostViewer.vue"
+        ],
+        "createdAt": "2026-11-07T22:16:42.023Z",
+        "reason": "Current blockquote explicitly uses border: 0; the reported side accent is absent."
+      }
+    ]
+  }
+}

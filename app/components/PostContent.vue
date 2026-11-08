@@ -53,7 +53,17 @@ function forwardEditor(ed: any) { emit('editor-ready', ed) }
 .site-shell .site-post-content .post-content .ProseMirror h4 { margin-block: 28px 14px; color: var(--site-color-heading); font-family: var(--site-font-body); font-size: 16px; font-weight: 600; letter-spacing: 0; line-height: 1.5; }
 .site-shell .site-post-content .post-content .ProseMirror ul,
 .site-shell .site-post-content .post-content .ProseMirror ol { margin-block: 0 24px; padding-inline-start: 24px; }
-.site-shell .site-post-content .post-content .ProseMirror blockquote { margin-block: 32px; border-color: var(--site-color-accent); background: transparent; color: var(--site-color-muted); font-family: var(--site-font-body); font-size: 18px; line-height: 1.6; }
+.site-shell .site-post-content .post-content .ProseMirror blockquote {
+  margin-block: 32px;
+  padding: 20px 24px;
+  border: 0;
+  border-radius: var(--site-radius-card);
+  background: var(--site-color-hover-background);
+  color: var(--site-color-text);
+  font-family: var(--site-font-body);
+  font-size: 17px;
+  line-height: 1.65;
+}
 .site-shell .site-post-content .post-content h1,
 .site-shell .site-post-content .post-content h2,
 .site-shell .site-post-content .post-content h3 { color: var(--site-color-heading); font-family: var(--site-font-body); font-weight: 550; letter-spacing: 0; }
@@ -62,11 +72,11 @@ function forwardEditor(ed: any) { emit('editor-ready', ed) }
   color: var(--site-color-accent);
   text-decoration-line: underline;
   text-decoration-thickness: 1.5px;
-  text-underline-offset: 0.2em;
+  text-underline-offset: var(--site-link-underline-offset);
   transition: color 160ms ease;
 }
 .site-shell .site-post-content .post-content a:hover { color: var(--site-color-heading); }
-.site-shell .site-post-content .post-content blockquote { border-color: var(--site-color-accent); background: transparent; color: var(--site-color-muted); }
+.site-shell .site-post-content .post-content blockquote { border: 0; background: var(--site-color-hover-background); color: var(--site-color-text); }
 .site-shell .site-post-content .post-content img { border-radius: var(--site-radius-inline-media); }
 .post-content figure.image-figure--full-bleed { width: 100vw; max-width: none; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); padding-inline: 16px; box-sizing: border-box; }
 .post-content figure.image-figure--full-bleed img { width: 100%; max-width: none; margin: 0; border-radius: 0; }

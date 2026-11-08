@@ -40,7 +40,7 @@
           </li>
           <li v-for="tag in filteredTags" :key="tag.id" class="site-tags-directory-row">
             <NuxtLink
-              class="site-tags-directory-tag"
+              class="site-tags-directory-tag site-tags-directory-tag-link"
               :to="tagHref(tag)"
               :style="{ '--tag-accent': postTagColor(tag.name) }"
             >
@@ -154,10 +154,10 @@ function menuItems(tag: DirectoryTag) {
   .site-shell .site-tags-directory-tools input {
     box-sizing: border-box;
     width: 100%;
-    min-height: 34px;
+    min-height: 44px;
     padding: 6px 10px 6px 34px;
     border: 1px solid color-mix(in srgb, var(--site-color-text) 13%, transparent);
-    border-radius: 10px;
+    border-radius: var(--site-radius-control);
     outline: none;
     background: transparent;
     color: var(--site-color-text);
@@ -204,6 +204,7 @@ function menuItems(tag: DirectoryTag) {
     color: var(--site-color-heading);
     text-decoration: none;
   }
+  .site-shell .site-tags-directory.is-admin .site-tags-directory-tag-link { padding-inline-end: 48px; }
   .site-shell .site-tags-directory-icon {
     display: grid;
     width: 44px;
@@ -218,7 +219,7 @@ function menuItems(tag: DirectoryTag) {
     font-size: 15px;
     font-weight: 550;
     transform: scale(1);
-    transition: background-color 200ms ease, border-color 200ms ease, transform 420ms cubic-bezier(.34, 1.56, .64, 1);
+    transition: background-color 200ms ease, border-color 200ms ease, transform 220ms var(--site-ease-standard);
   }
   .site-shell .site-tags-directory-name {
     min-width: 0;
@@ -242,7 +243,7 @@ function menuItems(tag: DirectoryTag) {
   .site-shell .site-tags-directory-tag:hover .site-tags-directory-icon,
   .site-shell .site-tags-directory-tag:focus-visible .site-tags-directory-icon {
     border-color: transparent;
-    background: color-mix(in srgb, var(--tag-accent) 11%, transparent);
+    background: color-mix(in srgb, var(--tag-accent) 6%, transparent);
     transform: scale(1.05);
   }
   .site-shell .site-tags-directory-tag:hover .site-tags-directory-name,
@@ -255,12 +256,12 @@ function menuItems(tag: DirectoryTag) {
     top: 50%;
     right: 4px;
     display: grid;
-    width: 28px;
-    min-height: 28px;
+    width: 44px;
+    min-height: 44px;
     padding: 0;
     place-items: center;
     border: 0;
-    border-radius: 6px;
+    border-radius: var(--site-radius-icon);
     background: var(--site-color-background);
     color: var(--site-color-muted);
     opacity: 0;
@@ -288,11 +289,9 @@ function menuItems(tag: DirectoryTag) {
     .site-shell .site-tags-directory { padding-block: 36px 52px; }
     .site-shell .site-tags-directory-content > .site-collection-intro { margin-bottom: 44px; }
     .site-shell .site-tags-directory.is-admin .site-tags-directory-content > .site-collection-intro { margin-bottom: 20px; }
+    .site-shell .site-tags-directory-search { width: 100%; }
     .site-shell .site-tags-directory-list { width: 100%; margin-left: 0; }
     .site-shell .site-tags-directory-menu { opacity: 1; }
-  }
-  @media (max-width: 380px) {
-    .site-shell .site-tags-directory-search { width: 100%; }
   }
   @media (prefers-reduced-motion: reduce) {
     .site-shell .site-tags-directory-tools input,

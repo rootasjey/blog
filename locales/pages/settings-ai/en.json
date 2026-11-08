@@ -17,7 +17,15 @@
       "cfPlaceholder": "@cf/\u2026",
       "orModels": "OpenRouter models",
       "orModelsDesc": "Used when OpenRouter is the provider.",
-      "orPlaceholder": "openrouter/model:variant"
+      "orPlaceholder": "openrouter/model:variant",
+      "actions": {
+        "fix": { "label": "Fix grammar", "description": "Corrects grammar, spelling, and punctuation while preserving tone." },
+        "shorten": { "label": "Make shorter", "description": "Condenses the selected text without losing meaning." },
+        "continue": { "label": "Continue writing", "description": "Continues from the cursor while preserving tone." },
+        "summarize": { "label": "Summarize", "description": "Summarizes the selected text concisely." },
+        "translate": { "label": "Translate", "description": "Translates the selected text into another language." },
+        "ask": { "label": "Ask AI", "description": "Responds to an instruction or question." }
+      }
     }
   }
 }

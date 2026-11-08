@@ -262,6 +262,7 @@ async function confirmDelete() {
 <style>
 @layer components {
   .site-tag-dialog-field:focus-visible {
+    border-width: 2px !important;
     border-color: var(--site-color-focus-ring) !important;
     outline: none !important;
     box-shadow: none !important;

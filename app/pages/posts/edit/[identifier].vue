@@ -1,75 +1,47 @@
 <template>
-  <div v-if="post" class="min-h-screen site-post-editor">
-    <!-- Top action bar -->
-    <div class="sticky z-30 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-200 site-editor-toolbar" :style="{ top: `${toolbarTop}px` }">
-      <div class="container mx-auto px-4 md:px-8 py-2 md:py-3">
-        <div class="flex items-center justify-between gap-2">
-          <NButton link to="/posts" btn="ghost-gray" size="xs" class="px-2">
-            <span class="i-ph-arrow-bend-down-left-bold" /> <span class="hidden sm:inline">{{ $t('pages.postEditor.allPosts') }}</span>
-          </NButton>
-          <div class="flex items-center gap-1 md:gap-2">
-            <NTooltip :content="undoTooltip">
-              <NButton
-                @click="undoEditor"
-                :disabled="!editor || !editor.can().undo()"
-                :class="{ 'opacity-40 cursor-not-allowed': !editor || !editor.can().undo() }"
-                icon
-                label="i-ph-arrow-u-up-left-bold"
-                btn="ghost-gray"
-                size="xs"
-              />
-            </NTooltip>
-            <NTooltip :content="redoTooltip">
-              <NButton
-                @click="redoEditor"
-                :disabled="!editor || !editor.can().redo()"
-                :class="{ 'opacity-40 cursor-not-allowed': !editor || !editor.can().redo() }"
-                icon
-                label="i-ph-arrow-u-up-right-bold"
-                btn="ghost-gray"
-                size="xs"
-              />
-            </NTooltip>
-
-            <div class="hidden sm:flex items-center gap-2">
-              <NButton :to="`/posts/${post.slug}`" btn="~" size="xs" class="site-editor-action" target="_blank">
-                <span class="i-lucide-external-link mr-2" /><span class="hidden sm:inline">{{ $t('common.preview') }}</span>
-              </NButton>
-              <NDropdownMenu :items="exportMenuItems" :_dropdownMenuContent="{ side: 'bottom' }">
-                <NButton btn="~" size="xs" class="site-editor-action">
-                  <NIcon :name="exportingZip ? 'i-lucide-loader' : 'i-ph-download-simple'" :class="{ 'animate-spin': exportingZip }" />
-                </NButton>
-              </NDropdownMenu>
-            </div>
-
-            <NButton @click="saveAll" btn="~" size="xs" :disabled="saving || !name || !slug" class="site-editor-action">
-              <NIcon :name="saving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': saving }" />
-            </NButton>
-            <NDropdownMenu :items="menuItems" class="menu-items">
-              <NButton icon label="i-ph-dots-three-vertical" btn="~" size="xs" class="site-editor-action" />
-            </NDropdownMenu>
-
-            <EditSlugDialog
-              v-model="isSlugDialogOpen"
-              v-model:slugCandidate="slugCandidate"
-              :slug="slug"
-              :slugCheckLoading="slugCheckLoading"
-              :slugTaken="slugTaken"
-              :slugCheckMessage="slugCheckMessage"
-              :error="error"
-              @save="saveSlug"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+  <div v-if="post" class="min-h-screen site-post site-dynamic-post site-post-editor site-post-editor--post">
+    <!-- Floating action bar -->
+    <PostEditorToolbar
+      :post-slug="post.slug"
+      :status="status"
+      :language-options="languageOptions"
+      :post-language="postLanguage"
+      :has-cover="Boolean(post.image?.src)"
+      :uploading-cover="uploadingCover"
+      :exporting-zip="exportingZip"
+      :saving="saving"
+      :can-save="Boolean(name && slug)"
+      :can-undo="canUndo"
+      :can-redo="canRedo"
+      @undo="undoEditor"
+      @redo="redoEditor"
+      @save="saveAll"
+      @change-status="status = $event"
+      @change-language="updatePostLanguage"
+      @open-translations="translationsDialogOpen = true"
+      @edit-slug="openSlugDialog"
+      @delete-post="openDeleteDialog"
+      @export-zip="exportPostZipFile"
+      @export-json="exportPost"
+      @replace-cover="triggerFileInput"
+      @delete-cover="openDeleteCoverDialog"
+    >
+      <EditSlugDialog
+        v-model="isSlugDialogOpen"
+        v-model:slugCandidate="slugCandidate"
+        :slug="slug"
+        :slugCheckLoading="slugCheckLoading"
+        :slugTaken="slugTaken"
+        :slugCheckMessage="slugCheckMessage"
+        :error="error"
+        @save="saveSlug"
+      />
+    </PostEditorToolbar>
 
     <!-- Hero / Title / Meta extracted to component -->
     <PostMetadataEditor
       :name="name"
       :description="description"
-      :reading-time="enhancedPost.readingTime"
-      :date-label="formatPostDate(post.publishedAt || post.createdAt)"
       :post-id="post?.id || null"
       :tags="postTags"
       @update:name="name = $event"
@@ -78,16 +50,18 @@
     />
 
     <!-- Featured Image (preview / placeholder) -->
-    <div v-if="previewSrc || post.image?.src" class="w-full px-4 relative group">
-      <img v-if="previewSrc" :src="previewSrc" :alt="post.image?.alt || post.name" class="w-full h-auto max-h-[80vh] object-cover rounded-2xl" />
-      <NuxtImg v-else provider="hubblob" :src="post.image.src" :alt="post.image.alt || post.name" class="w-full h-auto max-h-[80vh] object-cover rounded-2xl" />
+    <div v-if="previewSrc || post.image?.src" class="site-preview-cover site-editor-cover group">
+      <div class="post-cover site-preview-cover-trigger">
+        <img v-if="previewSrc" :src="previewSrc" :alt="post.image?.alt || post.name" class="site-preview-cover-image" />
+        <NuxtImg v-else provider="hubblob" :src="post.image.src" :alt="post.image.alt || post.name" class="site-preview-cover-image" />
+      </div>
 
-      <div v-if="uploadingCover" class="absolute left-0 bottom-0 w-full h-1 bg-black/20 rounded-b-2xl overflow-hidden">
+      <div v-if="uploadingCover" class="site-editor-cover-progress">
         <div class="h-full bg-primary transition-all duration-300" :style="{ width: uploadProgress + '%' }" />
       </div>
 
       <!-- Overlay actions -->
-      <div class="absolute top-4 right-8 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div class="site-editor-cover-actions">
         <NButton @click="triggerFileInput" btn="solid-white" size="xs" :disabled="uploadingCover" leading="i-ph-image">
           <span v-if="!uploadingCover">{{ $t('pages.postEditor.replace') }}</span>
           <span v-else>{{ uploadProgress }}%</span>
@@ -101,36 +75,10 @@
       </div>
     </div>
 
-    <!-- Info bar similar to read view -->
-    <div class="border-b border-border bg-background">
-      <div class="container mx-auto px-4 md:px-8">
-        <div class="max-w-3xl mx-auto py-6">
-          <div class="flex items-center justify-between flex-wrap gap-4">
-            <div v-if="post.user" class="flex items-center gap-3">
-              <NuxtImg 
-                provider="hubblob" 
-                v-if="post.user.avatar" 
-                :src="post.user.avatar" 
-                :alt="post.user.name || 'User'" 
-                fit="cover"
-                class="w-8 h-8 rounded-full border" 
-              />
-              <div v-if="post.user.name">
-                <div class="font-semibold">{{ post.user.name }}</div>
-              </div>
-            </div>
-            <div class="text-sm">
-              <span class="opacity-70">{{ $t('pages.postEditor.autosaveEnabled') }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Editable Article Content using PostContent with floating toolbar -->
-    <article class="py-12 md:py-16 bg-background">
-      <div class="container mx-auto px-8 md:px-12">
-        <div class="max-w-xl md:max-w-3xl mx-auto">
+    <!-- Editable content follows the same reading column as the public post. -->
+    <article class="site-post-content site-editor-body">
+      <div class="container">
+        <div class="site-post-reading-column site-editor-canvas">
           <PostContent
             :content="articleContent"
             :editable="true"
@@ -141,7 +89,7 @@
             @update:content="onEditorUpdate"
             @editor-ready="onEditorReady"
           />
-          <div class="mt-2 text-xs text-gray-500 flex justify-end items-center gap-2">
+          <div class="site-editor-save-status">
             <span v-if="savingArticle" class="i-lucide-loader animate-spin text-sm" aria-hidden />
             <span v-if="savingArticle">{{ $t('pages.postEditor.autosaving') }}</span>
             <span v-else-if="lastArticleSavedAt">{{ $t('pages.postEditor.saved', { timeAgo }) }}</span>
@@ -150,8 +98,38 @@
       </div>
     </article>
 
+    <section class="site-post-end site-editor-end">
+      <div class="container">
+        <div class="site-post-author-card site-editor-byline">
+          <div class="site-editor-byline-author">
+            <div v-if="post.user" class="site-editor-author">
+              <NuxtImg
+                v-if="post.user.avatar"
+                provider="hubblob"
+                :src="post.user.avatar"
+                :alt="post.user.name || 'User'"
+                fit="cover"
+                class="site-editor-byline-avatar"
+              />
+              <div v-if="post.user.name" class="site-editor-byline-name">
+                {{ post.user.name }}
+              </div>
+            </div>
+            <div class="site-editor-autosave-status">
+              {{ $t('pages.postEditor.autosaveEnabled') }}
+            </div>
+          </div>
+        </div>
+        <div class="site-editor-end-meta">
+          <time>{{ formatPostDate(post.publishedAt || post.createdAt) }}</time>
+          <span aria-hidden="true">·</span>
+          <span>{{ enhancedPost.readingTime }}</span>
+        </div>
+      </div>
+    </section>
+
     <transition name="fade">
-      <div v-if="aiSession" class="fixed bottom-5 right-5 z-40 w-[320px] rounded-xl border border-border bg-background/95 shadow-lg backdrop-blur">
+      <div v-if="aiSession" class="site-editor-ai-session">
         <div class="flex items-center justify-between px-4 pt-3">
           <div class="flex items-center gap-2 font-semibold text-sm">
             <span class="i-lucide-sparkles text-primary" />
@@ -167,104 +145,32 @@
       </div>
     </transition>
 
-    <NDialog v-model:open="translationsDialogOpen" dialog="md">
-      <NDialogContent>
-        <NDialogHeader>
-          <NDialogTitle>{{ $t('editor.translationsManager.title') }}</NDialogTitle>
-        </NDialogHeader>
-        <TranslationsManager
-          v-if="post"
-          :post-id="post.id"
-          :current-language="post.language"
-          @translation-created="onTranslationCreated"
-        />
-      </NDialogContent>
-    </NDialog>
-
-    <NDialog v-model:open="translateDialogOpen">
-      <NDialogContent class="max-w-md">
-        <NDialogHeader>
-          <NDialogTitle>{{ $t('pages.postEditor.translateSelection') }}</NDialogTitle>
-        </NDialogHeader>
-
-        <NDialogDescription>
-          <p class="text-sm text-slate-600 dark:text-slate-300">{{ $t('pages.postEditor.translateDescription') }}</p>
-        </NDialogDescription>
-
-        <div class="mt-4 space-y-3">
-          <div class="text-sm font-semibold flex items-center gap-2">
-            <span class="i-lucide-languages" />
-            <span>{{ $t('pages.postEditor.sourceLanguage') }}</span>
-          </div>
-          <div class="text-sm text-slate-600 dark:text-slate-400">{{ sourceLanguageLabel }} (from post)</div>
-
-          <label class="text-sm font-semibold flex items-center gap-2" for="translate-target">
-            <span class="i-lucide-flag" />
-            <span>{{ $t('pages.postEditor.targetLanguage') }}</span>
-          </label>
-          <select
-            id="translate-target"
-            v-model="translateTargetLanguage"
-            class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
-          >
-            <option
-              v-for="opt in languageOptions"
-              :key="opt.value"
-              :value="opt.value"
-              :disabled="opt.value === sourceLanguage"
-            >
-              {{ opt.label }}
-            </option>
-          </select>
-        </div>
-
-        <NDialogFooter class="flex items-center gap-2 justify-end mt-5">
-          <NButton btn="ghost-gray" size="sm" :disabled="aiLoading" @click="cancelTranslateDialog">{{ $t('pages.postEditor.cancel') }}</NButton>
-          <NButton btn="primary" size="sm" :disabled="aiLoading" @click="confirmTranslate">{{ $t('pages.postEditor.translate') }}</NButton>
-        </NDialogFooter>
-      </NDialogContent>
-    </NDialog>
-
     <AiProviderDialog
       v-model:open="aiProviderDialogOpen"
       v-model:provider="aiProvider"
     />
 
-    <!-- Delete post confirmation -->
-    <NDialog v-model:open="confirmDeleteDialogOpen">
-      <NDialogContent class="max-w-md">
-        <NDialogHeader>
-          <NDialogTitle>{{ $t('pages.postEditor.deletePost') }}</NDialogTitle>
-        </NDialogHeader>
-
-        <NDialogDescription>
-          <p class="text-sm text-gray-700 dark:text-gray-300">{{ $t('pages.postEditor.deletePostConfirm') }}</p>
-        </NDialogDescription>
-
-        <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
-          <NButton btn="ghost-gray" size="sm" @click="confirmDeleteDialogOpen = false">{{ $t('pages.postEditor.cancel') }}</NButton>
-          <NButton btn="danger" size="sm" @click="performDeletePost" :loading="deletePostLoading">{{ $t('pages.postEditor.delete') }}</NButton>
-        </NDialogFooter>
-      </NDialogContent>
-    </NDialog>
-
-    <!-- Remove cover image confirmation -->
-    <NDialog v-model:open="confirmDeleteCoverOpen">
-      <NDialogContent class="max-w-md">
-        <NDialogHeader>
-          <NDialogTitle>{{ $t('pages.postEditor.removeCoverTitle') }}</NDialogTitle>
-        </NDialogHeader>
-
-        <NDialogDescription>
-          <p class="text-sm text-gray-700 dark:text-gray-300">{{ $t('pages.postEditor.removeCoverConfirm') }}</p>
-        </NDialogDescription>
-
-        <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
-          <NButton btn="ghost-gray" size="sm" @click="confirmDeleteCoverOpen = false">{{ $t('pages.postEditor.cancel') }}</NButton>
-          <NButton btn="danger" size="sm" @click="confirmDeleteCover" :loading="deleteCoverLoading">{{ $t('pages.postEditor.delete') }}</NButton>
-        </NDialogFooter>
-      </NDialogContent>
-    </NDialog>
+    <PostEditorDialogs
+      v-if="post"
+      v-model:translations-open="translationsDialogOpen"
+      v-model:translate-open="translateDialogOpen"
+      v-model:translate-target-language="translateTargetLanguage"
+      v-model:delete-post-open="confirmDeleteDialogOpen"
+      v-model:delete-cover-open="confirmDeleteCoverOpen"
+      :post-id="post.id"
+      :current-language="post.language"
+      :language-options="languageOptions"
+      :source-language="sourceLanguage"
+      :source-language-label="sourceLanguageLabel"
+      :ai-loading="aiLoading"
+      :delete-post-loading="deletePostLoading"
+      :delete-cover-loading="deleteCoverLoading"
+      @translation-created="onTranslationCreated"
+      @confirm-translate="confirmTranslate"
+      @cancel-translate="cancelTranslateDialog"
+      @confirm-delete-post="performDeletePost"
+      @confirm-delete-cover="confirmDeleteCover"
+    />
 
     <!-- Hidden file input for cover image -->
     <input
@@ -296,14 +202,14 @@ import { deriveSlugFromName } from '~/utils/slug'
 import { useTagStore } from '~/stores/tags'
 import { useAIWriter } from '~/composables/useAIWriter'
 import AiProviderDialog from '~/components/editor/AiProviderDialog.vue'
-import { useHeaderToolbarOffset } from '~/composables/useHeaderToolbarOffset'
+import PostEditorDialogs from '~/components/editor/PostEditorDialogs.vue'
+import PostEditorToolbar from '~/components/editor/PostEditorToolbar.vue'
 
 const route = useRoute()
 const router = useRouter()
 const identifier = computed(() => route.params.identifier as string)
 
 const { user } = useUserSession()
-const { top: toolbarTop } = useHeaderToolbarOffset({ baseOffsetPx: 0 })
 const { enhancePost, formatPostDate } = usePost()
 const tagStore = useTagStore()
 const { fetchPost: fetchPostApi, updatePost, updateArticle, deletePost: deletePostApi, exportPostZip } = usePostsApi()
@@ -379,7 +285,7 @@ const { fileInput, uploadingCover, uploadProgress, previewSrc, clearPreview, tri
 const enhancedPost = computed(() => (post.value ? enhancePost(post.value) : ({ readingTime: '—' } as any)))
 const isNumericIdentifier = computed(() => /^\d+$/.test(String(identifier.value)))
 
-const { $t } = useI18n()
+const { $t, $getLocale } = useI18n()
 const languageOptions = [
   { value: 'en', label: $t('pages.postEditor.en') },
   { value: 'fr', label: $t('pages.postEditor.fr') },
@@ -506,8 +412,8 @@ const cancelTranslateDialog = () => {
   pendingAICommand.value = null
 }
 
-const undoTooltip = computed(() => (editor?.value && editor.value.can().undo() ? $t('pages.postEditor.undo') : $t('pages.postEditor.undoEmpty')))
-const redoTooltip = computed(() => (editor?.value && editor.value.can().redo() ? $t('pages.postEditor.redo') : $t('pages.postEditor.redoEmpty')))
+const canUndo = computed(() => Boolean(editor.value?.can().undo()))
+const canRedo = computed(() => Boolean(editor.value?.can().redo()))
 
 const openSlugDialog = () => {
   setSlugCandidate(slug.value || '')
@@ -551,49 +457,6 @@ const saveSlug = async () => {
     saving.value = false
   }
 }
-
-const menuItems = computed(() => {
-  const items = [
-    {
-      label: $t('pages.posts.status'),
-      items: [
-        { label: $t('pages.posts.draft'), trailing: status.value === 'draft' ? 'i-ph-check' : undefined, onSelect: () => (status.value = 'draft') },
-        { label: $t('pages.posts.published'), trailing: status.value === 'published' ? 'i-ph-check' : undefined, onSelect: () => (status.value = 'published') },
-        { label: $t('pages.posts.archived'), trailing: status.value === 'archived' ? 'i-ph-check' : undefined, onSelect: () => (status.value = 'archived') },
-      ],
-    },
-    {
-      label: $t('common.language'),
-      items: languageOptions.map(lang => ({
-        label: lang.label,
-        trailing: postLanguage.value === lang.value ? 'i-ph-check' : undefined,
-        onSelect: () => updatePostLanguage(lang.value),
-      })),
-    },
-    { label: $t('editor.translationsManager.title'), onSelect: () => { translationsDialogOpen.value = true }, leading: 'i-ph-translate' },
-    { label: $t('pages.postEditor.editSlug'), onSelect: openSlugDialog },
-    { label: $t('common.deletePost'), onSelect: openDeleteDialog },
-    { label: $t('pages.postEditor.exportZip'), onSelect: exportPostZipFile, leading: exportingZip.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-download-simple' },
-    {
-      label: $t('pages.posts.cover'),
-      items: [
-        post.value?.image?.src
-          ? { label: $t('pages.posts.replaceCover'), onSelect: triggerFileInput, leading: uploadingCover.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-image' }
-          : { label: $t('pages.posts.addCover'), onSelect: triggerFileInput, leading: 'i-ph-image' },
-        post.value?.image?.src
-          ? { label: $t('pages.posts.removeCover'), onSelect: openDeleteCoverDialog, leading: 'i-ph-trash' }
-          : {},
-      ],
-    },
-  ]
-
-  return items
-})
-
-const exportMenuItems = computed(() => [
-  { label: $t('pages.postEditor.exportJson'), onSelect: exportPost, leading: 'i-ph-file-json' },
-  { label: $t('pages.postEditor.exportZipAssets'), onSelect: exportPostZipFile, leading: exportingZip.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-download-simple' },
-])
 
 const fetchPost = async () => {
   loading.value = true

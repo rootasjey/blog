@@ -1,16 +1,25 @@
 /* Private profile editor, composed around the public author identity. */
 
 @layer components {
-.site-shell .site-profile .site-profile-toolbar {
-  border-color: var(--site-color-border);
+.site-shell .site-profile {
   background: var(--site-color-background);
+  color: var(--site-color-text);
+}
+
+.site-shell .site-profile .site-profile-toolbar {
+  background: var(--site-color-background);
+}
+
+.site-shell .site-profile-mobile-actions {
+  border-top: 1px solid var(--site-color-border);
+  background: color-mix(in srgb, var(--site-color-background) 95%, transparent);
 }
 
 .site-shell .site-profile .site-profile-toolbar > .container,
 .site-shell .site-profile > .container {
   box-sizing: border-box;
-  width: min(900px, calc(100% - 32px));
-  max-width: 900px;
+  width: min(700px, calc(100% - 32px));
+  max-width: 700px;
   padding-inline: 0;
 }
 
@@ -27,7 +36,7 @@
 .site-shell .site-profile-identity {
   display: grid;
   width: 100%;
-  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-columns: 100px minmax(0, 1fr);
   align-items: start;
   gap: 28px;
   margin: 32px auto 48px;
@@ -49,9 +58,9 @@
 }
 
 .site-shell .site-profile-avatar {
-  width: 108px;
-  height: 108px;
-  flex: 0 0 108px;
+  width: 100px;
+  height: 100px;
+  flex: 0 0 100px;
   border: 1px solid var(--site-color-border);
   border-radius: var(--site-radius-pill);
   background: var(--site-color-hover-background);

@@ -80,8 +80,10 @@ function tagInitial(name: string) {
   /* Component and page styles moved from the global stylesheets. */
   .site-shell .home-trending-tags > div {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     width: min(700px, calc(100% - 32px));
     max-width: 700px;
+    min-width: 0;
     row-gap: 32px;
     margin-inline: auto;
     padding-inline: 0;
@@ -123,7 +125,7 @@ function tagInitial(name: string) {
     text-decoration: none;
     transition:
       color 200ms ease,
-      transform 300ms cubic-bezier(0.4, 0, 0.2, 2.4);
+      transform 220ms var(--site-ease-standard);
   }
   .site-shell .home-trending-tags-heading::before {
     position: absolute;
@@ -187,7 +189,7 @@ function tagInitial(name: string) {
     font-size: 15px;
     font-weight: 550;
     transition:
-      transform 300ms cubic-bezier(0.4, 0, 0.21, 1.8),
+      transform 220ms var(--site-ease-standard),
       background-color 200ms ease,
       border-color 200ms ease;
   }
@@ -199,7 +201,7 @@ function tagInitial(name: string) {
     line-height: 1;
   }
   .site-shell .home-trending-tags nav a:hover .home-trending-tag-icon {
-    background: color-mix(in srgb, var(--tag-accent) 11%, transparent);
+    background: color-mix(in srgb, var(--tag-accent) 6%, transparent);
     border-color: transparent;
     transform: scale(1.05);
   }
@@ -224,6 +226,11 @@ function tagInitial(name: string) {
       margin-top: 40px;
       padding: 0;
     }
+    .site-shell .home-trending-tags nav {
+      width: 100%;
+      max-width: 100%;
+      margin-inline: 0;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .site-shell .home-trending-tags-heading,
@@ -234,21 +241,5 @@ function tagInitial(name: string) {
       transform: none;
     }
   }
-}
-</style>
-
-<style>
-/* Keep the custom tag-chip border above unlayered UnoCSS resets. */
-.site-shell .home-trending-tags .home-trending-tag-icon {
-  border: 1px solid color-mix(in srgb, var(--tag-accent) 30%, transparent);
-  transition:
-    transform 300ms cubic-bezier(.4, 0, .21, 1.8),
-    background-color 200ms ease,
-    border-color 200ms ease;
-}
-.site-shell .home-trending-tags nav a:hover .home-trending-tag-icon {
-  background: color-mix(in srgb, var(--tag-accent) 11%, transparent);
-  border-color: transparent;
-  transform: scale(1.05);
 }
 </style>

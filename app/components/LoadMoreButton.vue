@@ -30,8 +30,8 @@ defineEmits<{ click: [] }>()
       color 200ms ease,
       border-color 200ms ease,
       opacity 200ms ease,
-      transform 300ms cubic-bezier(.4, 0, .2, 2.4),
-      translate 300ms cubic-bezier(.4, 0, .2, 2.4);
+      transform 220ms var(--site-ease-standard),
+      translate 220ms var(--site-ease-standard);
   }
 
   .site-shell .site-load-more-button:hover,

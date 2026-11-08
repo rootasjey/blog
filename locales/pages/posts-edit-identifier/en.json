@@ -42,6 +42,8 @@
       "undoEmpty": "Nothing to undo",
       "redo": "Redo last editor action",
       "redoEmpty": "Nothing to redo",
+      "exportOptions": "Export options",
+      "moreActions": "More actions",
       "editSlug": "Edit Slug",
       "exportZip": "Export (ZIP)",
       "exportJson": "Export JSON",

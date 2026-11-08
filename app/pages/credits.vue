@@ -330,7 +330,7 @@ useHead({
   .site-credits-list a:hover {
     color: var(--site-color-accent);
     text-decoration: underline;
-    text-underline-offset: 0.2em;
+    text-underline-offset: var(--site-link-underline-offset);
   }
 
   .site-credits-list li > span {

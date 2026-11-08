@@ -1,169 +1,105 @@
 <template>
-  <div class="site-page site-search min-h-screen bg-white dark:bg-gray-950">
-    <div class="mx-auto max-w-3xl px-4 pb-28 pt-6 md:pt-10">
-      <header class="flex items-center justify-between gap-3 mb-5">
-        <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ $t('pages.search.heading') }}</p>
-          <h1 class="site-display-heading text-2xl md:text-3xl font-title font-bold text-gray-900 dark:text-gray-50">{{ $t('pages.search.title') }}</h1>
-        </div>
-        <NuxtLink to="/" class="hidden sm:inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold uppercase tracking-wide border border-gray-200 dark:border-gray-800 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-          <span class="i-ph-house-duotone text-sm" />
-          {{ $t('common.home') }}
-        </NuxtLink>
+  <main class="site-page site-search">
+    <div class="site-search-content">
+      <header class="site-search-heading">
+        <h1>{{ $t('pages.search.title') }}</h1>
       </header>
 
-      <div class="relative mb-6">
-        <NInput
+      <div class="site-search-field-wrap">
+        <label class="sr-only" for="search-page-input">{{ $t('pages.search.title') }}</label>
+        <input
           id="search-page-input"
           v-model="query"
+          class="site-search-field"
+          type="search"
           :placeholder="$t('pages.search.placeholder')"
-          input="outline-blue"
+          autocomplete="off"
           autofocus
-          class="shadow-none ring-none w-full"
-        />
-        <span class="i-ph-magnifying-glass-duotone absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        >
+        <span class="i-ph-magnifying-glass" aria-hidden="true" />
       </div>
 
-      <div class="flex flex-col gap-3 mb-6">
-        <div v-if="recentSearches.length" class="flex items-center gap-2">
-          <span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ $t('pages.search.recent') }}</span>
-          <div class="flex-1 overflow-x-auto scrollbar-hide">
-            <div class="flex items-center gap-2 min-w-max pr-2">
-              <button
-                v-for="item in recentSearches"
-                :key="item"
-                type="button"
-                class="px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-900"
-                @click="query = item"
-              >
-                {{ item }}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ $t('pages.search.suggestedTags') }}</span>
-          <div class="flex-1 overflow-x-auto scrollbar-hide">
-            <div class="flex items-center gap-2 min-w-max pr-2">
-              <button
-                v-for="tag in suggestedTags"
-                :key="tag.id"
-                type="button"
-                class="px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-900"
-                :disabled="tagsPending"
-                @click="query = tag.name"
-              >
-                #{{ tag.name }}
-              </button>
-              <span v-if="!suggestedTags.length && tagsPending" class="text-xs text-gray-500 dark:text-gray-400">{{ $t('common.loading') }}</span>
-              <span v-else-if="!suggestedTags.length && !tagsPending" class="text-xs text-gray-500 dark:text-gray-400">{{ $t('common.noTagsYet') }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="isMobile && !query.trim() && enhancedRecentPosts.length" class="sm:hidden">
-        <section class="py-4">
-          <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-900 dark:text-gray-100 mb-2">{{ $t('pages.search.recentPosts') }}</h2>
-
-          <div v-if="recentPending" class="space-y-3">
-            <div v-for="i in 4" :key="i" class="h-12 rounded-lg bg-gray-200 dark:bg-gray-800 animate-pulse" />
-          </div>
-
-          <ul v-else class="space-y-3">
-            <li
-              v-for="post in enhancedRecentPosts"
-              :key="post.slug"
-              class="flex items-start gap-3"
+      <div v-if="recentSearches.length || suggestedTags.length" class="site-search-shortcuts">
+        <section v-if="recentSearches.length" class="site-search-shortcut-group" :aria-label="$t('pages.search.recent')">
+          <h2>{{ $t('pages.search.recent') }}</h2>
+          <div class="site-search-chip-list">
+            <button
+              v-for="item in recentSearches"
+              :key="item"
+              type="button"
+              class="site-search-chip"
+              @click="query = item"
             >
-              <PostImage
-                v-if="post.image?.src"
-                :src="post.image.src"
-                :alt="post.image.alt || post.name"
-                class="h-14 w-14 shrink-0 rounded-xl object-cover bg-gray-100 dark:bg-gray-900"
-                loading="lazy"
-                decoding="async"
-                format="webp"
-              />
-              <div v-else class="h-14 w-14 shrink-0 rounded-xl bg-gray-200 dark:bg-gray-800" />
-              <NuxtLink :to="`/posts/${post.slug}`" class="flex-1">
-                <div class="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">{{ post.name }}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-2">
-                  <time>{{ post.formattedDate }}</time>
-                  <span>—</span>
-                  <span>{{ post.readingTime }}</span>
-                </div>
-              </NuxtLink>
-            </li>
-          </ul>
+              {{ item }}
+            </button>
+          </div>
+        </section>
 
-          <div v-if="recentError" class="text-sm text-gray-500 dark:text-gray-400 mt-2">{{ $t('pages.search.recentPostsError') }}</div>
+        <section class="site-search-shortcut-group" :aria-label="$t('pages.search.suggestedTags')">
+          <h2>{{ $t('pages.search.suggestedTags') }}</h2>
+          <div class="site-search-chip-list">
+            <button
+              v-for="tag in suggestedTags"
+              :key="tag.id"
+              type="button"
+              class="site-search-chip"
+              :disabled="tagsPending"
+              @click="query = tag.name"
+            >
+              #{{ tag.name }}
+            </button>
+            <span v-if="!suggestedTags.length && tagsPending" class="site-search-muted">{{ $t('common.loading') }}</span>
+            <span v-else-if="!suggestedTags.length" class="site-search-muted">{{ $t('common.noTagsYet') }}</span>
+          </div>
         </section>
       </div>
 
-      <div class="space-y-3">
-        <div v-if="pending && showSkeleton" class="space-y-2">
-          <div v-for="i in 6" :key="i" class="h-14 rounded-2xl bg-gray-200 dark:bg-gray-800 animate-pulse" />
+      <SearchRecentPosts
+        v-if="isMobile && !query.trim() && (recentPending || recentError || enhancedRecentPosts.length)"
+        :posts="enhancedRecentPosts"
+        :pending="recentPending"
+        :has-error="Boolean(recentError)"
+        :locale="locale"
+      />
+
+      <section class="site-search-results" :aria-label="$t('pages.search.title')" aria-live="polite" :aria-busy="pending">
+        <div v-if="pending && showSkeleton" class="site-search-loading" aria-hidden="true">
+          <div v-for="i in 5" :key="i" />
         </div>
 
-        <div v-else-if="!results.length && query.trim()" class="text-sm text-gray-600 dark:text-gray-400 px-1">
+        <p v-else-if="!results.length && query.trim()" class="site-search-empty">
           {{ $t('pages.search.noResultsYet') }}
-        </div>
-
-        <div v-else-if="!results.length" class="text-sm text-gray-600 dark:text-gray-400 px-1">
+        </p>
+        <p v-else-if="!results.length" class="site-search-empty">
           {{ $t('pages.search.helperText') }}
-        </div>
+        </p>
 
-        <ul v-else class="space-y-2">
-          <li
-            v-for="item in results"
-            :key="`${item.type}-${item.id}`"
-            class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3 flex items-start gap-3 cursor-pointer hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
-            @click="select(item)"
-          >
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2">
-                <span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ item.type }}</span>
-                <span v-if="item.type === 'post' && item.readingTime" class="text-[11px] text-gray-400">{{ item.readingTime }}</span>
-              </div>
-              <div class="text-base font-semibold leading-tight text-gray-900 dark:text-gray-100 break-words line-clamp-2">
-                {{ item.name }}
-              </div>
-              <p v-if="item.type === 'post'" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                {{ item.description }}
-              </p>
-              <p v-else-if="item.type === 'author'" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                {{ item.biography }}
-              </p>
-              <p v-else-if="item.type === 'tag'" class="text-sm text-gray-600 dark:text-gray-400">
-                {{ $t('pages.search.tag') }}
-              </p>
-            </div>
-            <div class="text-gray-400">
-              <span v-if="item.type === 'post'" class="i-ph-newspaper-duotone text-lg" />
-              <span v-else-if="item.type === 'author'" class="i-ph-user-duotone text-lg" />
-              <span v-else-if="item.type === 'tag'" class="i-ph-tag-duotone text-lg" />
-            </div>
+        <ul v-else class="site-search-result-list">
+          <li v-for="item in results" :key="`${item.type}-${item.id}`">
+            <NuxtLink :to="resultPath(item)" class="site-search-result">
+              <span class="site-search-result-copy">
+                <span class="site-search-result-meta">
+                  <span>{{ resultTypeLabel(item.type) }}</span>
+                  <span v-if="item.type === 'post' && item.readingTime" aria-hidden="true">·</span>
+                  <span v-if="item.type === 'post' && item.readingTime">{{ item.readingTime }}</span>
+                </span>
+                <span class="site-search-result-title">{{ item.name }}</span>
+                <span v-if="item.type === 'post' && item.description" class="site-search-result-description">{{ item.description }}</span>
+                <span v-else-if="item.type === 'author' && item.biography" class="site-search-result-description">{{ item.biography }}</span>
+                <span v-else-if="item.type === 'tag'" class="site-search-result-description">{{ $t('pages.search.tag') }}</span>
+              </span>
+              <span class="site-search-result-icon" aria-hidden="true">
+                <span v-if="item.type === 'post'" class="i-ph-newspaper" />
+                <span v-else-if="item.type === 'author'" class="i-ph-user" />
+                <span v-else class="i-ph-tag" />
+              </span>
+            </NuxtLink>
           </li>
         </ul>
-      </div>
+      </section>
     </div>
-  </div>
+  </main>
 </template>
-
-<style>
-@layer components {
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-}
-</style>
 
 <script setup lang="ts">
 import { onMounted, ref, watch, computed } from 'vue'
@@ -189,101 +125,333 @@ interface TagSuggestion {
 
 const router = useRouter()
 const route = useRoute()
-
+const { $t, $getLocale } = useI18n()
+const locale = computed(() => $getLocale())
+const resultTypeLabels = computed<Record<SearchResultType, string>>(() => locale.value === 'fr'
+  ? { post: 'Article', author: 'Auteur', tag: $t('pages.search.tag') }
+  : { post: 'Post', author: 'Author', tag: $t('pages.search.tag') })
 const initialQuery = typeof route.query.q === 'string' ? route.query.q : ''
 const query = ref(initialQuery)
 const results = ref<SearchResult[]>([])
 const pending = ref(false)
 const showSkeleton = ref(false)
 let skeletonTimer: ReturnType<typeof setTimeout> | null = null
+let requestVersion = 0
 const recentSearches = useStorage<string[]>('corpinot-search-recent', [])
 
 const { data: tagsData, pending: tagsPending } = await useFetch<TagSuggestion[]>('/api/tags')
 const suggestedTags = computed(() => (tagsData.value ?? []).slice(0, 10))
 const isMobile = useIsMobile()
-
-// Recent posts (mobile list, no images)
 const { data: recentPostsData, pending: recentPending, error: recentError } = await useFetch<Post[]>('/api/posts', { params: { page: 1, limit: 6 } })
 const { enhancePost } = usePost()
-const enhancedRecentPosts = computed(() => (recentPostsData.value ?? []).map(p => enhancePost(p)))
-
-function startSkeletonTimer() {
-  clearSkeletonTimer()
-  skeletonTimer = setTimeout(() => {
-    showSkeleton.value = true
-  }, 180)
-}
+const enhancedRecentPosts = computed(() => (recentPostsData.value ?? []).map(post => enhancePost(post)))
 
 function clearSkeletonTimer() {
-  if (skeletonTimer) {
-    clearTimeout(skeletonTimer)
-    skeletonTimer = null
-  }
+  if (skeletonTimer) clearTimeout(skeletonTimer)
+  skeletonTimer = null
   showSkeleton.value = false
 }
 
-const fetchResults = useDebounceFn(async () => {
-  const q = query.value.trim()
-  if (!q) {
-    results.value = []
-    pending.value = false
-    clearSkeletonTimer()
-    router.replace({ query: {} })
-    return
-  }
+function resultPath(item: SearchResult) {
+  if (item.type === 'post' && item.slug) return localizedPath(`/posts/${item.slug}`, locale.value)
+  if (item.type === 'author') return localizedPath(`/authors/${item.slug || item.id}`, locale.value)
+  if (item.type === 'tag') return `${localizedPath('/posts', locale.value)}?tag=${encodeURIComponent(item.name)}`
+  return localizedPath('/posts', locale.value)
+}
 
-  pending.value = true
-  startSkeletonTimer()
-  router.replace({ query: { q } })
-
-  try {
-    const res = await $fetch<{ posts?: SearchResult[]; authors?: SearchResult[]; tags?: SearchResult[] }>('/api/search', { params: { q } })
-    const merged: SearchResult[] = []
-    if (res.posts) merged.push(...res.posts)
-    if (res.authors) merged.push(...res.authors)
-    if (res.tags) merged.push(...res.tags)
-    results.value = merged
-    addRecent(q)
-  } catch (e) {
-    results.value = []
-  } finally {
-    pending.value = false
-    clearSkeletonTimer()
-  }
-}, 300)
-
-watch(query, () => fetchResults())
-
-onMounted(() => {
-  const input = document.getElementById('search-page-input') as HTMLInputElement | null
-  input?.focus()
-  if (query.value.trim()) fetchResults()
-})
-
-async function select(item: SearchResult) {
-  if (item.type === 'post') {
-    await router.push(`/posts/${item.slug}`)
-  } else if (item.type === 'tag') {
-    await router.push({ path: '/tags', query: { tag: item.name } })
-  } else if (item.type === 'author') {
-    await router.push({ path: `/authors/${item.slug || item.id}` })
-  }
-  addRecent(item.name)
+function resultTypeLabel(type: SearchResultType) {
+  return resultTypeLabels.value[type]
 }
 
 function addRecent(term: string) {
   const value = term.trim()
   if (!value) return
-  const existing = [...recentSearches.value]
-  const filtered = existing.filter((q) => q.toLowerCase() !== value.toLowerCase())
+  const filtered = recentSearches.value.filter(item => item.toLowerCase() !== value.toLowerCase())
   recentSearches.value = [value, ...filtered].slice(0, 10)
 }
+
+const fetchResults = useDebounceFn(async () => {
+  const q = query.value.trim()
+  const version = ++requestVersion
+  if (!q) {
+    results.value = []
+    pending.value = false
+    clearSkeletonTimer()
+    const { q: _query, ...otherQuery } = route.query
+    router.replace({ query: otherQuery })
+    return
+  }
+
+  pending.value = true
+  clearSkeletonTimer()
+  skeletonTimer = setTimeout(() => {
+    if (version === requestVersion) showSkeleton.value = true
+  }, 180)
+  router.replace({ query: { ...route.query, q } })
+
+  try {
+    const response = await $fetch<{ posts?: SearchResult[]; authors?: SearchResult[]; tags?: SearchResult[] }>('/api/search', { params: { q } })
+    if (version !== requestVersion) return
+    results.value = [...(response.posts ?? []), ...(response.authors ?? []), ...(response.tags ?? [])]
+    addRecent(q)
+  } catch {
+    if (version === requestVersion) results.value = []
+  } finally {
+    if (version === requestVersion) {
+      pending.value = false
+      clearSkeletonTimer()
+    }
+  }
+}, 300)
+
+watch(query, () => {
+  requestVersion += 1
+  fetchResults()
+})
+
+onMounted(() => {
+  document.getElementById('search-page-input')?.focus()
+  if (query.value.trim()) fetchResults()
+})
 </script>
 
-<style>
-@layer components {
+<style scoped>
+.site-search {
+  min-height: calc(100vh - var(--site-header-height, 72px));
+  padding: clamp(48px, 8vh, 88px) 24px 112px;
+  background: var(--site-color-background);
+  color: var(--site-color-text);
+}
 
-/* Component and page styles moved from the global stylesheets. */
-.site-shell .site-search > div { width: min(700px, calc(100% - 32px)); max-width: 700px; margin-inline: auto; }
+.site-search-content {
+  width: min(100%, 700px);
+  margin-inline: auto;
+}
+
+.site-search-heading {
+  margin-bottom: 32px;
+}
+
+.site-search-heading h1 {
+  margin: 0;
+  color: var(--site-color-heading);
+  font-family: var(--site-font-heading);
+  font-size: clamp(28px, 3vw, 36px);
+  font-weight: 550;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.site-search-field-wrap {
+  position: relative;
+}
+
+.site-search-field {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 60px;
+  padding: 15px 54px 15px 18px;
+  border: 1px solid var(--site-color-border);
+  border-radius: var(--site-radius-control);
+  outline: none;
+  background: var(--site-color-surface);
+  color: var(--site-color-heading);
+  font: inherit;
+  font-size: 18px;
+  transition: border-color var(--site-motion-standard) var(--site-ease-standard), background-color var(--site-motion-standard) var(--site-ease-standard);
+}
+
+.site-search-field::placeholder,
+.site-search-muted {
+  color: var(--site-color-muted);
+}
+
+.site-search-field:focus-visible {
+  border-color: var(--site-color-focus-ring);
+}
+
+.site-search-field-wrap > span {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  color: var(--site-color-muted);
+  font-size: 20px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.site-search-shortcuts {
+  display: grid;
+  gap: 22px;
+  margin: 28px 0 40px;
+}
+
+.site-search-shortcut-group h2 {
+  margin: 0 0 10px;
+  color: var(--site-color-muted);
+  font-size: 13px;
+  font-weight: 550;
+}
+
+.site-search-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.site-search-chip {
+  min-height: 34px;
+  padding: 5px 10px;
+  border: 1px solid var(--site-color-border);
+  border-radius: var(--site-radius-tag);
+  background: transparent;
+  color: var(--site-color-text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: color var(--site-motion-fast) ease, background-color var(--site-motion-fast) ease, border-color var(--site-motion-fast) ease;
+}
+
+.site-search-chip:hover:not(:disabled),
+.site-search-chip:focus-visible {
+  border-color: var(--site-color-focus-ring);
+  background: var(--site-color-hover-background);
+  color: var(--site-color-heading);
+}
+
+.site-search-chip:focus-visible,
+.site-search-result:focus-visible,
+.site-search-recent-list a:focus-visible {
+  outline: 2px solid var(--site-color-focus-ring);
+  outline-offset: 3px;
+}
+
+.site-search-chip:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.site-search-results {
+  min-width: 0;
+}
+
+.site-search-result-list,
+.site-search-recent-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-search-result-list li + li,
+.site-search-recent-list li + li {
+  border-top: 1px solid var(--site-color-border);
+}
+
+.site-search-result {
+  display: flex;
+  min-height: 96px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 4px;
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--site-motion-fast) ease, padding var(--site-motion-fast) ease;
+}
+
+.site-search-result:hover {
+  padding-inline: 10px;
+  color: var(--site-color-heading);
+}
+
+.site-search-result-copy {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.site-search-result-meta {
+  display: flex;
+  gap: 7px;
+  color: var(--site-color-muted);
+  font-size: 13px;
+  text-transform: capitalize;
+}
+
+.site-search-result-title {
+  color: var(--site-color-heading);
+  font-size: 19px;
+  font-weight: 550;
+  line-height: 1.3;
+}
+
+.site-search-result-description {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--site-color-muted);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.site-search-result-icon {
+  flex: 0 0 auto;
+  color: var(--site-color-muted);
+  font-size: 20px;
+}
+
+.site-search-empty {
+  margin: 0;
+  padding: 24px 4px;
+  color: var(--site-color-muted);
+}
+
+.site-search-loading {
+  display: grid;
+  gap: 0;
+}
+
+.site-search-loading > div {
+  height: 72px;
+  border-bottom: 1px solid var(--site-color-border);
+  background: linear-gradient(90deg, transparent, var(--site-color-hover-background), transparent);
+  background-size: 200% 100%;
+  animation: site-search-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes site-search-shimmer {
+  to { background-position: -200% 0; }
+}
+
+@media (max-width: 640px) {
+  .site-search {
+    padding: 40px 20px 96px;
+  }
+
+  .site-search-shortcuts {
+    margin: 24px 0 32px;
+  }
+
+  .site-search-result {
+    min-height: 88px;
+    gap: 12px;
+  }
+
+  .site-search-result-title {
+    font-size: 17px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-search-field,
+  .site-search-chip,
+  .site-search-result {
+    transition: none;
+  }
+
+  .site-search-loading > div {
+    animation: none;
+  }
 }
 </style>

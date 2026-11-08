@@ -24,7 +24,7 @@ defineProps<{
   text-decoration: none;
   transition:
     color 200ms ease,
-    transform 300ms cubic-bezier(0.4, 0, 0.2, 2.4);
+    transform 220ms var(--site-ease-standard);
 }
 
 .site-shell .site-home-section-heading::before {

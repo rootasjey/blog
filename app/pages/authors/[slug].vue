@@ -1,63 +1,89 @@
 <template>
-  <section class="site-page site-author-detail py-14 md:py-18 bg-white dark:bg-gray-950">
-    <div class="container mx-auto px-6 max-w-5xl space-y-10">
-      <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-        <div class="flex items-start gap-4">
-          <NuxtImg provider="hubblob" v-if="author?.avatar" :src="author.avatar" :alt="author.name" class="w-24 h-24 rounded-full object-cover" />
-          <div v-else class="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-2xl font-semibold">
-            {{ authorInitials }}
-          </div>
-          <div class="space-y-2">
-            <h1 class="text-3xl font-800 font-serif leading-tight">{{ author?.name }}</h1>
-            <p v-if="author?.job" class="text-sm text-gray-500 dark:text-gray-400">{{ author.job }}</p>
-            <p v-if="author?.location" class="text-sm text-gray-500 dark:text-gray-400">{{ author.location }}</p>
-            <div v-if="authorSocials.length" class="flex flex-wrap gap-3 text-sm text-gray-600 dark:text-gray-300">
-              <a
-                v-for="social in authorSocials"
-                :key="social.platform + social.url"
-                :href="social.url"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-2"
-              >
-                <NIcon :name="platformIcon(social.platform)" class="text-lg" />
-                <span>{{ social.platform }}</span>
-              </a>
-            </div>
-          </div>
+  <section class="site-page site-author-detail">
+    <div class="site-author-container">
+      <NuxtLink :to="localizedPath('/authors', $getLocale())" class="site-author-back">{{ $t('pages.authors.backToAuthors') }}</NuxtLink>
+
+      <header class="site-author-profile">
+        <NuxtImg
+          v-if="author?.avatar"
+          provider="hubblob"
+          :src="author.avatar"
+          :alt="author.name"
+          class="site-author-avatar"
+          width="96"
+          height="96"
+        />
+        <span v-else class="site-author-avatar site-author-avatar--empty" aria-hidden="true">
+          {{ authorInitials }}
+        </span>
+
+        <h1>{{ author?.name }}</h1>
+        <p v-if="author?.job || author?.location" class="site-author-role">
+          <span v-if="author?.job">{{ author.job }}</span>
+          <span v-if="author?.job && author?.location" aria-hidden="true">·</span>
+          <span v-if="author?.location">{{ author.location }}</span>
+        </p>
+        <p v-if="author?.biography" class="site-author-biography">{{ author.biography }}</p>
+
+        <nav v-if="authorSocials.length" class="site-author-socials" :aria-label="$t('pages.authors.socialLinks')">
+          <a
+            v-for="social in authorSocials"
+            :key="social.platform + social.url"
+            :href="social.url"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <NIcon :name="platformIcon(social.platform)" aria-hidden="true" />
+            <span>{{ social.platform }}</span>
+          </a>
+        </nav>
+      </header>
+
+      <section class="site-author-posts" :aria-label="$t('pages.authors.articles')">
+        <div class="site-author-posts-heading">
+          <h2>{{ $t('pages.authors.articles') }}</h2>
+          <span>{{ posts.length }} {{ $t('pages.authors.published') }}</span>
         </div>
-        <NuxtLink to="/authors" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">{{ $t('pages.authors.backToAuthors') }}</NuxtLink>
-      </div>
 
-      <p v-if="author?.biography" class="text-lg text-gray-700 dark:text-gray-300 max-w-4xl leading-relaxed">{{ author.biography }}</p>
-
-      <div class="space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-2xl font-700">{{ $t('pages.authors.articles') }}</h2>
-          <span class="text-sm text-gray-500 dark:text-gray-400">{{ posts.length }} {{ $t('pages.authors.published') }}</span>
+        <div v-if="postsPending" class="site-author-posts-list" aria-hidden="true">
+          <div v-for="i in 4" :key="i" class="site-author-post-skeleton" />
         </div>
 
-        <div v-if="postsPending" class="grid gap-4 md:grid-cols-2">
-          <div v-for="i in 4" :key="i" class="h-32 rounded-2xl bg-gray-100 dark:bg-gray-900 animate-pulse"></div>
-        </div>
+        <p v-else-if="postsError" class="site-author-posts-message site-author-posts-message--error">{{ postsError }}</p>
 
-        <div v-else-if="postsError" class="text-red-600 dark:text-red-400">{{ postsError }}</div>
+        <p v-else-if="!posts.length" class="site-author-posts-message">{{ $t('pages.authors.noArticles') }}</p>
 
-        <div v-else-if="!posts.length" class="text-gray-600 dark:text-gray-400">{{ $t('pages.authors.noArticles') }}</div>
-
-        <div v-else class="grid gap-4 md:grid-cols-2">
+        <div v-else class="site-author-posts-list">
           <NuxtLink
             v-for="post in posts"
             :key="post.slug"
-            :to="`/posts/${post.slug}`"
-            class="p-5 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-gray-400 dark:hover:border-gray-600 transition-colors bg-white dark:bg-gray-900 space-y-2"
+            :to="localizedPath(`/posts/${post.slug}`, $getLocale())"
+            class="site-author-post"
           >
-            <p class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">{{ post.status === 'published' ? $t('pages.authors.publishedLabel') : post.status }}</p>
-            <h3 class="text-xl font-semibold leading-tight line-clamp-2">{{ post.name }}</h3>
-            <p v-if="post.description" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{{ post.description }}</p>
+            <span class="site-author-post-image">
+              <PostImage
+                v-if="post.image?.src"
+                :src="post.image.src"
+                :alt="post.image.alt || post.name"
+                loading="lazy"
+              />
+              <NIcon v-else name="i-lucide-file-text" aria-hidden="true" />
+            </span>
+            <span class="site-author-post-copy">
+              <span class="site-author-post-title">{{ post.name }}</span>
+              <span class="site-author-post-meta">
+                <span
+                  v-if="post.tags?.[0]?.name"
+                  :style="{ '--site-author-tag-color': postTagColor(post.tags[0].name) }"
+                >{{ post.tags[0].name }}</span>
+                <time :datetime="post.publishedAt || post.createdAt">
+                  {{ formatPostDate(post.publishedAt || post.createdAt, 'long') }}
+                </time>
+              </span>
+            </span>
           </NuxtLink>
         </div>
-      </div>
+      </section>
     </div>
   </section>
 </template>
@@ -65,7 +91,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { createError } from 'h3'
-import type { PostStatus } from '~~/shared/types/post'
+import type { Post } from '~~/shared/types/post'
+import { localizedPath } from '~/utils/presentationPosts'
+import { postTagColor } from '~/utils/postTagColor'
 
 type Author = {
   id: number
@@ -78,16 +106,10 @@ type Author = {
   socials: { platform: string; url: string }[]
 }
 
-type PostSummary = {
-  id: number
-  slug: string
-  name: string
-  description: string | null
-  status: PostStatus
-}
-
 const route = useRoute()
 const slug = String(route.params.slug)
+const { $t, $getLocale } = useI18n()
+const { formatPostDate } = usePost()
 
 const { data: authorData, error: authorError } = await useFetch<Author>(`/api/authors/${slug}`)
 const author = computed(() => authorData.value)
@@ -127,7 +149,7 @@ const {
   data: postsData,
   pending: postsPending,
   error: postsError,
-} = await useFetch<PostSummary[]>(`/api/posts`, {
+} = await useFetch<Post[]>(`/api/posts`, {
   params: { author: slug, status: 'published' },
 })
 
@@ -160,7 +182,43 @@ useHead({
 <style>
 @layer components {
 
-/* Component and page styles moved from the global stylesheets. */
-.site-shell .site-author-detail > div { width: min(700px, calc(100% - 32px)); max-width: 700px; margin-inline: auto; }
+.site-shell .site-author-detail { padding-block: 40px 64px; }
+.site-shell .site-author-container { width: min(700px, calc(100% - 32px)); margin-inline: auto; }
+.site-shell .site-author-back { display: inline-flex; align-items: center; margin-bottom: 36px; color: var(--site-color-muted); font-size: 13px; text-decoration: none; transition: color 180ms ease; }
+.site-shell .site-author-back:hover { color: var(--site-color-heading); }
+.site-shell .site-author-back:focus-visible,
+.site-shell .site-author-socials a:focus-visible,
+.site-shell .site-author-post:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 4px; border-radius: 4px; }
+.site-shell .site-author-profile { display: grid; justify-items: start; margin-bottom: 56px; }
+.site-shell .site-author-avatar { display: grid; width: 96px; height: 96px; margin-bottom: 24px; place-items: center; border-radius: 50%; background: var(--site-color-hover-background); color: var(--site-color-muted); font-size: 24px; object-fit: cover; }
+.site-shell .site-author-profile h1 { margin: 0 0 8px; color: var(--site-color-heading); font-family: var(--site-font-heading); font-size: 24px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.3; }
+.site-shell .site-author-role { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; color: var(--site-color-muted); font-size: 14px; line-height: 20px; }
+.site-shell .site-author-biography { max-width: 660px; margin: 0; color: var(--site-color-text); font-size: 16px; line-height: 1.6; }
+.site-shell .site-author-socials { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; }
+.site-shell .site-author-socials a { display: inline-flex; align-items: center; gap: 6px; color: var(--site-color-muted); font-size: 13px; text-decoration: none; transition: color 180ms ease; }
+.site-shell .site-author-socials a:hover { color: var(--site-color-heading); }
+.site-shell .site-author-posts-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.site-shell .site-author-posts-heading h2 { margin: 0; color: var(--site-color-muted); font-size: 14px; font-weight: 500; line-height: 20px; }
+.site-shell .site-author-posts-heading > span { color: var(--site-color-muted); font-size: 12px; line-height: 18px; }
+.site-shell .site-author-posts-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 24px; }
+.site-shell .site-author-post { display: grid; min-width: 0; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: 14px; color: var(--site-color-text); text-decoration: none; }
+.site-shell .site-author-post-image { display: grid; width: 84px; height: 84px; overflow: hidden; place-items: center; border-radius: 14px; background: var(--site-color-hover-background); color: var(--site-color-muted); }
+.site-shell .site-author-post-image > img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 260ms var(--site-ease-standard); }
+.site-shell .site-author-post:hover .site-author-post-image > img { transform: scale(1.04); }
+.site-shell .site-author-post-copy { display: grid; min-width: 0; gap: 7px; }
+.site-shell .site-author-post-title { display: -webkit-box; overflow: hidden; color: var(--site-color-heading); font-size: 15px; font-weight: 550; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.site-shell .site-author-post:hover .site-author-post-title { text-decoration: underline; text-underline-offset: var(--site-link-underline-offset); }
+.site-shell .site-author-post-meta { display: flex; flex-wrap: wrap; gap: 8px; color: var(--site-color-muted); font-size: 12px; line-height: 18px; }
+.site-shell .site-author-post-meta > span { color: var(--site-author-tag-color, var(--site-color-accent)); }
+.site-shell .site-author-posts-message { color: var(--site-color-muted); }
+.site-shell .site-author-posts-message--error { color: var(--site-color-danger); }
+.site-shell .site-author-post-skeleton { height: 84px; border-radius: 14px; background: var(--site-color-hover-background); animation: pulse 1.5s ease-in-out infinite; }
+@media (max-width: 680px) {
+  .site-shell .site-author-detail { padding-block: 32px 48px; }
+  .site-shell .site-author-back { margin-bottom: 28px; }
+  .site-shell .site-author-profile { margin-bottom: 40px; }
+  .site-shell .site-author-avatar { width: 80px; height: 80px; margin-bottom: 20px; }
+  .site-shell .site-author-posts-list { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+}
 }
 </style>

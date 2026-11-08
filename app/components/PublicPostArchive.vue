@@ -115,7 +115,7 @@ function formatDate(value: string) {
   height: 100px;
   border-radius: 16px;
   object-fit: cover;
-  transition: transform 300ms cubic-bezier(.4, 0, .21, 1.8);
+  transition: transform 220ms var(--site-ease-standard);
 }
 
 .site-public-post-image--empty {
@@ -155,7 +155,7 @@ function formatDate(value: string) {
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  color: #bdbdbd;
+  color: var(--site-color-muted);
   font-family: var(--site-font-body);
   font-size: 13px;
   font-weight: 500;
@@ -170,7 +170,7 @@ function formatDate(value: string) {
   font-weight: 600;
   text-decoration: none;
   transform: scale(1);
-  transition: transform 300ms cubic-bezier(.4, 0, .2, 2);
+  transition: transform 220ms var(--site-ease-standard);
 }
 
 .site-public-post-tag::before {
@@ -192,8 +192,8 @@ function formatDate(value: string) {
 
 .site-public-post-tag:hover::before,
 .site-public-post-tag:focus-visible::before {
-  border-color: color-mix(in srgb, var(--tag-accent), var(--site-color-background) 90%);
-  background-color: color-mix(in srgb, var(--tag-accent), var(--site-color-background) 90%);
+  border-color: color-mix(in srgb, var(--tag-accent) 6%, var(--site-color-background) 94%);
+  background-color: color-mix(in srgb, var(--tag-accent) 6%, var(--site-color-background) 94%);
 }
 
 .site-public-post-tag:focus-visible {

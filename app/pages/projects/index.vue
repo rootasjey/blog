@@ -165,7 +165,7 @@
 
       <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
         <NButton btn="ghost-gray" size="sm" @click="confirmDialogOpen = false">{{ $t('common.cancel') }}</NButton>
-        <NButton btn="danger" size="sm" @click="confirmDelete" :loading="deleting">{{ $t('common.delete') }}</NButton>
+        <NButton btn="solid-red" size="sm" @click="confirmDelete" :loading="deleting">{{ $t('common.delete') }}</NButton>
       </NDialogFooter>
     </NDialogContent>
   </NDialog>

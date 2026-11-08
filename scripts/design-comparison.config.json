@@ -27,8 +27,8 @@
     "hoverStates": [
       {
         "name": "Project thumbnail hover",
-        "local": ".site-home-project-card:first-of-type .site-home-project-image img",
-        "reference": "section.section-works article:first-of-type .image img"
+        "local": ".site-home-project-card:first-of-type > a",
+        "reference": "section.section-works article:first-of-type > a.card-link"
       },
       {
         "name": "Project tag hover",

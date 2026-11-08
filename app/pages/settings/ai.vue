@@ -16,7 +16,6 @@
             <h2 id="ai-provider-heading" class="site-settings-section-title">{{ $t('pages.settingsAi.defaultProvider') }}</h2>
             <p class="site-settings-row-description">{{ $t('pages.settingsAi.defaultProviderDesc') }}</p>
           </div>
-          <NBadge badge="soft" color="gray">{{ provider }}</NBadge>
         </div>
 
         <div class="site-settings-ai-providers">
@@ -105,13 +104,24 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { AI_ACTIONS, useAISettings } from '~/composables/useAISettings'
 
 const { $t } = useI18n()
 useSeoMeta({ title: `${$t('pages.settingsAi.heading')} — ${$t('seo.siteName')}` })
 
-const actions = AI_ACTIONS
+const actions = computed(() => AI_ACTIONS.map(action => ({
+  key: action.key,
+  label: translatedActionText(action.key, 'label', action.label),
+  description: translatedActionText(action.key, 'description', action.description),
+})))
 const { provider, cloudflareModels, openrouterModels, resetModels } = useAISettings()
+
+function translatedActionText(key: string, field: 'label' | 'description', fallback: string) {
+  const translationKey = `pages.settingsAi.actions.${key}.${field}`
+  const translation = $t(translationKey)
+  return translation === translationKey ? fallback : translation
+}
 
 function setProvider(next: 'cloudflare' | 'openrouter') {
   provider.value = next
