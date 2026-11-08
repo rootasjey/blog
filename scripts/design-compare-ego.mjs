@@ -33,11 +33,13 @@ try {
   await setViewport(localPage, comparison.viewport)
   await localPage.goto(localUrl)
   await waitForPage(localPage)
+  await waitForMappedContent(localPage, comparison.elements, 'local')
 
   const referencePage = await task.newPage()
   await setViewport(referencePage, comparison.viewport)
   await referencePage.goto(comparison.referenceUrl)
   await waitForPage(referencePage)
+  await waitForMappedContent(referencePage, comparison.elements, 'reference')
 
   const states = [await captureState({
     name: 'default',
@@ -107,6 +109,23 @@ async function waitForPage(page) {
         image.addEventListener('error', done, { once: true })
       })
     }))
+  })
+}
+
+async function waitForMappedContent(page, elements, side) {
+  const selector = elements.find(element => element[side])?.[side]
+  if (selector) await page.waitForSelector(selector, { state: 'visible', timeout: 10_000 })
+  await page.evaluate(async () => {
+    const transitions = document.getAnimations().filter((animation) => {
+      const timing = animation.effect?.getComputedTiming()
+      return animation.playState === 'running' && Number.isFinite(timing?.endTime)
+    })
+    let timeoutId
+    await Promise.race([
+      Promise.allSettled(transitions.map(animation => animation.finished)),
+      new Promise(resolve => { timeoutId = setTimeout(resolve, 2_000) }),
+    ])
+    if (timeoutId) clearTimeout(timeoutId)
   })
 }
 

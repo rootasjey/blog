@@ -56,9 +56,9 @@
             </NDropdownMenu>
           </div>
 
-          <NButton @click="$emit('save')" btn="~" size="xs" :disabled="saving || !canSave" class="site-editor-save-button" :aria-label="$t('common.save')">
+          <NButton @click="$emit('save')" btn="~" size="xs" :disabled="saving || !canSave" class="site-editor-save-button" :aria-label="$t(saving ? 'common.saving' : 'common.save')">
             <NIcon :name="saving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': saving }" />
-            <span class="hidden sm:inline">{{ $t('common.save') }}</span>
+            <span class="hidden sm:inline">{{ $t(saving ? 'common.saving' : 'common.save') }}</span>
           </NButton>
           <NDropdownMenu :items="menuItems" class="menu-items" :_dropdownMenuContent="{ side: 'top', align: 'end', sideOffset: 8 }">
             <NButton icon label="i-ph-dots-three-vertical" btn="~" size="xs" class="site-editor-tool-button site-editor-tooltip-control" :aria-label="$t('pages.postEditor.moreActions')" :data-tooltip="$t('pages.postEditor.moreActions')" />
