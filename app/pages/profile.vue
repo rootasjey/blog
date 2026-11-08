@@ -155,13 +155,15 @@
             <!-- Language -->
             <div class="site-profile-field">
               <label for="profile-language" class="site-profile-field-label">{{ $t('pages.profile.language') }}</label>
-              <NInput
+              <NSelect
                 id="profile-language"
-                v-model="form.language"
+                v-model="selectedLanguage"
+                :items="languageOptions"
+                item-key="label"
+                value-key="label"
                 :placeholder="$t('pages.profile.languagePlaceholder')"
-                input="outline"
+                :aria-label="$t('pages.profile.language')"
                 class="w-full"
-                size="md"
               />
             </div>
 
@@ -197,37 +199,12 @@
         </div>
       </div>
 
-      <!-- Socials editor dialog -->
-      <NDialog v-model:open="socialsDialogOpen" :closeOnEsc="true">
-          <NDialogContent class="max-w-full sm:max-w-2xl">
-          <NDialogHeader>
-            <NDialogTitle>{{ $t('pages.profile.editSocialsTitle') }}</NDialogTitle>
-          </NDialogHeader>
-
-          <div class="p-6 space-y-4">
-            <div v-if="!socialsDraft.length" class="text-sm text-gray-500 dark:text-gray-400">{{ $t('pages.profile.noSocials') }}</div>
-            <div v-for="(s, i) in socialsDraft" :key="i" class="flex items-center gap-3">
-              <NIcon :name="platformIcon(s.platform)" class="text-2xl text-gray-500" />
-              <NInput ref="socialPlatformRefs" v-model="s.platform" :placeholder="$t('pages.profile.socialPlatformPlaceholder')" input="~" class="w-28 sm:w-40" />
-              <NInput ref="socialUrlRefs" v-model="s.url" :placeholder="$t('pages.profile.socialUrlPlaceholder')" input="~" class="flex-1" />
-              <NButton @click="removeSocialRow(i)" btn="ghost" size="xs" icon label="i-lucide-x" />
-            </div>
-          </div>
-
-          <NDialogFooter class="flex items-center gap-2 justify-end p-0">
-            <div class="flex items-center gap-2">
-              <NButton @click="addSocialRow" btn="soft" size="xs" class="px-6">{{ $t('common.add') }}</NButton>
-            </div>
-            <div class="ml-auto flex items-center gap-2">
-              <NButton @click="closeSocialsDialog" btn="ghost-gray" size="xs" :disabled="socialsSaving">{{ $t('common.cancel') }}</NButton>
-              <NButton @click="saveSocialsDialog" :disabled="socialsSaving" btn="solid-black" size="xs" class="site-profile-save">
-                <NIcon :name="socialsSaving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': socialsSaving }" />
-                <span class="ml-2">{{ $t('common.save') }}</span>
-              </NButton>
-            </div>
-          </NDialogFooter>
-        </NDialogContent>
-      </NDialog>
+      <ProfileSocialsDialog
+        v-model:open="socialsDialogOpen"
+        :model-value="form.socials"
+        :saving="socialsSaving"
+        @save="saveSocialsDialog"
+      />
 
       <!-- Confirm delete avatar dialog -->
       <NDialog v-model:open="deleteAvatarDialogOpen" :closeOnEsc="true">
@@ -300,6 +277,16 @@ const form = reactive({
   location: '',
   language: '',
   socials: '' as string | null,
+})
+const languageOptions = [
+  { label: 'English', value: 'en' },
+  { label: 'Français', value: 'fr' },
+]
+const selectedLanguage = computed({
+  get: () => languageOptions.find(option => option.value === form.language) ?? null,
+  set: (option: typeof languageOptions[number] | null) => {
+    form.language = option?.value ?? ''
+  },
 })
 
 const initialForm = ref({} as Record<string, any>)
@@ -527,49 +514,15 @@ const deleteAvatar = async () => {
   }
 }
 
-// Socials editor state & helpers
 const socialsDialogOpen = ref(false)
-const socialsDraft = ref<Array<{ platform: string; url: string }>>([])
 const socialsSaving = ref(false)
-// Template refs for the dynamically rendered social inputs
-const socialPlatformRefs = ref<Array<any>>([])
-const socialUrlRefs = ref<Array<any>>([])
-
-const socialsSummary = computed(() => {
-  if (!form.socials) return $t('pages.profile.noSocials')
-  try {
-    const arr = JSON.parse(form.socials as string)
-    if (Array.isArray(arr)) return `${arr.length} social${arr.length === 1 ? '' : 's'}`
-  } catch {
-    return 'Invalid JSON'
-  }
-  return 'No socials'
-})
 
 function openSocialsDialog() {
-  socialsDraft.value = []
-  if (form.socials && form.socials.trim().length) {
-    try {
-      const parsed = JSON.parse(form.socials as string)
-      if (Array.isArray(parsed)) socialsDraft.value = parsed.map((p: any) => ({ platform: p.platform || '', url: p.url || '' }))
-    } catch (e) {
-      // invalid JSON — start with empty list
-      socialsDraft.value = []
-    }
-  }
   socialsDialogOpen.value = true
 }
 
-function closeSocialsDialog() {
-  socialsDialogOpen.value = false
-}
-
-async function saveSocialsDialog() {
-  // prism: convert empty entries
-  const sanitized = socialsDraft.value.filter((s) => (s.platform && s.platform.trim()) || (s.url && s.url.trim()))
-  form.socials = sanitized.length ? JSON.stringify(sanitized) : ''
-
-  // Persist immediately since user confirmed in the dialog
+async function saveSocialsDialog(socials: string) {
+  form.socials = socials
   socialsSaving.value = true
   errorMessage.value = ''
   successMessage.value = ''
@@ -587,40 +540,6 @@ async function saveSocialsDialog() {
   } finally {
     socialsSaving.value = false
   }
-}
-
-function addSocialRow() {
-  socialsDraft.value.push({ platform: '', url: '' })
-  // Focus the newly added platform input after it's rendered
-  nextTick(() => {
-    const last = socialPlatformRefs.value[socialPlatformRefs.value.length - 1]
-    const wrapperEl: HTMLElement | null = (last as any)?.$el ?? last
-    const inputEl: HTMLInputElement | null = wrapperEl?.querySelector('input') ?? (wrapperEl as HTMLInputElement | null)
-    inputEl?.focus()
-  })
-}
-
-function removeSocialRow(i: number) { socialsDraft.value.splice(i, 1) }
-
-function platformIcon(platform?: string) {
-  if (!platform) return 'i-lucide-link'
-  let p = platform.toLowerCase().trim()
-  // If user pasted a URL, try to infer by hostname
-  if (p.startsWith('http')) {
-    try {
-      const h = new URL(p).hostname
-      p = h.replace(/^www\./, '')
-    } catch (_) {}
-  }
-  if (p.includes('twitter') || p === 'x' || p.includes('x.com')) return 'i-lucide-twitter'
-  if (p.includes('github')) return 'i-lucide-github'
-  if (p.includes('linkedin')) return 'i-lucide-linkedin'
-  if (p.includes('instagram')) return 'i-lucide-instagram'
-  if (p.includes('facebook')) return 'i-lucide-facebook'
-  if (p.includes('tiktok')) return 'i-lucide-music'
-  if (p.includes('youtube') || p.includes('youtu.be')) return 'i-lucide-youtube'
-  if (p.includes('website') || p.includes('site') || p.includes('blog') || p.includes('homepage')) return 'i-lucide-globe'
-  return 'i-lucide-link'
 }
 
 function validateForm() {
