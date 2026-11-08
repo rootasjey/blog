@@ -164,9 +164,10 @@
               btn="solid-black"
               size="md"
               class="site-profile-save flex-1"
+              :aria-label="isSaving ? $t('common.saving') : $t('pages.profile.saveChanges')"
             >
               <NIcon :name="isSaving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': isSaving }" />
-              <span class="ml-2">{{ isSaving ? $t('common.saving') : $t('pages.profile.saveChanges') }}</span>
+              <span class="ml-2">{{ isSaving ? $t('common.saving') : $t('common.save') }}</span>
             </NButton>
           </div>
         </div>

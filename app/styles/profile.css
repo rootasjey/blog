@@ -15,6 +15,16 @@
   background: color-mix(in srgb, var(--site-color-background) 95%, transparent);
 }
 
+.site-shell .site-profile-mobile-actions > .container {
+  width: 100%;
+  max-width: none;
+  padding-inline: 0;
+}
+
+.site-shell .site-profile-mobile-actions .site-profile-save {
+  min-width: 0;
+}
+
 .site-shell .site-profile .site-profile-toolbar > .container,
 .site-shell .site-profile > .container {
   box-sizing: border-box;

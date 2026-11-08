@@ -10,7 +10,7 @@
           "app/components/editor/PostViewer.vue"
         ],
         "createdAt": "2026-11-07T22:16:42.023Z",
-        "reason": "False positive: the flagged ProseMirror blockquote selector explicitly sets border: 0; no side-tab accent border is present."
+        "reason": "Codex: stale finding; current blockquote styling sets border: 0 and browser capture shows no colored side border."
       },
       {
         "rule": "side-tab",
