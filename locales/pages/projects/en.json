@@ -21,6 +21,10 @@
       "loading": "Loading projects\u2026",
       "emptyHeading": "No projects yet",
       "emptyDescription": "There are no project posts to display right now.",
+      "emptyDraftsHeading": "No project drafts yet",
+      "emptyDraftsDescription": "Start a project and keep it private while you work on it.",
+      "emptyArchivedHeading": "No archived projects",
+      "emptyArchivedDescription": "Projects you archive will appear here.",
       "deleteConfirm": "Are you sure you want to delete **{name}**? This action cannot be undone.",
       "metaTitle": "Projects \u2014 corpinot",
       "metaDescription": "Browse our project posts and showcases."

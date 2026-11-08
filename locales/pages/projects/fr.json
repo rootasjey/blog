@@ -21,6 +21,10 @@
       "loading": "Chargement des projets\u2026",
       "emptyHeading": "Aucun projet pour l'instant",
       "emptyDescription": "Il n'y a encore aucun projet \u00e0 afficher.",
+      "emptyDraftsHeading": "Aucun brouillon de projet pour l'instant",
+      "emptyDraftsDescription": "Commencez un projet et gardez-le priv\u00e9 pendant sa cr\u00e9ation.",
+      "emptyArchivedHeading": "Aucun projet archiv\u00e9",
+      "emptyArchivedDescription": "Les projets archiv\u00e9s appara\u00eetront ici.",
       "deleteConfirm": "\u00cates-vous s\u00fbr de vouloir supprimer **{name}** ? Cette action est irr\u00e9versible.",
       "metaTitle": "Projets \u2014 corpinot",
       "metaDescription": "D\u00e9couvrez nos projets et r\u00e9alisations."

@@ -60,7 +60,7 @@
         projectCardLayout
       />
 
-      <section v-else-if="activeTab === 'published' && !isLoadingVisible && publicProjects.length" class="site-demo-projects">
+      <section v-else-if="activeTab === 'published' && !isAdmin && !isLoadingVisible && publicProjects.length" class="site-demo-projects">
         <NuxtLink v-for="project in publicProjects" :key="project.slug" :to="project.to" class="site-demo-project">
           <div class="site-demo-project-image">
             <PostImage :src="project.image" :alt="project.title" />
@@ -78,30 +78,13 @@
         <p class="text-slate-500 dark:text-slate-400">{{ $t('pages.projects.loading') }}</p>
       </div>
 
-      <!-- Empty state (styled like error page) -->
-      <div v-else-if="!hasVisiblePosts && !isLoadingVisible" class="text-center py-12">
-        <div class="mb-6">
-          <p class="error-code text-8xl md:text-size-54 font-extrabold leading-none">0</p>
-        </div>
-
-        <h2 class="text-3xl md:text-4xl lg:text-5xl font-serif font-800 mb-4">{{ $t('pages.projects.emptyHeading') }}</h2>
-
-        <p class="font-body font-500 text-base md:text-lg text-gray-600 dark:text-gray-300 max-w-xl mx-auto mb-8">
-          {{ $t('pages.projects.emptyDescription') }}
-        </p>
-
-        <div class="flex flex-col sm:flex-row gap-6 justify-center mb-12">
-          <NuxtLink to="/" class="px-6 py-5 bg-black dark:bg-white text-white dark:text-black text-sm font-500 uppercase tracking-wide rounded hover:bg-gray-800 dark:hover:bg-gray-200 transition flex items-center gap-2">
-            <div class="i-ph-house-bold w-4 h-4"></div>
-            {{ $t('common.goHome') }}
-          </NuxtLink>
-
-          <NuxtLink to="/credits" class="px-6 py-5 border border-gray-300 dark:border-gray-700 text-sm font-500 uppercase tracking-wide rounded hover:bg-gray-50 dark:hover:bg-gray-900 transition flex items-center gap-2">
-            <div class="i-ph-arrow-left-bold w-4 h-4"></div>
-            {{ $t('common.browseCredits') }}
-          </NuxtLink>
-        </div>
-      </div>
+      <CollectionEmptyState
+        v-else-if="!hasVisiblePosts && !isLoadingVisible"
+        :title="emptyStateCopy.title"
+        :description="emptyStateCopy.description"
+        :action-label="isAdmin ? $t('pages.projects.newProject') : undefined"
+        @action="isNewDrawerOpen = true"
+      />
 
       <!-- Drafts (admin tab) -->
       <ClientOnly>
@@ -391,6 +374,26 @@ onUnmounted(() => {
 })
 
 const { $t, $getLocale } = useI18n()
+const emptyStateCopy = computed(() => {
+  if (isAdmin.value && activeTab.value === 'drafts') {
+    return {
+      title: $t('pages.projects.emptyDraftsHeading'),
+      description: $t('pages.projects.emptyDraftsDescription'),
+    }
+  }
+
+  if (isAdmin.value && activeTab.value === 'archived') {
+    return {
+      title: $t('pages.projects.emptyArchivedHeading'),
+      description: $t('pages.projects.emptyArchivedDescription'),
+    }
+  }
+
+  return {
+    title: $t('pages.projects.emptyHeading'),
+    description: $t('pages.projects.emptyDescription'),
+  }
+})
 
 const publicIntroCopy = computed(() => $getLocale() === 'fr'
   ? {

@@ -10,7 +10,7 @@
           "app/components/editor/PostViewer.vue"
         ],
         "createdAt": "2026-11-07T22:16:42.023Z",
-        "reason": "False positive: the blockquote at the reported location has border: 0, so no side accent border is rendered."
+        "reason": "false positive: the flagged blockquote rule explicitly sets border: 0 and renders no side-tab accent"
       }
     ]
   }
