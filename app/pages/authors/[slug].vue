@@ -190,7 +190,7 @@ useHead({
 .site-shell .site-author-socials a:focus-visible,
 .site-shell .site-author-post:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 4px; border-radius: 4px; }
 .site-shell .site-author-profile { display: grid; justify-items: start; margin-bottom: 56px; }
-.site-shell .site-author-avatar { display: grid; width: 96px; height: 96px; margin-bottom: 24px; place-items: center; border-radius: 50%; background: var(--site-color-hover-background); color: var(--site-color-muted); font-size: 24px; object-fit: cover; }
+.site-shell .site-author-avatar { display: grid; width: 100px; height: 100px; margin-bottom: 32px; place-items: center; border-radius: 50%; background: var(--site-color-hover-background); color: var(--site-color-muted); font-size: 24px; object-fit: cover; }
 .site-shell .site-author-profile h1 { margin: 0 0 8px; color: var(--site-color-heading); font-family: var(--site-font-heading); font-size: 24px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.3; }
 .site-shell .site-author-role { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; color: var(--site-color-muted); font-size: 14px; line-height: 20px; }
 .site-shell .site-author-biography { max-width: 660px; margin: 0; color: var(--site-color-text); font-size: 16px; line-height: 1.6; }
@@ -200,25 +200,24 @@ useHead({
 .site-shell .site-author-posts-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
 .site-shell .site-author-posts-heading h2 { margin: 0; color: var(--site-color-muted); font-size: 14px; font-weight: 500; line-height: 20px; }
 .site-shell .site-author-posts-heading > span { color: var(--site-color-muted); font-size: 12px; line-height: 18px; }
-.site-shell .site-author-posts-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 24px; }
-.site-shell .site-author-post { display: grid; min-width: 0; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: 14px; color: var(--site-color-text); text-decoration: none; }
-.site-shell .site-author-post-image { display: grid; width: 84px; height: 84px; overflow: hidden; place-items: center; border-radius: 14px; background: var(--site-color-hover-background); color: var(--site-color-muted); }
+.site-shell .site-author-posts-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.site-shell .site-author-post { display: grid; min-width: 0; grid-template-columns: 100px minmax(0, 1fr); align-items: center; gap: 16px; color: var(--site-color-text); text-decoration: none; }
+.site-shell .site-author-post-image { display: grid; width: 100px; height: 100px; overflow: hidden; place-items: center; border-radius: 14px; background: var(--site-color-hover-background); color: var(--site-color-muted); }
 .site-shell .site-author-post-image > img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 260ms var(--site-ease-standard); }
 .site-shell .site-author-post:hover .site-author-post-image > img { transform: scale(1.04); }
 .site-shell .site-author-post-copy { display: grid; min-width: 0; gap: 7px; }
-.site-shell .site-author-post-title { display: -webkit-box; overflow: hidden; color: var(--site-color-heading); font-size: 15px; font-weight: 550; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.site-shell .site-author-post-title { display: -webkit-box; overflow: hidden; color: var(--site-color-heading); font-size: 18px; font-weight: 550; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .site-shell .site-author-post:hover .site-author-post-title { text-decoration: underline; text-underline-offset: var(--site-link-underline-offset); }
 .site-shell .site-author-post-meta { display: flex; flex-wrap: wrap; gap: 8px; color: var(--site-color-muted); font-size: 12px; line-height: 18px; }
 .site-shell .site-author-post-meta > span { color: var(--site-author-tag-color, var(--site-color-accent)); }
 .site-shell .site-author-posts-message { color: var(--site-color-muted); }
 .site-shell .site-author-posts-message--error { color: var(--site-color-danger); }
-.site-shell .site-author-post-skeleton { height: 84px; border-radius: 14px; background: var(--site-color-hover-background); animation: pulse 1.5s ease-in-out infinite; }
+.site-shell .site-author-post-skeleton { height: 100px; border-radius: 14px; background: var(--site-color-hover-background); animation: pulse 1.5s ease-in-out infinite; }
 @media (max-width: 680px) {
   .site-shell .site-author-detail { padding-block: 32px 48px; }
   .site-shell .site-author-back { margin-bottom: 28px; }
   .site-shell .site-author-profile { margin-bottom: 40px; }
-  .site-shell .site-author-avatar { width: 80px; height: 80px; margin-bottom: 20px; }
-  .site-shell .site-author-posts-list { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .site-shell .site-author-posts-list { grid-template-columns: minmax(0, 1fr); gap: 24px; }
 }
 }
 </style>
