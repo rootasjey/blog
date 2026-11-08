@@ -178,4 +178,20 @@
   .site-header-combobox-menu .input-input:focus-visible {
     outline-offset: 0;
   }
+
+  .site-shell .site-header-nav > a:not([aria-current="page"]),
+  .site-shell .site-header-nav > button {
+    color: var(--site-color-text);
+  }
+
+  .site-shell .site-header-nav > a[aria-current="page"] {
+    color: var(--site-color-heading);
+  }
+
+  .site-shell .site-header-nav > a:hover,
+  .site-shell .site-header-nav > button:hover,
+  .site-shell .site-header-nav > a:focus-visible,
+  .site-shell .site-header-nav > button:focus-visible {
+    color: var(--site-color-heading);
+  }
 }
