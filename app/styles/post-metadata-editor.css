@@ -111,25 +111,25 @@
 }
 
 @layer theme-overrides {
-  .site-shell .site-post-editor .site-editor-metadata .site-editor-title:focus {
+  .site-shell .site-post-editor .site-post-header.site-editor-metadata .site-editor-title:focus {
     background-color: transparent;
     box-shadow: none;
   }
 
-  .site-shell .site-post-editor .site-editor-metadata .site-editor-title:focus-visible {
+  .site-shell .site-post-editor .site-post-header.site-editor-metadata .site-editor-title:focus-visible {
     outline: none;
     outline-offset: 0;
-    box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--site-color-focus-ring) 55%, transparent);
+    box-shadow: inset 0 -2px 0 var(--site-color-focus-ring);
   }
 
-  .site-shell .site-post-editor .site-editor-metadata .site-editor-description:focus {
+  .site-shell .site-post-editor .site-post-header.site-editor-metadata .site-editor-description:focus {
     background-color: transparent;
     box-shadow: none;
   }
 
-  .site-shell .site-post-editor .site-editor-metadata .site-editor-description:focus-visible {
+  .site-shell .site-post-editor .site-post-header.site-editor-metadata .site-editor-description:focus-visible {
     outline: none;
     outline-offset: 0;
-    box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--site-color-focus-ring) 55%, transparent);
+    box-shadow: inset 0 -2px 0 var(--site-color-focus-ring);
   }
 }
