@@ -61,6 +61,10 @@
 .site-shell .site-header-pages-menu a:hover { background: var(--site-color-hover-background); color: var(--site-color-heading); }
 .site-header-user-menu [role="menuitem"],
 .site-header-user-menu-sub [role="menuitem"] { text-transform: lowercase; }
+@media (max-width: 1023px) {
+  .site-header-user-menu,
+  .site-header-user-menu-sub { translate: -8px 0; }
+}
 .site-shell .site-header-controls {
   grid-column: 3;
   grid-row: 1;
