@@ -8,13 +8,13 @@
         <span class="spinner" />
       </div>
 
-      <button v-if="isEditable && href" type="button" class="auto-link-preview__revert-btn" @click.stop.prevent="revertToLink" title="Revert to link"><span class="i-lucide-link-2" /></button>
+      <button v-if="isEditable && href" type="button" class="auto-link-preview__revert-btn" @click.stop.prevent="revertToLink" title="Revert to link" aria-label="Revert to link"><span class="i-lucide-link-2" /></button>
     </div>
 
     <div class="auto-link-preview__meta" :class="{ 'is-clickable': isClickable }" @click="onMetaClick">
       <template v-if="isEditable">
-        <input v-model="localTitle" @blur="commitTitle" @keydown.enter.prevent="commitTitle" placeholder="Title" class="auto-link-preview__title-input" />
-        <textarea v-model="localDescription" @blur="commitDescription" rows="2" placeholder="Description" class="auto-link-preview__desc-input" />
+        <input v-model="localTitle" @blur="commitTitle" @keydown.enter.prevent="commitTitle" placeholder="Title" class="auto-link-preview__title auto-link-preview__title-input" />
+        <textarea ref="descriptionInput" v-model="localDescription" @blur="commitDescription" rows="1" placeholder="Description" class="auto-link-preview__description auto-link-preview__desc-input" />
       </template>
 
       <template v-else>
@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { nodeViewProps, NodeViewWrapper } from '@tiptap/vue-3'
 import { editorIsEditable } from './editorUtils'
 
@@ -46,11 +46,16 @@ const loading = computed(() => !!props.node.attrs?.loading)
 
 const localTitle = ref(title.value)
 const localDescription = ref(description.value)
+const descriptionInput = ref<HTMLTextAreaElement | null>(null)
 let titleTimer: ReturnType<typeof setTimeout> | null = null
 let descTimer: ReturnType<typeof setTimeout> | null = null
 
 watch(() => props.node.attrs?.title, (v) => { localTitle.value = v ?? '' })
-watch(() => props.node.attrs?.description, (v) => { localDescription.value = v ?? '' })
+watch(() => props.node.attrs?.description, async (v) => {
+  localDescription.value = v ?? ''
+  await nextTick()
+  resizeDescription()
+})
 
 function commitTitle() {
   if (titleTimer) clearTimeout(titleTimer)
@@ -67,9 +72,25 @@ watch(localTitle, (v) => {
   titleTimer = setTimeout(() => props.updateAttributes({ title: v }), 700)
 })
 
-watch(localDescription, (v) => {
+watch(localDescription, async (v) => {
   if (descTimer) clearTimeout(descTimer)
   descTimer = setTimeout(() => props.updateAttributes({ description: v }), 700)
+  await nextTick()
+  resizeDescription()
+})
+
+function resizeDescription() {
+  const textarea = descriptionInput.value
+  if (!textarea) return
+
+  textarea.style.height = 'auto'
+  textarea.style.height = `${textarea.scrollHeight}px`
+}
+
+onMounted(resizeDescription)
+onBeforeUnmount(() => {
+  if (titleTimer) clearTimeout(titleTimer)
+  if (descTimer) clearTimeout(descTimer)
 })
 
 function revertToLink() {
@@ -135,9 +156,45 @@ function onMetaClick(e: MouseEvent) {
 .post-content .ProseMirror .auto-link-preview__meta { @apply flex-1 flex flex-col justify-center min-w-0; }
 .post-content .ProseMirror .auto-link-preview__title { @apply text-lg font-semibold truncate mt-0 mb-0; font-family: var(--site-font-body); line-height: 1.35; }
 .post-content .ProseMirror .auto-link-preview__description { @apply text-base; color: var(--site-color-text); margin: 8px 0 0; line-height: 1.5; }
-.post-content .ProseMirror .auto-link-preview__title-input { @apply w-full font-title text-lg font-semibold px-2 py-1 rounded mb-1 bg-background; }
-.post-content .ProseMirror .auto-link-preview__desc-input { @apply w-full text-xs px-2 py-1 rounded bg-background; }
-.post-content .ProseMirror .auto-link-preview__revert-btn { @apply absolute top-1 right-1 text-xs px-2 py-1 rounded-md bg-background/90 border border-border shadow-sm; }
+.post-content .ProseMirror .auto-link-preview__title-input {
+  @apply w-full p-0 bg-transparent;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  outline: none;
+  color: var(--site-color-heading);
+  font-family: var(--site-font-body);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.35;
+  transition: border-color 160ms ease;
+}
+.post-content .ProseMirror .auto-link-preview__desc-input {
+  @apply block w-full p-0 bg-transparent;
+  min-height: 1.5em;
+  overflow: hidden;
+  resize: none;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  outline: none;
+  color: var(--site-color-text);
+  font-family: var(--site-font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  transition: border-color 160ms ease;
+}
+.post-content .ProseMirror .auto-link-preview__title-input:focus,
+.post-content .ProseMirror .auto-link-preview__desc-input:focus { border-bottom-color: var(--site-color-accent); }
+.post-content .ProseMirror .auto-link-preview__revert-btn {
+  @apply absolute top-1 right-1 text-xs px-2 py-1 rounded-md bg-background/90 border border-border shadow-sm;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+.post-content .ProseMirror .auto-link-preview:hover .auto-link-preview__revert-btn,
+.post-content .ProseMirror .auto-link-preview:focus-within .auto-link-preview__revert-btn,
+.post-content .ProseMirror .auto-link-preview.is-selected .auto-link-preview__revert-btn { opacity: 1; pointer-events: auto; }
 .post-content .ProseMirror .auto-link-preview__media.is-clickable { cursor: pointer; }
 .post-content .ProseMirror .auto-link-preview__meta.is-clickable { cursor: pointer; }
 }
