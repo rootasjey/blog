@@ -2,6 +2,7 @@
 import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
 import { isTagIconName } from '~~/shared/constants/tag-icons'
+import { isTagColor } from '~~/shared/constants/tag-colors'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -15,7 +16,11 @@ export default defineEventHandler(async (event) => {
   if (body.icon != null && body.icon !== '' && !isTagIconName(body.icon)) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid tag icon' })
   }
+  if (body.color != null && body.color !== '' && !isTagColor(body.color)) {
+    throw createError({ statusCode: 400, statusMessage: 'Invalid tag color' })
+  }
   const icon = isTagIconName(body.icon) ? body.icon : null
+  const color = isTagColor(body.color) ? body.color : null
 
   try {
     const exists = await db.query.tags.findFirst({
@@ -26,7 +31,7 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 409, statusMessage: 'Tag already exists' })
     }
 
-    const result = await db.insert(schema.tags).values({ name, category, description, icon }).run()
+    const result = await db.insert(schema.tags).values({ name, category, description, icon, color }).run()
     const insertedId = Number((result as any)?.lastInsertRowid ?? (result as any)?.meta?.last_row_id ?? 0)
 
     const tag = insertedId

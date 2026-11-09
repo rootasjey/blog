@@ -43,6 +43,9 @@
               :letter-label="$t('pages.tags.keepInitial')"
             />
           </div>
+          <TagColorPicker
+            v-model="tagColor"
+          />
         </div>
       </NDialogDescription>
 
@@ -137,6 +140,7 @@ const tagName = ref('')
 const tagCategory = ref('')
 const tagDescription = ref('')
 const tagIcon = ref<TagIconName | null>(null)
+const tagColor = ref<string | null>(null)
 const saving = ref(false)
 
 const confirmDialogOpen = ref(false)
@@ -161,6 +165,7 @@ function openNewTag() {
   tagCategory.value = ''
   tagDescription.value = ''
   tagIcon.value = null
+  tagColor.value = null
   tagDialogOpen.value = true
 }
 
@@ -170,6 +175,7 @@ function openEditTag(tag: ApiTag) {
   tagCategory.value = tag.category || ''
   tagDescription.value = tag.description || ''
   tagIcon.value = (tag.icon as TagIconName | null) || null
+  tagColor.value = tag.color || null
   tagDialogOpen.value = true
 }
 
@@ -186,10 +192,10 @@ async function saveTag() {
   saving.value = true
   try {
     if (editingTag.value) {
-      const updated = await $fetch<ApiTag>(`/api/tags/${editingTag.value.id}`, { method: 'PUT' as any, body: { name: tagName.value.trim(), category: tagCategory.value.trim() || 'general', description: tagDescription.value.trim(), icon: tagIcon.value } })
+      const updated = await $fetch<ApiTag>(`/api/tags/${editingTag.value.id}`, { method: 'PUT' as any, body: { name: tagName.value.trim(), category: tagCategory.value.trim() || 'general', description: tagDescription.value.trim(), icon: tagIcon.value, color: tagColor.value } })
       tags.value = tags.value.map(t => t.id === updated.id ? updated : t)
     } else {
-      const created = await $fetch<ApiTag>('/api/tags', { method: 'POST' as any, body: { name: tagName.value.trim(), category: tagCategory.value.trim() || 'general', description: tagDescription.value.trim(), icon: tagIcon.value } })
+      const created = await $fetch<ApiTag>('/api/tags', { method: 'POST' as any, body: { name: tagName.value.trim(), category: tagCategory.value.trim() || 'general', description: tagDescription.value.trim(), icon: tagIcon.value, color: tagColor.value } })
       tags.value = [...tags.value, created].sort((a, b) => a.name.localeCompare(b.name))
     }
     tagDialogOpen.value = false

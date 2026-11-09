@@ -48,6 +48,7 @@ export const tags = sqliteTable('tags', {
   category: text('category').notNull().default('general'),
   description: text('description').notNull().default(''),
   icon: text('icon'),
+  color: text('color'),
   created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
   updated_at: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 })

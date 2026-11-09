@@ -2,8 +2,16 @@
   <div class="site-editor-toolbar">
     <div class="site-editor-toolbar-inner">
       <div class="flex items-center justify-between gap-2">
-        <NButton link :to="localizedPath('/posts', $getLocale())" btn="ghost-gray" size="xs" class="site-editor-toolbar-back" :aria-label="$t('pages.postEditor.allPosts')">
-          <span class="i-ph-arrow-bend-down-left-bold" /> <span class="hidden sm:inline">{{ $t('pages.postEditor.allPosts') }}</span>
+        <NButton
+          @click="$emit('view-post')"
+          icon
+          label="i-ph-eye"
+          btn="ghost-gray"
+          size="xs"
+          class="site-editor-toolbar-back site-editor-tool-button site-editor-tooltip-control"
+          :aria-label="$t('common.preview')"
+          :data-tooltip="$t('common.preview')"
+        >
         </NButton>
         <div class="flex items-center gap-1 md:gap-2">
           <NTooltip :content="undoTooltip">
@@ -35,19 +43,6 @@
             </span>
           </NTooltip>
 
-          <NButton
-            :to="localizedPath(`/posts/${postSlug}`, $getLocale())"
-            btn="~"
-            size="xs"
-            class="site-editor-action site-editor-preview-button"
-            target="_blank"
-            rel="noopener noreferrer"
-            :aria-label="$t('common.preview')"
-          >
-            <span class="i-lucide-external-link site-editor-preview-icon" aria-hidden="true" />
-            <span class="site-editor-preview-label hidden sm:inline">{{ $t('common.preview') }}</span>
-          </NButton>
-
           <div class="hidden sm:flex items-center gap-2">
             <NDropdownMenu :items="exportMenuItems" :_dropdownMenuContent="{ side: 'top', align: 'end', sideOffset: 8 }">
               <NButton btn="~" size="xs" class="site-editor-tool-button site-editor-tooltip-control" :aria-label="$t('pages.postEditor.exportOptions')" :data-tooltip="$t('pages.postEditor.exportOptions')">
@@ -56,10 +51,6 @@
             </NDropdownMenu>
           </div>
 
-          <NButton @click="$emit('save')" btn="~" size="xs" :disabled="saving || !canSave" class="site-editor-save-button" :aria-label="$t(saving ? 'common.saving' : 'common.save')">
-            <NIcon :name="saving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': saving }" />
-            <span class="hidden sm:inline">{{ $t(saving ? 'common.saving' : 'common.save') }}</span>
-          </NButton>
           <NDropdownMenu :items="menuItems" class="menu-items" :_dropdownMenuContent="{ side: 'top', align: 'end', sideOffset: 8 }">
             <NButton icon label="i-ph-dots-three-vertical" btn="~" size="xs" class="site-editor-tool-button site-editor-tooltip-control" :aria-label="$t('pages.postEditor.moreActions')" :data-tooltip="$t('pages.postEditor.moreActions')" />
           </NDropdownMenu>
@@ -72,7 +63,6 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { localizedPath } from '~/utils/presentationPosts'
 
 type PostStatus = 'draft' | 'published' | 'archived'
 
@@ -85,15 +75,12 @@ interface EditorMenuItem {
 }
 
 const props = defineProps<{
-  postSlug: string
   status: PostStatus
   languageOptions: { value: string; label: string }[]
   postLanguage: string
   hasCover: boolean
   uploadingCover: boolean
   exportingZip: boolean
-  saving: boolean
-  canSave: boolean
   canUndo: boolean
   canRedo: boolean
 }>()
@@ -101,7 +88,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   undo: []
   redo: []
-  save: []
+  'view-post': []
   'change-status': [status: PostStatus]
   'change-language': [language: string]
   'open-translations': []
@@ -113,7 +100,7 @@ const emit = defineEmits<{
   'delete-cover': []
 }>()
 
-const { $t, $getLocale } = useI18n()
+const { $t } = useI18n()
 
 const undoTooltip = computed(() => $t(props.canUndo ? 'pages.postEditor.undo' : 'pages.postEditor.undoEmpty'))
 const redoTooltip = computed(() => $t(props.canRedo ? 'pages.postEditor.redo' : 'pages.postEditor.redoEmpty'))

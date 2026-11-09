@@ -24,6 +24,18 @@
       "categoryPlaceholder": "Category (optional)",
       "iconLabel": "Tag symbol",
       "keepInitial": "Keep initial",
+      "colorLabel": "Tag color",
+      "colorAutomatic": "Automatic",
+      "colorCustom": "Custom color",
+      "colors": {
+        "violet": "Violet",
+        "coral": "Coral",
+        "amber": "Amber",
+        "blue": "Blue",
+        "green": "Green",
+        "pink": "Pink",
+        "neutral": "Neutral"
+      },
       "icons": {
         "palette": "Palette",
         "camera": "Camera",

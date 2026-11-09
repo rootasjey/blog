@@ -13,7 +13,7 @@
           :key="tag.name"
           :to="`${localizedPath('/posts', $getLocale())}?tag=${encodeURIComponent(tag.name)}`"
           :aria-label="`${tag.name}: ${tag.count}`"
-          :style="{ '--tag-accent': postTagColor(tag.name) }"
+          :style="{ '--tag-accent': postTagColor(tag.name, tag.color) }"
         >
           <span class="home-trending-tag-icon" aria-hidden="true">
             <NIcon v-if="tag.icon" :name="tag.icon" />
@@ -64,6 +64,7 @@ const tags = computed(() => {
       name: tag.name,
       count: tag.count ?? 0,
       icon: tag.icon ?? null,
+      color: tag.color ?? null,
     }))
   }
 

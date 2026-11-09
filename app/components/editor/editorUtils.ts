@@ -1,5 +1,5 @@
 import type { Editor } from '@tiptap/core'
-import type { EditorView } from 'prosemirror-view'
+import type { EditorView } from '@tiptap/pm/view'
 
 // Robust runtime check for whether a Tiptap Editor is editable.
 // Avoids using `as any` by narrowing to known shapes and types.

@@ -31,7 +31,7 @@
             <NuxtLink
               v-if="post.tags?.[0]?.name"
               :to="`${localizedPath('/posts', $getLocale())}?tag=${encodeURIComponent(post.tags[0].name)}`"
-              :style="{ '--tag-accent': postTagColor(post.tags[0].name) }"
+              :style="{ '--tag-accent': postTagColor(post.tags[0].name, post.tags[0].color) }"
               class="site-public-post-tag"
             >
               {{ post.tags[0].name }}

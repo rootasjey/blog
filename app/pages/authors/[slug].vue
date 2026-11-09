@@ -74,7 +74,7 @@
               <span class="site-author-post-meta">
                 <span
                   v-if="post.tags?.[0]?.name"
-                  :style="{ '--site-author-tag-color': postTagColor(post.tags[0].name) }"
+                  :style="{ '--site-author-tag-color': postTagColor(post.tags[0].name, post.tags[0].color) }"
                 >{{ post.tags[0].name }}</span>
                 <time :datetime="post.publishedAt || post.createdAt">
                   {{ formatPostDate(post.publishedAt || post.createdAt, 'long') }}

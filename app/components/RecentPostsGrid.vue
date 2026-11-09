@@ -71,7 +71,7 @@
                 {{ post.name }}
               </h3>
               <div v-if="post.tags?.length || post.formattedDate" class="home-recent-meta">
-                <span v-if="post.tags?.length" class="home-recent-tag" :style="{ color: postTagColor(post.tags[0].name) }">{{ post.tags[0].name }}</span>
+                <span v-if="post.tags?.length" class="home-recent-tag" :style="{ color: postTagColor(post.tags[0].name, post.tags[0].color) }">{{ post.tags[0].name }}</span>
                 <time v-if="post.formattedDate">{{ post.formattedDate }}</time>
               </div>
             </div>

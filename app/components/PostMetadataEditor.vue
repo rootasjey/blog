@@ -5,7 +5,7 @@
         <nav class="site-preview-topic-nav site-editor-tags-wrap" :aria-label="$t('common.tags')">
           <span class="site-post-nav-spacer" aria-hidden="true" />
           <div class="site-editor-tags">
-            <NBadge v-for="tag in localTags" :key="tag.id" badge="~" rounded="full" class="site-editor-tag" :style="{ '--editor-tag-color': postTagColor(tag.name) }">
+            <NBadge v-for="tag in localTags" :key="tag.id" badge="~" rounded="full" class="site-editor-tag" :style="{ '--editor-tag-color': postTagColor(tag.name, tag.color) }">
               <NLink :to="tagPath(tag.name)" class="site-editor-tag-link">{{ tag.name }}</NLink>
               <NTooltip>
                 <template #content>
@@ -18,7 +18,6 @@
             </NBadge>
 
             <NCombobox
-              ref="tagCombobox"
               v-if="editingTagActive"
               v-model="selectedTag"
               :items="comboboxItems"
@@ -27,6 +26,7 @@
               label-key="name"
               v-model:open="comboboxOpen"
               :_combobox-input="{
+                id: 'post-tag-search-input',
                 placeholder: $t('editor.postMetadataEditor.searchTagPlaceholder'),
                 modelValue: editingTagName,
                 'onUpdate:modelValue': (v: string) => editingTagName = v,
@@ -71,10 +71,7 @@
               </template>
             </NCombobox>
 
-            <NTooltip v-else>
-              <template #content>
-                <span class="font-600">{{ $t('editor.postMetadataEditor.addTag') }}</span>
-              </template>
+            <template v-else>
               <NButton
                 :icon="localTags.length > 0"
                 rounded="full"
@@ -88,7 +85,7 @@
                 <NIcon name="i-ph-plus-bold" />
                 <span v-if="localTags.length === 0">{{ $t('editor.postMetadataEditor.addTag') }}</span>
               </NButton>
-            </NTooltip>
+            </template>
           </div>
           <span class="site-post-nav-spacer" aria-hidden="true" />
         </nav>
@@ -120,7 +117,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch, onMounted, onBeforeUnmount, type ComponentPublicInstance } from 'vue'
+import { computed, nextTick, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useTagStore } from '~/stores/tags'
 import type { ApiTag } from '~~/shared/types/tags'
 import { postTagColor } from '~/utils/postTagColor'
@@ -165,7 +162,11 @@ const editingTagName = ref('')
 const isAssigningTags = ref(false)
 const selectedTag = ref<ApiTag | null>(null)
 const comboboxOpen = ref(false)
-const tagCombobox = ref<ComponentPublicInstance | null>(null)
+
+const focusTagSearchInput = () => {
+  const input = document.getElementById('post-tag-search-input')
+  if (input instanceof HTMLInputElement) input.focus()
+}
 
 const filteredTagSuggestions = computed(() => {
   const query = (editingTagName.value || '').trim()
@@ -248,9 +249,7 @@ const addTagByName = async (name: string) => {
     isCreateActionHighlighted.value = false
     comboboxOpen.value = true
     await nextTick()
-    const rootEl = (tagCombobox.value as any)?.$el ?? (tagCombobox.value as any)
-    const inputEl = rootEl?.querySelector('input') as HTMLInputElement | null
-    inputEl?.focus()
+    focusTagSearchInput()
   } finally {
     isAssigningTags.value = false
   }
@@ -270,9 +269,7 @@ const addTag = async (tag: ApiTag | undefined | null) => {
     isCreateActionHighlighted.value = false
     comboboxOpen.value = true
     await nextTick()
-    const rootEl = (tagCombobox.value as any)?.$el ?? (tagCombobox.value as any)
-    const inputEl = rootEl?.querySelector('input') as HTMLInputElement | null
-    inputEl?.focus()
+    focusTagSearchInput()
   } finally {
     isAssigningTags.value = false
   }

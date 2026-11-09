@@ -18,7 +18,7 @@
               v-if="primaryTag"
               class="site-preview-tag site-interactive-hover"
               :to="`${localizedPath('/posts', locale)}?tag=${encodeURIComponent(primaryTag.name)}`"
-              :style="{ '--post-tag-color': postTagColor(primaryTag.name) }"
+              :style="{ '--post-tag-color': postTagColor(primaryTag.name, primaryTag.color) }"
             >
               {{ primaryTag.name }}
             </NuxtLink>

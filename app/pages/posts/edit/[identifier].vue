@@ -2,20 +2,17 @@
   <div v-if="post" class="min-h-screen site-post site-dynamic-post site-post-editor site-post-editor--post">
     <!-- Floating action bar -->
     <PostEditorToolbar
-      :post-slug="post.slug"
       :status="status"
       :language-options="languageOptions"
       :post-language="postLanguage"
       :has-cover="Boolean(post.image?.src)"
       :uploading-cover="uploadingCover"
       :exporting-zip="exportingZip"
-      :saving="saving"
-      :can-save="Boolean(name && slug)"
       :can-undo="canUndo"
       :can-redo="canRedo"
       @undo="undoEditor"
       @redo="redoEditor"
-      @save="saveAll"
+      @view-post="viewPost"
       @change-status="status = $event"
       @change-language="updatePostLanguage"
       @open-translations="translationsDialogOpen = true"
@@ -90,8 +87,12 @@
             @editor-ready="onEditorReady"
           />
           <div class="site-editor-save-status">
-            <span v-if="savingArticle" class="i-lucide-loader animate-spin text-sm" aria-hidden />
-            <span v-if="savingArticle">{{ $t('pages.postEditor.autosaving') }}</span>
+            <span v-if="savingArticle || savingMetadata" class="i-lucide-loader animate-spin text-sm" aria-hidden />
+            <span v-if="savingArticle || savingMetadata">{{ $t('pages.postEditor.autosaving') }}</span>
+            <template v-else-if="autosaveFailed">
+              <span role="status">{{ $t('pages.postEditor.autosaveFailed') }}</span>
+              <NButton btn="ghost-gray" size="xs" @click="retryAutosave">{{ $t('pages.postEditor.retry') }}</NButton>
+            </template>
             <span v-else-if="lastArticleSavedAt">{{ $t('pages.postEditor.saved', { timeAgo }) }}</span>
           </div>
         </div>
@@ -187,8 +188,8 @@
 <script setup lang="ts">
 import type { Post } from '~~/shared/types/post'
 import type { ApiTag } from '~~/shared/types/tags'
-import { computed, onMounted, ref, watch } from 'vue'
-import { useDebounceFn, useTimeAgo } from '@vueuse/core'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useTimeAgo } from '@vueuse/core'
 import type { AILength, AICommand } from '~/composables/useAIWriter'
 import PostContent from '~/components/PostContent.vue'
 import PostMetadataEditor from '~/components/PostMetadataEditor.vue'
@@ -220,10 +221,21 @@ const postTags = ref<ApiTag[]>([])
 const loading = ref(true)
 const saving = ref(false)
 const savingArticle = ref(false)
+const savingMetadata = ref(false)
+const metadataReady = ref(false)
+const metadataDirty = ref(false)
+const articleDirty = ref(false)
+const metadataSaveFailed = ref(false)
+const articleSaveFailed = ref(false)
+const autosaveFailed = computed(() => metadataSaveFailed.value || articleSaveFailed.value)
 const lastArticleSavedAt = ref<number | null>(null)
 const rawTimeAgo = useTimeAgo(computed(() => lastArticleSavedAt.value ?? 0))
 const timeAgo = computed(() => (lastArticleSavedAt.value ? rawTimeAgo.value : ''))
 let articleSpinnerTimer: ReturnType<typeof setTimeout> | null = null
+let articleSaveTimer: ReturnType<typeof setTimeout> | null = null
+let metadataSaveTimer: ReturnType<typeof setTimeout> | null = null
+let articleSavePromise: Promise<boolean> | null = null
+let metadataSavePromise: Promise<boolean> | null = null
 const error = ref('')
 const successMessage = ref('')
 const exportingZip = ref(false)
@@ -248,8 +260,8 @@ const aiProviderDialogOpen = ref(false)
 
 const editor = ref<any | null>(null)
 
-async function saveArticle(content: object) {
-  if (!post.value) return
+async function persistArticle(content: object) {
+  if (!post.value) return false
 
   articleSpinnerTimer = setTimeout(() => {
     savingArticle.value = true
@@ -261,11 +273,16 @@ async function saveArticle(content: object) {
   try {
     await updateArticle(identifier.value, content)
     lastArticleSavedAt.value = Date.now()
+    articleSaveFailed.value = false
+    if (articleContent.value === content) articleDirty.value = false
     successMessage.value = 'Article content saved successfully'
     setTimeout(() => (successMessage.value = ''), 3000)
+    return true
   } catch (e: any) {
+    articleSaveFailed.value = true
     error.value = e?.data?.message || 'Failed to save article content'
     console.error('Failed to save article:', e)
+    return false
   } finally {
     if (articleSpinnerTimer) {
       clearTimeout(articleSpinnerTimer)
@@ -275,7 +292,37 @@ async function saveArticle(content: object) {
   }
 }
 
-const debouncedSaveArticle = useDebounceFn(saveArticle, 700)
+async function saveArticle(content: object) {
+  if (articleSavePromise) {
+    await articleSavePromise
+    if (!articleDirty.value) return true
+    content = articleContent.value
+  }
+
+  const request = persistArticle(content)
+  articleSavePromise = request
+  try {
+    return await request
+  } finally {
+    if (articleSavePromise === request) articleSavePromise = null
+  }
+}
+
+function scheduleArticleSave(content: object) {
+  if (articleSaveTimer) clearTimeout(articleSaveTimer)
+  articleSaveTimer = setTimeout(() => {
+    articleSaveTimer = null
+    void saveArticle(content)
+  }, 700)
+}
+
+async function flushArticleSave() {
+  if (articleSaveTimer) clearTimeout(articleSaveTimer)
+  articleSaveTimer = null
+  if (articleSavePromise) await articleSavePromise
+  if (!articleDirty.value) return true
+  return saveArticle(articleContent.value)
+}
 
 const { fileInput, uploadingCover, uploadProgress, previewSrc, clearPreview, triggerFileInput, handleFileChange, deleteCoverImage } = usePostImages(
   () => identifier.value,
@@ -322,7 +369,10 @@ const {
   streamSuggestion,
   cancelStream: cancel,
   articleContent,
-  onAutosave: (content) => debouncedSaveArticle(content as object),
+  onAutosave: (content) => {
+    articleDirty.value = true
+    scheduleArticleSave(content as object)
+  },
 })
 
 const { 
@@ -430,6 +480,8 @@ watch(isSlugDialogOpen, (open) => {
 const saveSlug = async () => {
   if (!post.value || !slugCandidate.value) return
 
+  if (!await flushMetadataSave()) return
+
   saving.value = true
   error.value = ''
   try {
@@ -448,7 +500,7 @@ const saveSlug = async () => {
     isSlugDialogOpen.value = false
 
     if (!isNumericIdentifier.value && post.value?.slug) {
-      await router.replace(localizedPath(`/posts/${post.value.slug}`, $getLocale()))
+      await router.replace(localizedPath(`/posts/edit/${post.value.slug}`, $getLocale()))
     }
   } catch (e: any) {
     error.value = e?.data?.message || 'Failed to update slug'
@@ -460,6 +512,7 @@ const saveSlug = async () => {
 
 const fetchPost = async () => {
   loading.value = true
+  metadataReady.value = false
   error.value = ''
 
   try {
@@ -479,6 +532,10 @@ const fetchPost = async () => {
     articleContent.value = data.article || {}
     postTags.value = data.tags ?? []
     tagStore.fetchTags().catch(() => {})
+    await nextTick()
+    metadataDirty.value = false
+    articleDirty.value = false
+    metadataReady.value = true
   } catch (e: any) {
     error.value = e?.data?.message || 'Failed to load post'
     console.error('Failed to load post:', e)
@@ -492,75 +549,114 @@ const onTagsUpdated = (tags: ApiTag[]) => {
   if (post.value) post.value.tags = tags
 }
 
-const saveMetadata = async () => {
-  if (!post.value) return
+const persistMetadata = async () => {
+  if (!post.value) return false
 
-  saving.value = true
+  savingMetadata.value = true
   error.value = ''
-  successMessage.value = ''
+  const payload = {
+    name: name.value,
+    description: description.value,
+    slug: slug.value,
+    status: status.value,
+  }
 
   try {
-    const res = await updatePost(identifier.value, {
-      name: name.value,
-      description: description.value,
-      slug: slug.value,
-      status: status.value,
-    })
+    const res = await updatePost(identifier.value, payload)
 
     if (res?.post) {
       post.value = res.post
-      slug.value = res.post.slug
       postTags.value = res.post.tags ?? postTags.value
-      if (!isNumericIdentifier.value && post.value?.slug) {
-        await router.replace(localizedPath(`/posts/${post.value.slug}`, $getLocale()))
+      const metadataStillMatches = name.value === payload.name
+        && description.value === payload.description
+        && slug.value === payload.slug
+        && status.value === payload.status
+      if (metadataStillMatches) {
+        slug.value = res.post.slug
+        metadataDirty.value = false
       }
+      lastArticleSavedAt.value = Date.now()
+      metadataSaveFailed.value = false
+      if (!isNumericIdentifier.value && payload.slug !== res.post.slug) {
+        await router.replace(localizedPath(`/posts/edit/${res.post.slug}`, $getLocale()))
+      }
+      return true
     }
-
-    successMessage.value = 'Post metadata updated successfully'
-    setTimeout(() => (successMessage.value = ''), 3000)
+    metadataSaveFailed.value = true
+    return false
   } catch (e: any) {
+    metadataSaveFailed.value = true
     error.value = e?.data?.message || 'Failed to update post metadata'
     console.error('Failed to update post:', e)
+    return false
   } finally {
-    saving.value = false
+    savingMetadata.value = false
   }
 }
 
-const saveAll = async () => {
+async function saveMetadata() {
+  if (!metadataDirty.value) return true
+  if (metadataSavePromise) {
+    await metadataSavePromise
+    if (!metadataDirty.value) return true
+  }
+
+  const request = persistMetadata()
+  metadataSavePromise = request
+  try {
+    return await request
+  } finally {
+    if (metadataSavePromise === request) metadataSavePromise = null
+  }
+}
+
+function scheduleMetadataSave() {
+  if (metadataSaveTimer) clearTimeout(metadataSaveTimer)
+  metadataSaveTimer = setTimeout(() => {
+    metadataSaveTimer = null
+    void saveMetadata()
+  }, 700)
+}
+
+async function flushMetadataSave() {
+  if (metadataSaveTimer) clearTimeout(metadataSaveTimer)
+  metadataSaveTimer = null
+  if (metadataSavePromise) await metadataSavePromise
+  if (!metadataDirty.value) return true
+  return saveMetadata()
+}
+
+watch([name, description, slug, status], () => {
+  if (!metadataReady.value) return
+  const savedPost = post.value
+  if (!savedPost) return
+  if (name.value === savedPost.name
+    && description.value === (savedPost.description || '')
+    && slug.value === savedPost.slug
+    && status.value === savedPost.status) return
+  metadataDirty.value = true
+  scheduleMetadataSave()
+})
+
+async function viewPost() {
   if (!post.value) return
 
-  saving.value = true
-  error.value = ''
-  successMessage.value = ''
+  if (!await flushMetadataSave()) return
+  if (!await flushArticleSave()) return
 
-  try {
-    const res = await updatePost(identifier.value, {
-      name: name.value,
-      description: description.value,
-      slug: slug.value,
-      status: status.value,
-    })
-
-    if (res?.post) {
-      post.value = res.post
-      slug.value = res.post.slug
-
-      if (!isNumericIdentifier.value && post.value?.slug) {
-        await router.replace(localizedPath(`/posts/${post.value.slug}`, $getLocale()))
-      }
-    }
-
-    await updateArticle(identifier.value, articleContent.value)
-
-    successMessage.value = 'Post saved successfully!'
-    setTimeout(() => (successMessage.value = ''), 3000)
-  } catch (e: any) {
-    error.value = e?.data?.message || 'Failed to save post'
-    console.error('Failed to save:', e)
-  } finally {
-    saving.value = false
-  }
+  await router.push(localizedPath(`/posts/${post.value.slug}`, $getLocale()))
 }
+
+async function retryAutosave() {
+  if (!await flushMetadataSave()) return
+  await flushArticleSave()
+}
+
+onBeforeUnmount(() => {
+  if (articleSaveTimer) clearTimeout(articleSaveTimer)
+  if (metadataSaveTimer) clearTimeout(metadataSaveTimer)
+  if (articleSpinnerTimer) clearTimeout(articleSpinnerTimer)
+})
 
 const onTranslationCreated = (newPostId: number) => {
   useToast().toast({
@@ -678,7 +774,8 @@ watch(name, (newName) => {
 const onEditorUpdate = (json: object) => {
   articleContent.value = json
   if (aiStatus.value === 'streaming') return
-  debouncedSaveArticle(json)
+  articleDirty.value = true
+  scheduleArticleSave(json)
 }
 
 const onCoverFileChange = async (event: Event) => {

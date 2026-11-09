@@ -96,6 +96,13 @@
 
 .site-shell .site-post-editor .site-editor-add-tag:hover,
 .site-shell .site-post-editor .site-editor-add-tag-button:hover { background: var(--site-color-hover-background); color: var(--site-color-heading); }
+.site-shell .site-post-editor .site-editor-add-tag-button {
+  border-color: var(--site-color-border);
+  background: var(--site-color-surface);
+  color: var(--site-color-text);
+  font-weight: 500;
+}
+.site-shell .site-post-editor .site-editor-add-tag-button:hover { border-color: var(--site-color-heading); }
 .site-shell .site-post-editor :is(.site-editor-tag-remove, .site-editor-add-tag, .site-editor-add-tag-button):focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 3px; }
 .site-shell .site-post-editor .site-editor-tag-combobox { min-width: 190px; }
 .site-shell .site-post-editor .site-editor-description { overflow: hidden; resize: none; }

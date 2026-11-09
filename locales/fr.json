@@ -442,7 +442,7 @@
       "untitled": "Sans titre",
       "descriptionPlaceholder": "Écrivez une courte description…",
       "searchTagPlaceholder": "Rechercher ou créer un tag…",
-      "addTag": "Ajouter un tag…",
+      "addTag": "Choisir un tag",
       "createTag": "Créer \"{name}\"",
       "alreadyAdded": "Ce tag est déjà ajouté."
     },

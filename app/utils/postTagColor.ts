@@ -16,6 +16,10 @@ const postTagAccents: Record<string, string> = {
   marque: 'var(--site-color-tag-neutral)',
 }
 
-export function postTagColor(name: string) {
+export function postTagColor(name: string, customColor?: string | null) {
+  if (customColor && /^#[\da-f]{6}$/i.test(customColor)) {
+    return `color-mix(in srgb, ${customColor} 65%, var(--site-color-text))`
+  }
+
   return postTagAccents[name.trim().toLocaleLowerCase()] || 'var(--site-color-tag-default)'
 }

@@ -442,7 +442,7 @@
       "untitled": "Untitled",
       "descriptionPlaceholder": "Write a short description…",
       "searchTagPlaceholder": "Search or create tag…",
-      "addTag": "Add tag…",
+      "addTag": "Choose a tag",
       "createTag": "Create \"{name}\"",
       "alreadyAdded": "This tag is already added."
     },

@@ -42,7 +42,7 @@
             <NuxtLink
               class="site-tags-directory-tag site-tags-directory-tag-link"
               :to="tagHref(tag)"
-              :style="{ '--tag-accent': postTagColor(tag.name) }"
+              :style="{ '--tag-accent': postTagColor(tag.name, tag.color) }"
             >
               <span class="site-tags-directory-icon" aria-hidden="true">
                 <NIcon v-if="tag.icon" :name="tag.icon" />

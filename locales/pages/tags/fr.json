@@ -24,6 +24,18 @@
       "categoryPlaceholder": "Cat\u00e9gorie (optionnelle)",
       "iconLabel": "Symbole du tag",
       "keepInitial": "Garder l’initiale",
+      "colorLabel": "Couleur du tag",
+      "colorAutomatic": "Automatique",
+      "colorCustom": "Couleur personnalisée",
+      "colors": {
+        "violet": "Violet",
+        "coral": "Corail",
+        "amber": "Ambre",
+        "blue": "Bleu",
+        "green": "Vert",
+        "pink": "Rose",
+        "neutral": "Neutre"
+      },
       "icons": {
         "palette": "Palette",
         "camera": "Appareil photo",

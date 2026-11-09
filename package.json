@@ -1,6 +1,6 @@
 {
   "name": "eneide",
-  "version": "4.21.0",
+  "version": "4.22.0",
   "type": "module",
   "private": true,
   "workspaces": [
@@ -14,6 +14,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
     "sdk:build": "bun run --cwd packages/sdk build",
     "cli:build": "bun run --cwd packages/cli build",
     "packages:build": "bun run sdk:build && bun run cli:build",
@@ -82,6 +83,7 @@
     "@iconify-json/lucide": "^1.2.149",
     "@iconify-json/ph": "^1.2.2",
     "@iconify-json/radix-icons": "^1.2.6",
+    "@iconify-json/ri": "^1.2.10",
     "@iconify-json/tabler": "^1.2.43",
     "@nuxt/test-utils": "^4.3.4",
     "@types/better-sqlite3": "^7.6.13",
@@ -90,6 +92,7 @@
     "puppeteer": "^24.43.1",
     "typescript": "^5.6.3",
     "vitest": "^4.1.12",
+    "vue-tsc": "^3.3.14",
     "wrangler": "^4.156.0"
   },
   "overrides": {

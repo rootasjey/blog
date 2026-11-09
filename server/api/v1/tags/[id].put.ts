@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { isTagIconName } from '~~/shared/constants/tag-icons'
+import { isTagColor } from '~~/shared/constants/tag-colors'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -17,9 +18,13 @@ export default defineEventHandler(async (event) => {
     if (body?.icon != null && body.icon !== '' && !isTagIconName(body.icon)) {
       return apiError(event, 400, 'VALIDATION_ERROR', 'Invalid tag icon')
     }
+    if (body?.color != null && body.color !== '' && !isTagColor(body.color)) {
+      return apiError(event, 400, 'VALIDATION_ERROR', 'Invalid tag color')
+    }
     const iconUpdate = body?.icon === undefined ? {} : { icon: isTagIconName(body.icon) ? body.icon : null }
+    const colorUpdate = body?.color === undefined ? {} : { color: isTagColor(body.color) ? body.color : null }
 
-    const result = await db.update(schema.tags).set({ name, category, description, ...iconUpdate }).where(eq(schema.tags.id, id)).run()
+    const result = await db.update(schema.tags).set({ name, category, description, ...iconUpdate, ...colorUpdate }).where(eq(schema.tags.id, id)).run()
     const rowsWritten = Number((result as any)?.rowsAffected ?? 0)
     if (!rowsWritten) return apiError(event, 404, 'NOT_FOUND', 'Tag not found')
 

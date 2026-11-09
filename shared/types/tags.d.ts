@@ -9,6 +9,7 @@ export type ApiTag = {
   category: string
   description: string
   icon?: string | null
+  color?: string | null
   created_at: string
   updated_at: string
   count?: number
@@ -24,6 +25,7 @@ export type Tag = {
   category?: string
   description?: string
   icon?: string | null
+  color?: string | null
 }
 
 export interface TagWithUsage extends ApiTag {

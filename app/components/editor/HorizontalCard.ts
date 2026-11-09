@@ -1,6 +1,6 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
-import { TextSelection, Selection } from 'prosemirror-state'
+import { TextSelection, Selection } from '@tiptap/pm/state'
 import HorizontalCardNodeView from './HorizontalCardNodeView.vue'
 
 export interface HorizontalCardAttributes {
