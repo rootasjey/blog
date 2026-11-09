@@ -1,7 +1,7 @@
 <template>
   <section class="site-page site-author-detail">
     <div class="site-author-container">
-      <NuxtLink :to="localizedPath('/authors', $getLocale())" class="site-author-back">{{ $t('pages.authors.backToAuthors') }}</NuxtLink>
+      <NuxtLink :to="localizedPath('/authors', $getLocale())" class="site-author-back">{{ $ts('pages.authors.backToAuthors') }}</NuxtLink>
 
       <header class="site-author-profile">
         <NuxtImg
@@ -25,7 +25,7 @@
         </p>
         <p v-if="author?.biography" class="site-author-biography">{{ author.biography }}</p>
 
-        <nav v-if="authorSocials.length" class="site-author-socials" :aria-label="$t('pages.authors.socialLinks')">
+        <nav v-if="authorSocials.length" class="site-author-socials" :aria-label="$ts('pages.authors.socialLinks')">
           <a
             v-for="social in authorSocials"
             :key="social.platform + social.url"
@@ -39,10 +39,10 @@
         </nav>
       </header>
 
-      <section class="site-author-posts" :aria-label="$t('pages.authors.articles')">
+      <section class="site-author-posts" :aria-label="$ts('pages.authors.articles')">
         <div class="site-author-posts-heading">
-          <h2>{{ $t('pages.authors.articles') }}</h2>
-          <span>{{ posts.length }} {{ $t('pages.authors.published') }}</span>
+          <h2>{{ $ts('pages.authors.articles') }}</h2>
+          <span>{{ posts.length }} {{ $ts('pages.authors.published') }}</span>
         </div>
 
         <div v-if="postsPending" class="site-author-posts-list" aria-hidden="true">
@@ -51,7 +51,7 @@
 
         <p v-else-if="postsError" class="site-author-posts-message site-author-posts-message--error">{{ postsError }}</p>
 
-        <p v-else-if="!posts.length" class="site-author-posts-message">{{ $t('pages.authors.noArticles') }}</p>
+        <p v-else-if="!posts.length" class="site-author-posts-message">{{ $ts('pages.authors.noArticles') }}</p>
 
         <div v-else class="site-author-posts-list">
           <NuxtLink
@@ -108,7 +108,7 @@ type Author = {
 
 const route = useRoute()
 const slug = String(route.params.slug)
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const { formatPostDate } = usePost()
 
 const { data: authorData, error: authorError } = await useFetch<Author>(`/api/authors/${slug}`)
@@ -156,8 +156,8 @@ const {
 const posts = computed(() => postsData.value ?? [])
 
 if (authorError.value) {
-  const { $t } = useI18n()
-  throw createError({ statusCode: 404, statusMessage: $t('pages.authors.notFound') })
+  const { $ts } = useI18n()
+  throw createError({ statusCode: 404, statusMessage: $ts('pages.authors.notFound') })
 }
 
 const config = useRuntimeConfig()

@@ -2,8 +2,8 @@
   <main class="site-page site-tags-directory" :class="{ 'is-admin': isAdmin }">
     <div class="site-tags-directory-content">
       <CollectionIntro
-        :title="$t('pages.tags.heading')"
-        :description="$t('pages.tags.description')"
+        :title="$ts('pages.tags.heading')"
+        :description="$ts('pages.tags.description')"
       />
 
       <div v-if="isAdmin" class="site-tags-directory-tools">
@@ -13,16 +13,16 @@
             ref="searchInput"
             v-model="search"
             type="search"
-            :placeholder="$t('pages.tags.searchPlaceholder')"
-            :aria-label="$t('pages.tags.searchPlaceholder')"
+            :placeholder="$ts('pages.tags.searchPlaceholder')"
+            :aria-label="$ts('pages.tags.searchPlaceholder')"
           />
         </div>
       </div>
 
-      <section class="site-tags-directory-list" :aria-label="$t('common.tags')">
-        <h2 class="site-tags-directory-visually-hidden">{{ $t('common.tags') }}</h2>
+      <section class="site-tags-directory-list" :aria-label="$ts('common.tags')">
+        <h2 class="site-tags-directory-visually-hidden">{{ $ts('common.tags') }}</h2>
         <p v-if="!filteredTags.length" class="site-tags-directory-empty">
-          {{ isAdmin && search.trim() ? $t('pages.tags.noTagsFound') : $t('pages.tags.noTopics') }}
+          {{ isAdmin && search.trim() ? $ts('pages.tags.noTagsFound') : $ts('pages.tags.noTopics') }}
         </p>
 
         <ul>
@@ -35,7 +35,7 @@
               <span class="site-tags-directory-icon site-tags-directory-create-icon" aria-hidden="true">
                 <NIcon name="i-ph-plus" />
               </span>
-              <span class="site-tags-directory-name">{{ $t('pages.tags.newTag') }}</span>
+              <span class="site-tags-directory-name">{{ $ts('pages.tags.newTag') }}</span>
             </button>
           </li>
           <li v-for="tag in filteredTags" :key="tag.id" class="site-tags-directory-row">
@@ -58,7 +58,7 @@
                   btn="ghost-gray"
                   size="xs"
                   icon
-                  :aria-label="$t('pages.tags.tagActions', { name: tag.name })"
+                  :aria-label="$ts('pages.tags.tagActions', { name: tag.name })"
                   class="site-tags-directory-menu"
                 >
                   <NIcon name="i-ph-dots-three-vertical" />
@@ -90,7 +90,7 @@ const emit = defineEmits<{
   delete: [tag: DirectoryTag]
 }>()
 
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const search = ref('')
 const searchInput = ref<HTMLInputElement | null>(null)
 const locale = computed(() => $getLocale())
@@ -136,8 +136,8 @@ function tagInitial(name: string) {
 
 function menuItems(tag: DirectoryTag) {
   return [
-    { label: $t('common.edit'), onSelect: () => emit('edit', tag), leading: 'i-ph-pencil' },
-    { label: $t('common.delete'), onSelect: () => emit('delete', tag), leading: 'i-ph-trash', color: 'danger' },
+    { label: $ts('common.edit'), onSelect: () => emit('edit', tag), leading: 'i-ph-pencil' },
+    { label: $ts('common.delete'), onSelect: () => emit('delete', tag), leading: 'i-ph-trash', color: 'danger' },
   ]
 }
 </script>

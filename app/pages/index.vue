@@ -14,7 +14,7 @@
         <img class="site-intro-mark" src="/images/presentation/jc-pp.jpg" alt="Jérémie Corpinot" width="100" height="100">
         <h1>Jérémie Corpinot</h1>
         <p v-for="(paragraph, index) in homeIntroParagraphs" :key="index">{{ paragraph }}</p>
-        <a class="site-interactive-hover site-outline-action site-intro-subscribe" href="#newsletter">{{ $t('common.subscribe') }}</a>
+        <a class="site-interactive-hover site-outline-action site-intro-subscribe" href="#newsletter">{{ $ts('common.subscribe') }}</a>
       </section>
       <div class="animate-entrance"><FeaturedPostsGrid /></div>
       <div class="animate-entrance"><TrendingTagsCarousel /></div>
@@ -39,16 +39,16 @@ const mobileIndex = computed(() => {
 
 const ogImageUrl = `${config.public.siteUrl}/og/home/default.png`
 
-const { $t } = useI18n()
-const homeIntroParagraphs = computed(() => $t('pages.home.intro').split(/\n\s*\n/).filter(Boolean))
+const { $ts } = useI18n()
+const homeIntroParagraphs = computed(() => $ts('pages.home.intro').split(/\n\s*\n/).filter(Boolean))
 
 const { website } = useJsonld()
 
 useSeoMeta({
-  title: $t('pages.home.title'),
-  description: $t('pages.home.description'),
-  ogTitle: $t('pages.home.ogTitle'),
-  ogDescription: $t('pages.home.ogDescription'),
+  title: $ts('pages.home.title'),
+  description: $ts('pages.home.description'),
+  ogTitle: $ts('pages.home.ogTitle'),
+  ogDescription: $ts('pages.home.ogDescription'),
   ogImage: ogImageUrl,
   ogUrl: config.public.siteUrl,
   twitterCard: 'summary_large_image',

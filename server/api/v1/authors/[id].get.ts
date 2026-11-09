@@ -28,9 +28,12 @@ export default defineEventHandler(async (event) => {
       return apiError(event, 404, 'NOT_FOUND', `Author with ID "${id}" not found`)
     }
 
+    const row = rows[0]
+    if (!row) return apiError(event, 404, 'NOT_FOUND', `Author with ID "${id}" not found`)
+
     const author = {
-      ...rows[0],
-      socials: safeParseJson(rows[0].socials),
+      ...row,
+      socials: safeParseJson(row.socials),
     }
 
     return apiSuccess(event, author)

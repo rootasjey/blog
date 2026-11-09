@@ -11,10 +11,10 @@
       />
       <section v-else class="site-page site-tags-state">
         <div>
-          <h1>{{ $t('pages.tags.heading') }}</h1>
-          <p>{{ $t('pages.tags.description') }}</p>
-          <p v-if="tagsPending" class="site-tags-state-loading">{{ $t('pages.tags.loading') }}</p>
-          <EmptyState v-else :title="$t('pages.tags.unavailable')" :description="$t('pages.tags.unavailableDesc')" />
+          <h1>{{ $ts('pages.tags.heading') }}</h1>
+          <p>{{ $ts('pages.tags.description') }}</p>
+          <p v-if="tagsPending" class="site-tags-state-loading">{{ $ts('pages.tags.loading') }}</p>
+          <EmptyState v-else :title="$ts('pages.tags.unavailable')" :description="$ts('pages.tags.unavailableDesc')" />
         </div>
       </section>
 
@@ -26,21 +26,21 @@
   <NDialog v-model:open="tagDialogOpen">
     <NDialogContent class="max-w-md">
       <NDialogHeader>
-        <NDialogTitle>{{ editingTag ? $t('pages.tags.editTag') : $t('pages.tags.createTag') }}</NDialogTitle>
+        <NDialogTitle>{{ editingTag ? $ts('pages.tags.editTag') : $ts('pages.tags.createTag') }}</NDialogTitle>
       </NDialogHeader>
 
       <NDialogDescription>
         <div class="space-y-3">
-          <NInput v-model="tagName" :placeholder="$t('pages.tags.tagNamePlaceholder')" input="outline" class="site-tag-dialog-field" autofocus />
-          <NInput v-model="tagDescription" :placeholder="$t('pages.tags.descriptionPlaceholder')" input="outline" class="site-tag-dialog-field" />
-          <NInput v-model="tagCategory" :placeholder="$t('pages.tags.categoryPlaceholder')" input="outline" class="site-tag-dialog-field" />
+          <NInput v-model="tagName" :placeholder="$ts('pages.tags.tagNamePlaceholder')" input="outline" class="site-tag-dialog-field" autofocus />
+          <NInput v-model="tagDescription" :placeholder="$ts('pages.tags.descriptionPlaceholder')" input="outline" class="site-tag-dialog-field" />
+          <NInput v-model="tagCategory" :placeholder="$ts('pages.tags.categoryPlaceholder')" input="outline" class="site-tag-dialog-field" />
           <div class="pt-1">
-            <p class="mb-2 text-sm font-medium">{{ $t('pages.tags.iconLabel') }}</p>
+            <p class="mb-2 text-sm font-medium">{{ $ts('pages.tags.iconLabel') }}</p>
             <TagIconPicker
               v-model="tagIcon"
               :tag-name="tagName"
-              :label="$t('pages.tags.iconLabel')"
-              :letter-label="$t('pages.tags.keepInitial')"
+              :label="$ts('pages.tags.iconLabel')"
+              :letter-label="$ts('pages.tags.keepInitial')"
             />
           </div>
           <TagColorPicker
@@ -50,8 +50,8 @@
       </NDialogDescription>
 
       <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
-        <NButton btn="ghost-gray" size="sm" @click="tagDialogOpen = false">{{ $t('common.cancel') }}</NButton>
-        <NButton btn="solid-black" size="sm" @click="saveTag" :loading="saving" class="px-6">{{ $t('common.save') }}</NButton>
+        <NButton btn="ghost-gray" size="sm" @click="tagDialogOpen = false">{{ $ts('common.cancel') }}</NButton>
+        <NButton btn="solid-black" size="sm" @click="saveTag" :loading="saving" class="px-6">{{ $ts('common.save') }}</NButton>
       </NDialogFooter>
     </NDialogContent>
   </NDialog>
@@ -59,16 +59,16 @@
   <NDialog v-model:open="confirmDialogOpen">
     <NDialogContent class="max-w-md">
       <NDialogHeader>
-        <NDialogTitle>{{ $t('pages.tags.deleteTagTitle') }}</NDialogTitle>
+        <NDialogTitle>{{ $ts('pages.tags.deleteTagTitle') }}</NDialogTitle>
       </NDialogHeader>
 
       <NDialogDescription>
-        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $t('pages.tags.deleteTagConfirm', { name: tagPendingDelete?.name }) }}</p>
+        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $ts('pages.tags.deleteTagConfirm', { name: tagPendingDelete?.name ?? '' }) }}</p>
       </NDialogDescription>
 
       <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
-        <NButton btn="ghost-gray" size="sm" @click="confirmDialogOpen = false">{{ $t('common.cancel') }}</NButton>
-        <NButton btn="solid-red" size="sm" @click="confirmDelete" :loading="deleting" class="px-5 py-0 min-h-0">{{ $t('common.delete') }}</NButton>
+        <NButton btn="ghost-gray" size="sm" @click="confirmDialogOpen = false">{{ $ts('common.cancel') }}</NButton>
+        <NButton btn="solid-red" size="sm" @click="confirmDelete" :loading="deleting" class="px-5 py-0 min-h-0">{{ $ts('common.delete') }}</NButton>
       </NDialogFooter>
     </NDialogContent>
   </NDialog>
@@ -91,12 +91,12 @@ const { data: tagsData, pending: tagsPending, error: tagsError } = await useFetc
 const tags = ref<ApiTag[]>(tagsData.value ?? [])
 // keep tags ref in sync with fetched data (works on both server and client)
 watch(tagsData, (v) => { tags.value = v ?? [] })
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 useSeoMeta({
-  title: () => `${$t('pages.tags.heading')} - ${$t('seo.siteName')}`,
-  description: () => $t('pages.tags.description'),
-  ogTitle: () => $t('pages.tags.heading'),
-  ogDescription: () => $t('pages.tags.description'),
+  title: () => `${$ts('pages.tags.heading')} - ${$ts('seo.siteName')}`,
+  description: () => $ts('pages.tags.description'),
+  ogTitle: () => $ts('pages.tags.heading'),
+  ogDescription: () => $ts('pages.tags.description'),
   ogImage: `${config.public.siteUrl}/og/home/default.png`,
   ogUrl: () => `${config.public.siteUrl}/tags`,
   twitterCard: 'summary_large_image',
@@ -186,7 +186,7 @@ function onDeleteFromDirectory(tag: ApiTag) {
 
 async function saveTag() {
   if (!tagName.value?.trim()) {
-    alert($t('pages.profile.nameRequired'))
+    alert($ts('pages.profile.nameRequired'))
     return
   }
   saving.value = true

@@ -78,5 +78,5 @@ function escapeXml(str: string): string {
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr)
-  return d.toISOString().split('T')[0]
+  return d.toISOString().slice(0, 10)
 }

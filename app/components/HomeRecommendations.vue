@@ -40,10 +40,10 @@
 import { computed } from 'vue'
 import { localizedPath } from '~/utils/presentationPosts'
 
-const { $getLocale, $t } = useI18n()
+const { $getLocale, $ts } = useI18n()
 withDefaults(defineProps<{ showHeading?: boolean }>(), { showHeading: true })
 const heading = computed(() => {
-  const translated = $t('components.homeRecommendations.heading')
+  const translated = $ts('components.homeRecommendations.heading')
   if (translated.toLocaleLowerCase() !== 'components.homerecommendations.heading') return translated
   return $getLocale() === 'fr' ? 'Recommandations' : 'Recommendations'
 })

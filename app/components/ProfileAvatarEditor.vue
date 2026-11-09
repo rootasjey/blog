@@ -6,7 +6,7 @@
         class="site-profile-avatar relative group overflow-hidden flex items-center justify-center transition-all duration-300 focus:outline-none"
         :class="avatarDragOver ? 'site-profile-avatar--dragging scale-105' : ''"
         :disabled="avatarBusy"
-        :aria-label="$t('pages.profile.editAvatar')"
+        :aria-label="$ts('pages.profile.editAvatar')"
         :aria-busy="avatarBusy"
         @dragover.prevent="avatarDragOver = true"
         @dragleave.prevent="avatarDragOver = false"
@@ -30,23 +30,23 @@
     </NDropdownMenu>
 
     <input ref="avatarFileInput" type="file" accept="image/*" class="hidden" :disabled="avatarBusy" @change="handleAvatarFileChange" />
-    <span class="site-profile-avatar-hint">{{ $t('pages.profile.editAvatar') }}</span>
+    <span class="site-profile-avatar-hint">{{ $ts('pages.profile.editAvatar') }}</span>
 
     <NDialog v-model:open="deleteAvatarDialogOpen" :closeOnEsc="true">
       <NDialogContent class="max-w-sm">
         <NDialogHeader>
-          <NDialogTitle>{{ $t('pages.profile.removeAvatarTitle') }}</NDialogTitle>
+          <NDialogTitle>{{ $ts('pages.profile.removeAvatarTitle') }}</NDialogTitle>
         </NDialogHeader>
 
-        <div class="p-6 text-sm text-gray-600 dark:text-gray-400">{{ $t('pages.profile.removeAvatarConfirm') }}</div>
+        <div class="p-6 text-sm text-gray-600 dark:text-gray-400">{{ $ts('pages.profile.removeAvatarConfirm') }}</div>
 
         <NDialogFooter class="flex items-center gap-2 justify-end p-0">
           <NButton @click="deleteAvatarDialogOpen = false" btn="ghost-gray" size="xs" :disabled="isDeletingAvatar">
-            {{ $t('common.cancel') }}
+            {{ $ts('common.cancel') }}
           </NButton>
           <NButton @click="confirmDeleteAvatar" :disabled="isDeletingAvatar" btn="soft-pink" size="xs" color="danger">
             <NIcon :name="isDeletingAvatar ? 'i-lucide-loader' : 'i-lucide-trash'" :class="{ 'animate-spin': isDeletingAvatar }" />
-            <span class="ml-2">{{ $t('common.remove') }}</span>
+            <span class="ml-2">{{ $ts('common.remove') }}</span>
           </NButton>
         </NDialogFooter>
       </NDialogContent>
@@ -69,7 +69,7 @@ const emit = defineEmits<{
   error: [message: string]
 }>()
 
-const { $t } = useI18n()
+const { $ts } = useI18n()
 const avatarFileInput = ref<HTMLInputElement | null>(null)
 const avatarUploading = ref(false)
 const avatarUploadProgress = ref(0)
@@ -82,9 +82,9 @@ const displayAvatar = computed(() => props.avatar || troncheAvatarUrl(props.name
 const initials = computed(() => props.name.trim().split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase())
 
 const avatarMenuItems = computed(() => [
-  { label: `${$t('pages.profile.changeAvatar')} · Tronche`, leading: 'i-ph-sparkle', disabled: avatarBusy.value, onSelect: useTroncheAvatar },
-  { label: $t('pages.profile.addAvatar'), leading: 'i-ph-upload-simple', disabled: avatarBusy.value, onSelect: triggerAvatarFileInput },
-  ...(props.avatar ? [{ label: $t('pages.profile.removeAvatar'), leading: 'i-ph-trash', disabled: avatarBusy.value, onSelect: () => { deleteAvatarDialogOpen.value = true } }] : []),
+  { label: `${$ts('pages.profile.changeAvatar')} · Tronche`, leading: 'i-ph-sparkle', disabled: avatarBusy.value, onSelect: useTroncheAvatar },
+  { label: $ts('pages.profile.addAvatar'), leading: 'i-ph-upload-simple', disabled: avatarBusy.value, onSelect: triggerAvatarFileInput },
+  ...(props.avatar ? [{ label: $ts('pages.profile.removeAvatar'), leading: 'i-ph-trash', disabled: avatarBusy.value, onSelect: () => { deleteAvatarDialogOpen.value = true } }] : []),
 ])
 
 function triggerAvatarFileInput() {
@@ -119,11 +119,11 @@ async function uploadAvatarWithUi(file: File) {
   emit('error', '')
   try {
     const response = await uploadAvatar(file)
-    if (!response.success || !response.image?.src) throw new Error($t('pages.profile.avatarUploadFailed'))
+    if (!response.success || !response.image?.src) throw new Error($ts('pages.profile.avatarUploadFailed'))
     emit('update:avatar', response.image.src)
-    emit('saved', response.image.src, $t('pages.profile.avatarUpdated'))
+    emit('saved', response.image.src, $ts('pages.profile.avatarUpdated'))
   } catch (error: any) {
-    emit('error', error?.message || $t('pages.profile.avatarUploadFailed'))
+    emit('error', error?.message || $ts('pages.profile.avatarUploadFailed'))
     console.error('Failed to upload avatar:', error)
   } finally {
     avatarUploading.value = false
@@ -140,17 +140,17 @@ function uploadAvatar(file: File) {
       try {
         const payload = JSON.parse(request.responseText || '{}')
         if (request.status >= 200 && request.status < 300) resolve(payload)
-        else reject(new Error($t('pages.profile.avatarUploadFailed')))
+        else reject(new Error($ts('pages.profile.avatarUploadFailed')))
       } catch {
-        reject(new Error($t('pages.profile.avatarUploadFailed')))
+        reject(new Error($ts('pages.profile.avatarUploadFailed')))
       }
     }
     request.upload.onprogress = (event) => {
       if (event.lengthComputable) avatarUploadProgress.value = Math.round((event.loaded / event.total) * 100)
     }
-    request.onerror = () => reject(new Error($t('pages.profile.avatarUploadNetworkError')))
-    request.onabort = () => reject(new Error($t('pages.profile.avatarUploadCanceled')))
-    request.ontimeout = () => reject(new Error($t('pages.profile.avatarUploadTimedOut')))
+    request.onerror = () => reject(new Error($ts('pages.profile.avatarUploadNetworkError')))
+    request.onabort = () => reject(new Error($ts('pages.profile.avatarUploadCanceled')))
+    request.ontimeout = () => reject(new Error($ts('pages.profile.avatarUploadTimedOut')))
 
     const formData = new FormData()
     formData.append('file', file)
@@ -166,13 +166,13 @@ async function confirmDeleteAvatar() {
   emit('error', '')
   try {
     const response: any = await $fetch('/api/user/avatar', { method: 'DELETE' })
-    if (!response.success) throw new Error($t('pages.profile.avatarRemoveFailed'))
+    if (!response.success) throw new Error($ts('pages.profile.avatarRemoveFailed'))
 
     emit('update:avatar', '')
-    emit('saved', '', $t('pages.profile.avatarRemoved'))
+    emit('saved', '', $ts('pages.profile.avatarRemoved'))
     deleteAvatarDialogOpen.value = false
   } catch (error) {
-    emit('error', $t('pages.profile.avatarRemoveFailed'))
+    emit('error', $ts('pages.profile.avatarRemoveFailed'))
     console.error('Failed to remove avatar:', error)
   } finally {
     isDeletingAvatar.value = false

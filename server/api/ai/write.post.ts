@@ -1,4 +1,5 @@
-import { AIProvider, aiRequestSchema, getPrompt, streamAI, summarizeWithWorkersAI, toSSEStreamFromText, translateWithWorkersAI } from "~~/server/utils/ai"
+import { aiRequestSchema, getPrompt, streamAI, summarizeWithWorkersAI, toSSEStreamFromText, translateWithWorkersAI } from "~~/server/utils/ai"
+import type { AIProvider } from "~~/server/utils/ai"
 import { defineEventHandler } from "h3"
 import { db, schema } from 'hub:db'
 import { getPostByIdentifier } from "~~/server/utils/post"

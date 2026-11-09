@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Unsupported image format' })
   }
 
-  const mime = (type in mimeAliases ? (mimeAliases as Record<string, SupportedMime>)[type] : (type as SupportedMime))
+  const mime = mimeAliases[type] ?? (type as SupportedMime)
 
   const mimeToExt: Record<SupportedMime, string> = {
     'image/png': 'png',
@@ -57,6 +57,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const extension = mimeToExt[mime]
+  if (!extension) throw createError({ statusCode: 400, message: 'Unsupported image format' })
   const avatarFolder = `users/${userId}/avatar`
 
   // Process image
@@ -93,6 +94,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const jimpMime = mimeToJimp[mime]
+    if (!jimpMime) throw createError({ statusCode: 500, message: 'Unsupported image conversion format' })
     const jimpMimeToExt: Record<JimpMime, string> = {
       'image/png': 'png',
       'image/jpeg': 'jpg',
@@ -105,6 +107,7 @@ export default defineEventHandler(async (event) => {
     const buffer = await resized.getBuffer(jimpMime)
     const resizedBlob = new Blob([new Uint8Array(buffer)], { type: jimpMime })
     const resizedExt = jimpMimeToExt[jimpMime]
+    if (!resizedExt) throw createError({ statusCode: 500, message: 'Image extension could not be resolved' })
     const resizedPath = `${avatarFolder}/${size.suffix}.${resizedExt}`
     const response = await hb.put(resizedPath, resizedBlob, { addRandomSuffix: false })
     generated.push({ size: size.suffix, pathname: response.pathname ?? resizedPath, width: resized.width, height: resized.height })

@@ -2,27 +2,27 @@
   <NDialog v-model:open="open" :closeOnEsc="true">
     <NDialogContent class="max-w-full sm:max-w-2xl">
       <NDialogHeader>
-        <NDialogTitle>{{ $t('pages.profile.editSocialsTitle') }}</NDialogTitle>
+        <NDialogTitle>{{ $ts('pages.profile.editSocialsTitle') }}</NDialogTitle>
       </NDialogHeader>
 
       <div class="p-6 space-y-4">
         <p v-if="!draft.length" class="text-sm text-gray-500 dark:text-gray-400">
-          {{ $t('pages.profile.noSocials') }}
+          {{ $ts('pages.profile.noSocials') }}
         </p>
         <div v-for="(social, index) in draft" :key="index" class="flex items-center gap-3">
           <NIcon :name="platformIcon(social.platform)" class="text-2xl text-gray-500" aria-hidden="true" />
           <NInput
             ref="platformInputs"
             v-model="social.platform"
-            :placeholder="$t('pages.profile.socialPlatformPlaceholder')"
-            :aria-label="$t('pages.profile.socialPlatformPlaceholder')"
+            :placeholder="$ts('pages.profile.socialPlatformPlaceholder')"
+            :aria-label="$ts('pages.profile.socialPlatformPlaceholder')"
             input="~"
             class="w-28 sm:w-40"
           />
           <NInput
             v-model="social.url"
-            :placeholder="$t('pages.profile.socialUrlPlaceholder')"
-            :aria-label="$t('pages.profile.socialUrlPlaceholder')"
+            :placeholder="$ts('pages.profile.socialUrlPlaceholder')"
+            :aria-label="$ts('pages.profile.socialUrlPlaceholder')"
             input="~"
             class="min-w-0 flex-1"
           />
@@ -31,7 +31,7 @@
             size="xs"
             icon
             label="i-lucide-x"
-            :aria-label="$t('common.remove')"
+            :aria-label="$ts('common.remove')"
             @click="removeRow(index)"
           />
         </div>
@@ -39,15 +39,15 @@
 
       <NDialogFooter class="flex items-center gap-2 justify-end p-0">
         <NButton btn="soft" size="xs" class="px-6" @click="addRow">
-          {{ $t('common.add') }}
+          {{ $ts('common.add') }}
         </NButton>
         <div class="ml-auto flex items-center gap-2">
           <NButton btn="ghost-gray" size="xs" :disabled="saving" @click="open = false">
-            {{ $t('common.cancel') }}
+            {{ $ts('common.cancel') }}
           </NButton>
           <NButton btn="solid-black" size="xs" class="site-profile-save" :disabled="saving" @click="save">
             <NIcon :name="saving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': saving }" />
-            <span class="ml-2">{{ $t('common.save') }}</span>
+            <span class="ml-2">{{ $ts('common.save') }}</span>
           </NButton>
         </div>
       </NDialogFooter>
@@ -71,7 +71,7 @@ const emit = defineEmits<{
   save: [socials: string]
 }>()
 
-const { $t } = useI18n()
+const { $ts } = useI18n()
 const open = computed({
   get: () => props.open,
   set: (value: boolean) => emit('update:open', value),

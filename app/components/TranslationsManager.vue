@@ -2,19 +2,19 @@
   <div>
     <div class="flex items-center justify-between mb-4">
       <span class="text-xs text-gray-500 dark:text-gray-400">
-        {{ $t('editor.translationsManager.currentLanguage', { language: currentLanguage }) }}
+        {{ $ts('editor.translationsManager.currentLanguage', { language: currentLanguage }) }}
       </span>
       <NButton v-if="!showCreateForm" btn="outline-gray" size="xs" @click="showCreateForm = true" :disabled="creating">
-        {{ $t('editor.translationsManager.createTranslation') }}
+        {{ $ts('editor.translationsManager.createTranslation') }}
       </NButton>
     </div>
 
-    <div v-if="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ $t('common.loading') }}</div>
+    <div v-if="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ $ts('common.loading') }}</div>
 
     <div v-else-if="error" class="text-sm text-red-500">{{ error }}</div>
 
     <div v-else-if="!translations.length && !showCreateForm" class="text-sm text-gray-500 dark:text-gray-400">
-      {{ $t('editor.translationsManager.noTranslations') }}
+      {{ $ts('editor.translationsManager.noTranslations') }}
     </div>
 
     <div v-else class="space-y-2">
@@ -29,16 +29,16 @@
             <div class="text-sm font-medium truncate">{{ t.name }}</div>
             <div class="text-xs text-gray-500 dark:text-gray-400">
               {{ t.authorName }}
-              <span v-if="t.status !== 'published'" class="ml-2 text-yellow-600 dark:text-yellow-400">({{ $t('pages.posts.' + t.status) }})</span>
+              <span v-if="t.status !== 'published'" class="ml-2 text-yellow-600 dark:text-yellow-400">({{ $ts('pages.posts.' + t.status) }})</span>
             </div>
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <NButton btn="ghost-gray" size="xs" :to="localizedPath(`/posts/edit/${t.id}`, $getLocale())" leading="i-ph-pencil">
-            {{ $t('editor.translationsManager.edit') }}
+            {{ $ts('editor.translationsManager.edit') }}
           </NButton>
           <NButton btn="ghost-gray" size="xs" leading="i-ph-link-break" @click="unlinkTranslation(t.id)" :disabled="unlinking">
-            {{ $t('editor.translationsManager.unlink') }}
+            {{ $ts('editor.translationsManager.unlink') }}
           </NButton>
         </div>
       </div>
@@ -47,7 +47,7 @@
     <!-- Inline create form -->
     <div v-if="showCreateForm" class="mt-4 p-4 rounded-xl border border-gray-200 dark:border-gray-700 space-y-3">
       <p class="text-sm text-gray-600 dark:text-gray-400">
-        {{ $t('editor.translationsManager.createNew', { language: targetLanguageLabel }) }}
+        {{ $ts('editor.translationsManager.createNew', { language: targetLanguageLabel }) }}
       </p>
       <div>
         <select
@@ -61,7 +61,7 @@
       </div>
       <div>
         <label for="translation-title" class="block text-sm font-medium mb-1">
-          {{ $t('editor.translationsManager.translatedTitle') }}
+          {{ $ts('editor.translationsManager.translatedTitle') }}
         </label>
         <input
           id="translation-title"
@@ -73,10 +73,10 @@
         >
       </div>
       <div class="flex justify-end gap-2">
-        <NButton btn="ghost-gray" size="xs" @click="showCreateForm = false">{{ $t('common.cancel') }}</NButton>
+        <NButton btn="ghost-gray" size="xs" @click="showCreateForm = false">{{ $ts('common.cancel') }}</NButton>
         <NButton btn="solid-blue" size="xs" @click="createTranslation" :disabled="!targetLanguage || !translationTitle.trim() || creating">
-          <span v-if="!creating">{{ $t('editor.translationsManager.createTranslation') }}</span>
-          <span v-else>{{ $t('editor.translationsManager.creating') }}</span>
+          <span v-if="!creating">{{ $ts('editor.translationsManager.createTranslation') }}</span>
+          <span v-else>{{ $ts('editor.translationsManager.creating') }}</span>
         </NButton>
       </div>
     </div>
@@ -84,7 +84,9 @@
 </template>
 
 <script setup lang="ts">
-const { $t, $getLocale } = useI18n()
+import { localizedPath } from '~/utils/presentationPosts'
+
+const { $ts, $getLocale } = useI18n()
 
 const props = defineProps<{
   postId: number
@@ -106,11 +108,11 @@ const targetLanguage = ref('')
 const translationTitle = ref('')
 
 const languageOptions = [
-  { value: 'en', label: $t('pages.postEditor.en') },
-  { value: 'fr', label: $t('pages.postEditor.fr') },
-  { value: 'es', label: $t('pages.postEditor.es') },
-  { value: 'de', label: $t('pages.postEditor.de') },
-  { value: 'it', label: $t('pages.postEditor.it') },
+  { value: 'en', label: $ts('pages.postEditor.en') },
+  { value: 'fr', label: $ts('pages.postEditor.fr') },
+  { value: 'es', label: $ts('pages.postEditor.es') },
+  { value: 'de', label: $ts('pages.postEditor.de') },
+  { value: 'it', label: $ts('pages.postEditor.it') },
 ]
 
 const availableLanguages = computed(() => {
@@ -150,12 +152,15 @@ async function createTranslation() {
       method: 'POST',
       body: { language: targetLanguage.value, name },
     })
+    if (typeof newPost.id !== 'number') {
+      throw new Error('The translation was created without a valid post ID.')
+    }
     showCreateForm.value = false
     emit('translationCreated', newPost.id)
     await router.push(localizedPath(`/posts/edit/${newPost.id}`, $getLocale()))
   } catch (e: any) {
     useToast().toast({
-      title: $t('editor.translationsManager.createFailed'),
+      title: $ts('editor.translationsManager.createFailed'),
       description: e?.data?.message || '',
       toast: 'danger',
     })
@@ -174,7 +179,7 @@ async function unlinkTranslation(targetId: number) {
     translations.value = translations.value.filter(t => t.id !== targetId)
   } catch (e: any) {
     useToast().toast({
-      title: $t('editor.translationsManager.unlinkFailed'),
+      title: $ts('editor.translationsManager.unlinkFailed'),
       description: e?.data?.message || '',
       toast: 'danger',
     })

@@ -4,13 +4,13 @@
       <div class="container">
         <div>
           <nav class="site-preview-topic-nav" :aria-label="locale === 'fr' ? 'Articles associés' : 'Related posts'">
-            <NuxtLink :to="localizedPath(`/preview/${previousPost.slug}`, $getLocale())" :aria-label="locale === 'fr' ? 'Article précédent' : 'Previous post'">
+            <NuxtLink v-if="previousPost" :to="localizedPath(`/preview/${previousPost.slug}`, $getLocale())" :aria-label="locale === 'fr' ? 'Article précédent' : 'Previous post'">
               <span class="i-ph-arrow-left" aria-hidden="true" />
             </NuxtLink>
             <NuxtLink class="site-preview-tag" :to="`${localizedPath('/posts', $getLocale())}?tag=${encodeURIComponent(post.tag[locale])}`">
               {{ post.tag[locale] }}
             </NuxtLink>
-            <NuxtLink :to="localizedPath(`/preview/${nextPost.slug}`, $getLocale())" :aria-label="locale === 'fr' ? 'Article suivant' : 'Next post'">
+            <NuxtLink v-if="nextPost" :to="localizedPath(`/preview/${nextPost.slug}`, $getLocale())" :aria-label="locale === 'fr' ? 'Article suivant' : 'Next post'">
               <span class="i-ph-arrow-right" aria-hidden="true" />
             </NuxtLink>
           </nav>
@@ -42,10 +42,10 @@
     <section v-if="!post.isProject" class="site-post-end">
       <div class="container">
         <div class="site-post-author-card">
-          <img src="/images/presentation/jc-pp.jpg" :alt="$t('components.postEndMatter.authorName')" width="48" height="48" loading="lazy">
+          <img src="/images/presentation/jc-pp.jpg" :alt="$ts('components.postEndMatter.authorName')" width="48" height="48" loading="lazy">
           <div class="site-post-author-copy">
-            <NuxtLink :to="localizedPath('/about', $getLocale())">{{ $t('components.postEndMatter.authorName') }}</NuxtLink>
-            <p>{{ $t('components.postEndMatter.authorBio') }}</p>
+            <NuxtLink :to="localizedPath('/about', $getLocale())">{{ $ts('components.postEndMatter.authorName') }}</NuxtLink>
+            <p>{{ $ts('components.postEndMatter.authorBio') }}</p>
           </div>
           <PostShareActions :title="post.title[locale]" />
         </div>
@@ -63,7 +63,7 @@ import { createError } from 'h3'
 import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
 
 const route = useRoute()
-const { $getLocale, $t } = useI18n()
+const { $getLocale, $ts } = useI18n()
 const locale = computed(() => $getLocale() === 'fr' ? 'fr' : 'en')
 const post = computed(() => PRESENTATION_POSTS.find(item => item.slug === route.params.slug))
 const postIndex = computed(() => PRESENTATION_POSTS.findIndex(item => item.slug === route.params.slug))

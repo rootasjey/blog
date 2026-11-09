@@ -23,18 +23,20 @@
 </template>
 
 <script setup lang="ts">
+import { localizedPath } from '~/utils/presentationPosts'
+
 const route = useRoute()
 const showNav = ref(false)
 const lastY = ref(0)
 const isProfileEditor = computed(() => route.path.split('/').filter(Boolean).at(-1) === 'profile')
 const isPostEditor = computed(() => route.path.includes('/posts/edit/'))
 
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 
 const items = [
-  { label: $t('mobileNav.home'), to: '/', icon: 'i-ph-house-simple-duotone' },
-  { label: $t('mobileNav.search'), to: '/search', icon: 'i-ph-magnifying-glass-duotone' },
-  { label: $t('mobileNav.settings'), to: '/settings', icon: 'i-ph-gear-six-duotone' },
+  { label: $ts('mobileNav.home'), to: '/', icon: 'i-ph-house-simple-duotone' },
+  { label: $ts('mobileNav.search'), to: '/search', icon: 'i-ph-magnifying-glass-duotone' },
+  { label: $ts('mobileNav.settings'), to: '/settings', icon: 'i-ph-gear-six-duotone' },
 ]
 
 const currentBasePath = computed(() => route.path.replace(/^\/(?:fr|es|de|it)(?=\/|$)/, '') || '/')

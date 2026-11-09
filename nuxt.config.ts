@@ -19,12 +19,6 @@ export default defineNuxtConfig({
         // Additional meta tags
         { name: 'theme-color', content: '#0BA6DF' }
       ],
-      style: [
-        {
-          children: '@layer reset, tokens, base, unaui, fonts, icons, shortcuts, utilities, components, theme-overrides;',
-          tagPriority: 'critical',
-        },
-      ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'preconnect', href: 'https://images.pexels.com' },
@@ -71,7 +65,7 @@ export default defineNuxtConfig({
     (_options, nuxt) => {
       // UnaUI injects these styles unlayered; main.css imports them into named layers.
       nuxt.options.css = nuxt.options.css.filter((entry) => {
-        const source = typeof entry === 'string' ? entry : entry.src || ''
+        const source = typeof entry === 'string' ? entry : ''
         const normalizedSource = source.replaceAll('\\', '/')
         return !normalizedSource.includes('@unocss/reset/tailwind.css')
           && !normalizedSource.includes('@una-ui/preset/una.css')

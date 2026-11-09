@@ -67,21 +67,21 @@
           v-if="post.user"
           class="site-post-author-card site-interactive-hover"
           :to="authorPath"
-          :aria-label="post.user.name || $t('components.postEndMatter.authorName')"
+          :aria-label="post.user.name || $ts('components.postEndMatter.authorName')"
         >
           <div class="site-post-author-heading">
             <PostImage
               v-if="post.user.avatar"
               provider="hubblob"
               :src="post.user.avatar"
-              :alt="post.user.name || $t('pages.post.userAlt')"
+              :alt="post.user.name || $ts('pages.post.userAlt')"
               width="32"
               height="32"
               loading="lazy"
             />
-            <span>{{ post.user.name || $t('components.postEndMatter.authorName') }}</span>
+            <span>{{ post.user.name || $ts('components.postEndMatter.authorName') }}</span>
           </div>
-          <p class="site-post-author-bio">{{ authorProfile?.biography || $t('components.postEndMatter.authorBio') }}</p>
+          <p class="site-post-author-bio">{{ authorProfile?.biography || $ts('components.postEndMatter.authorBio') }}</p>
         </NuxtLink>
 
         <div class="site-post-share-row">
@@ -90,7 +90,7 @@
 
         <div class="site-post-end-meta">
           <time :datetime="post.publishedAt || post.createdAt">{{ formatPostDate(post.publishedAt || post.createdAt) }}</time>
-          <div v-if="translations.length" class="site-post-language-switcher" :aria-label="$t('common.language')">
+          <div v-if="translations.length" class="site-post-language-switcher" :aria-label="$ts('common.language')">
             <template v-for="version in allVersions" :key="version.language">
               <NuxtLink
                 v-if="version.slug"
@@ -104,7 +104,7 @@
             </template>
           </div>
           <NuxtLink v-if="isAdmin" class="site-post-edit-link" :to="editPostUrl">
-            {{ $t('pages.post.editPost') }}
+            {{ $ts('pages.post.editPost') }}
           </NuxtLink>
         </div>
 
@@ -119,10 +119,10 @@
         class="lightbox-backdrop"
         role="dialog"
         aria-modal="true"
-        :aria-label="$t('pages.post.expandedImage')"
+        :aria-label="$ts('pages.post.expandedImage')"
         @click="closeLightbox"
       >
-        <button type="button" class="lightbox-close" :aria-label="$t('common.close')" @click.stop="closeLightbox">
+        <button type="button" class="lightbox-close" :aria-label="$ts('common.close')" @click.stop="closeLightbox">
           <span class="i-ph-x" aria-hidden="true" />
         </button>
         <div class="lightbox-image-frame" @click.stop>
@@ -143,7 +143,7 @@ import type { Post } from '~~/shared/types/post'
 import { localizedPath } from '~/utils/presentationPosts'
 import { postTagColor } from '~/utils/postTagColor'
 
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const route = useRoute()
 const slug = route.params.slug as string
 const { formatPostDate } = usePost()
@@ -176,9 +176,9 @@ const { data: post, error } = await useFetch<Post>(`/api/posts/${slug}`)
 if (error.value || !post.value) {
   const status = (error.value as any)?.statusCode || (error.value as any)?.status || 0
   if (status === 403) {
-    throw createError({ statusCode: 403, statusMessage: $t('pages.post.notAuthorized') })
+    throw createError({ statusCode: 403, statusMessage: $ts('pages.post.notAuthorized') })
   }
-  throw createError({ statusCode: 404, statusMessage: $t('pages.post.notFound') })
+  throw createError({ statusCode: 404, statusMessage: $ts('pages.post.notFound') })
 }
 
 const { data: authorProfile } = post.value.user
@@ -247,7 +247,7 @@ const relatedArticles = computed(() => {
     to: localizedPath(`/posts/${candidate.slug}`, $getLocale()),
     title: candidate.name,
     image: candidate.image?.src || '/images/presentation/esc.webp',
-    tag: candidate.tags?.[0]?.name || $t('components.relatedPosts.heading'),
+    tag: candidate.tags?.[0]?.name || $ts('components.relatedPosts.heading'),
     date: candidate.publishedAt || candidate.createdAt,
     dateLabel: formatPostDate(candidate.publishedAt || candidate.createdAt),
   }))

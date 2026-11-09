@@ -1,5 +1,5 @@
 <template>
-  <section class="site-demo-post-grid" :aria-label="$t('pages.posts.publishedHeading')">
+  <section class="site-demo-post-grid" :aria-label="$ts('pages.posts.publishedHeading')">
     <NuxtLink
       v-for="post in visiblePosts"
       :key="post.slug"
@@ -16,7 +16,7 @@
       </span>
     </NuxtLink>
     <p v-if="filteredPosts.length === 0" class="site-demo-post-empty">
-      {{ $t('pages.posts.noMatchingPresentationPosts') }}
+      {{ $ts('pages.posts.noMatchingPresentationPosts') }}
     </p>
     <LoadMoreButton
       v-if="visibleCount < filteredPosts.length"
@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
 
-const { $getLocale, $t } = useI18n()
+const { $getLocale, $ts } = useI18n()
 const route = useRoute()
 const locale = computed(() => $getLocale() === 'fr' ? 'fr' : 'en')
 const pageSize = 4

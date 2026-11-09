@@ -1,5 +1,5 @@
 <template>
-  <section class="home-featured-posts animate-entrance" :aria-label="$t('components.featuredPosts.heading')">
+  <section class="home-featured-posts animate-entrance" :aria-label="$ts('components.featuredPosts.heading')">
     <div ref="track" class="home-featured-track" @scroll.passive="updateActivePost">
       <article
         v-for="(post, index) in posts"
@@ -20,11 +20,11 @@
     </div>
 
     <div class="home-featured-controls">
-      <div v-if="posts.length > 1" role="group" class="home-featured-control-group" :aria-label="$t('components.featuredPosts.heading')">
-        <button type="button" :aria-label="$t('common.previous')" @click="scroll('left')">
+      <div v-if="posts.length > 1" role="group" class="home-featured-control-group" :aria-label="$ts('components.featuredPosts.heading')">
+        <button type="button" :aria-label="$ts('common.previous')" @click="scroll('left')">
           <span class="i-ph-caret-left" aria-hidden="true" />
         </button>
-        <button type="button" :aria-label="$t('common.next')" @click="scroll('right')">
+        <button type="button" :aria-label="$ts('common.next')" @click="scroll('right')">
           <span class="i-ph-caret-right" aria-hidden="true" />
         </button>
       </div>
@@ -36,7 +36,7 @@
 import type { Post } from '~~/shared/types/post'
 import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
 
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const { enhancePost } = usePost()
 const track = ref<HTMLElement>()
 const activeIndex = ref(0)
@@ -70,7 +70,7 @@ const posts = computed(() => {
     description: post.description[locale],
     image: post.image,
     date: new Date(post.publishedAt).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' }),
-    author: $t('nav.brand'),
+    author: $ts('nav.brand'),
   }))
 })
 

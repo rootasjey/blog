@@ -3,7 +3,7 @@
   <section id="newsletter" class="home-newsletter py-12 md:py-12 animate-entrance">
     <div class="container mx-auto px-4 text-center">
       <h2>
-        {{ $t('components.newsletter.heading') }}
+        {{ $ts('components.newsletter.heading') }}
       </h2>
       <p class="site-newsletter-description">{{ description }}</p>
       <form class="max-w-lg mx-auto" @submit.prevent="handleSubscribe">
@@ -12,7 +12,7 @@
             <input
               v-model="email"
               type="email"
-              :placeholder="$t('components.newsletter.emailPlaceholder')"
+              :placeholder="$ts('components.newsletter.emailPlaceholder')"
               class="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-900 border-0 rounded-full 
                 font-600 text-sm focus:outline-none focus:ring-2"
               required
@@ -24,8 +24,8 @@
             class="sm:w-auto px-6 bg-yellow-400 hover:bg-yellow-500 dark:bg-yellow-500 dark:hover:bg-yellow-400 
               rounded-full uppercase font-medium text-size-3 font-600 transition-colors text-black disabled:opacity-60 disabled:cursor-not-allowed"
           >
-          <span v-if="loading">{{ $t('components.newsletter.subscribing') }}</span>
-          <span v-else>{{ $t('components.newsletter.subscribe') }}</span>
+          <span v-if="loading">{{ $ts('components.newsletter.subscribing') }}</span>
+          <span v-else>{{ $ts('components.newsletter.subscribe') }}</span>
           </button>
         </div>
         <p v-if="feedback" :class="feedback.type === 'success' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'" class="text-sm mt-3">
@@ -38,9 +38,9 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const description = computed(() => {
-  const translated = $t('components.newsletter.description')
+  const translated = $ts('components.newsletter.description')
   if (translated.toLocaleLowerCase() !== 'components.newsletter.description') return translated
   return $getLocale() === 'fr'
     ? 'Recevez les nouveaux articles, des idées à explorer et des nouvelles des projets du moment. Une lettre occasionnelle, sans spam.'

@@ -226,7 +226,8 @@ async function fetchOgData(type: string, slug: string): Promise<any> {
         .where(eq(posts.slug, slug))
         .limit(1)
 
-      if (!post.length) {
+      const postRow = post[0]
+      if (!postRow) {
         throw createError({
           statusCode: 404,
           statusMessage: 'Post not found',
@@ -238,27 +239,27 @@ async function fetchOgData(type: string, slug: string): Promise<any> {
         .select({ name: tags.name })
         .from(post_tags)
         .innerJoin(tags, eq(post_tags.tag_id, tags.id))
-        .where(eq(post_tags.post_id, post[0].id))
+        .where(eq(post_tags.post_id, postRow.id))
         .limit(4)
 
       // Build absolute cover URL with resize modifiers (1200x630)
-      const coverSrc = post[0].imageSrc || undefined
+      const coverSrc = postRow.imageSrc || undefined
       const coverUrlRaw = coverSrc ? serveImageUrl(coverSrc) : undefined
       const coverUrl = coverUrlRaw
         ? (coverUrlRaw.includes('?') ? (coverUrlRaw + '&w=1200&h=630&fit=cover') : (coverUrlRaw + '?w=1200&h=630&fit=cover'))
         : undefined
 
       return {
-        title: post[0].name,
-        description: post[0].description || '',
+        title: postRow.name,
+        description: postRow.description || '',
         author: {
-          name: post[0].authorName,
-          avatar: post[0].authorAvatar || undefined,
+          name: postRow.authorName,
+          avatar: postRow.authorAvatar || undefined,
         },
-        publishedAt: post[0].publishedAt || undefined,
+        publishedAt: postRow.publishedAt || undefined,
         tags: postTags.map((t: { name: string }) => t.name),
         cover: coverUrl,
-        updatedAt: post[0].updatedAt || undefined,
+        updatedAt: postRow.updatedAt || undefined,
       }
     }
 
@@ -277,7 +278,8 @@ async function fetchOgData(type: string, slug: string): Promise<any> {
         .where(eq(users.name, slug))
         .limit(1)
 
-      if (!author.length) {
+      const authorRow = author[0]
+      if (!authorRow) {
         throw createError({
           statusCode: 404,
           statusMessage: 'Author not found',
@@ -289,16 +291,16 @@ async function fetchOgData(type: string, slug: string): Promise<any> {
         .select({ count: count() })
         .from(posts)
         .where(and(
-          eq(posts.user_id, author[0].id),
+          eq(posts.user_id, authorRow.id),
           eq(posts.status, 'published')
         ))
 
       return {
-        name: author[0].name,
-        avatar: author[0].avatar || undefined,
-        biography: author[0].biography,
-        job: author[0].job || undefined,
-        location: author[0].location || undefined,
+        name: authorRow.name,
+        avatar: authorRow.avatar || undefined,
+        biography: authorRow.biography,
+        job: authorRow.job || undefined,
+        location: authorRow.location || undefined,
         postCount: postCountResult[0]?.count || 0,
       }
     }
@@ -316,7 +318,8 @@ async function fetchOgData(type: string, slug: string): Promise<any> {
         .where(eq(tags.name, slug))
         .limit(1)
 
-      if (!tag.length) {
+      const tagRow = tag[0]
+      if (!tagRow) {
         throw createError({
           statusCode: 404,
           statusMessage: 'Tag not found',
@@ -329,14 +332,14 @@ async function fetchOgData(type: string, slug: string): Promise<any> {
         .from(post_tags)
         .innerJoin(posts, eq(post_tags.post_id, posts.id))
         .where(and(
-          eq(post_tags.tag_id, tag[0].id),
+          eq(post_tags.tag_id, tagRow.id),
           eq(posts.status, 'published')
         ))
 
       return {
-        name: tag[0].name,
-        description: tag[0].description,
-        category: tag[0].category,
+        name: tagRow.name,
+        description: tagRow.description,
+        category: tagRow.category,
         postCount: postCountResult[0]?.count || 0,
       }
     }

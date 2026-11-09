@@ -1,7 +1,6 @@
 import { createError } from 'h3'
 import type { H3Event } from 'h3'
-//// @ts-expect-error useNitroApp not yet typed
-import { useNitroApp, useEvent } from '#imports'
+import { useNitroApp, useEvent } from 'nitropack/runtime'
 
 function getBrowserBinding(name: string = 'BROWSER') {
   // @ts-expect-error globalThis.__env__ is not typed

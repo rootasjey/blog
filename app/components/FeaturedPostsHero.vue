@@ -30,7 +30,7 @@
                 <div class="mt-12 flex items-center justify-between text-xs text-white/80">
                   <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 font-semibold uppercase tracking-[0.18em]">
                     <span class="i-ph-sparkle-duotone text-base" />
-                    {{ post.tags?.[0]?.name || $t('components.featuredHero.featured') }}
+                    {{ post.tags?.[0]?.name || $ts('components.featuredHero.featured') }}
                   </span>
                   <span v-if="post.formattedDate">{{ post.formattedDate }}</span>
                 </div>
@@ -38,7 +38,7 @@
                 <div class="space-y-4">
                   <div class="space-y-3">
                     <p class="text-sm text-white/80">
-                      {{ post.user?.name ? $t('components.featuredHero.byline', { name: post.user.name }) : $t('components.featuredHero.editorialPick') }}
+                      {{ post.user?.name ? $ts('components.featuredHero.byline', { name: post.user.name }) : $ts('components.featuredHero.editorialPick') }}
                     </p>
                     <h1 class="text-3xl leading-tight sm:text-4xl font-serif font-bold">
                       {{ post.name }}
@@ -51,7 +51,7 @@
                     <span
                       class="inline-flex items-center gap-2 rounded-full bg-white text-gray-900 px-4 py-2 font-semibold shadow-lg shadow-black/20"
                     >
-                      {{ $t('components.featuredHero.readArticle') }}
+                      {{ $ts('components.featuredHero.readArticle') }}
                       <span class="i-ph-arrow-right-bold" aria-hidden="true" />
                     </span>
                     <div class="flex items-center gap-2 text-xs text-white/70">
@@ -74,7 +74,7 @@
             class="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 backdrop-blur hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed"
             :disabled="activeIndex === 0 || pending"
             @click="goPrev"
-            :aria-label="$t('components.featuredHero.previousStory')"
+            :aria-label="$ts('components.featuredHero.previousStory')"
           >
             <div class="i-ph-arrow-left-bold" />
           </button>
@@ -83,7 +83,7 @@
             class="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 backdrop-blur hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed"
             :disabled="activeIndex >= slides.length - 1 || pending"
             @click="goNext"
-            :aria-label="$t('components.featuredHero.nextStory')"
+            :aria-label="$ts('components.featuredHero.nextStory')"
           >
             <div class="i-ph-arrow-right-bold" />
           </button>
@@ -103,7 +103,7 @@
       </div>
 
       <div v-if="error && !pending" class="pointer-events-none absolute left-6 bottom-16 text-xs text-white/70">
-        {{ $t('components.featuredHero.errorNotice') }}
+        {{ $ts('components.featuredHero.errorNotice') }}
       </div>
     </div>
   </section>
@@ -112,10 +112,11 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { useEventListener, useThrottleFn } from '@vueuse/core'
+import { localizedPath } from '~/utils/presentationPosts'
 import type { Post } from '~~/shared/types/post'
 import type { ApiTag } from '~~/shared/types/tags'
 
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const { enhancePost } = usePost()
 const FEATURED_POST_TAG = 'featured post'
 

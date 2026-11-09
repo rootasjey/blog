@@ -13,37 +13,37 @@
         <div class="site-new-content-body">
           <div class="site-new-content-form">
             <label class="site-new-content-field">
-              <span>{{ $t('components.editPostDialog.titleLabel') }}</span>
-              <NInput v-model="name" :placeholder="$t('components.newPostDrawer.titlePlaceholder')" input="outline" />
+              <span>{{ $ts('components.editPostDialog.titleLabel') }}</span>
+              <NInput v-model="name" :placeholder="$ts('components.newPostDrawer.titlePlaceholder')" input="outline" />
             </label>
 
             <label class="site-new-content-field">
-              <span>{{ $t('components.editPostDialog.descriptionLabel') }}</span>
+              <span>{{ $ts('components.editPostDialog.descriptionLabel') }}</span>
               <NInput
                 v-model="description"
                 type="textarea"
                 :rows="4"
-                :placeholder="$t('components.newPostDrawer.descriptionPlaceholder')"
+                :placeholder="$ts('components.newPostDrawer.descriptionPlaceholder')"
                 input="outline"
               />
             </label>
 
             <label class="site-new-content-field">
-              <span>{{ $t('common.tags') }}</span>
-              <NInput v-model="tagsText" :placeholder="$t('components.newPostDrawer.tagsPlaceholder')" input="outline" />
+              <span>{{ $ts('common.tags') }}</span>
+              <NInput v-model="tagsText" :placeholder="$ts('components.newPostDrawer.tagsPlaceholder')" input="outline" />
             </label>
 
             <div v-if="assignedTag" class="site-new-content-assigned">
-              <span>{{ $t('components.newPostDrawer.assignedTag') }}</span>
+              <span>{{ $ts('components.newPostDrawer.assignedTag') }}</span>
               <span class="site-new-content-assigned-tag">{{ assignedTag }}</span>
             </div>
 
             <div class="site-new-content-footer">
               <span class="site-new-content-shortcut">⌘↵</span>
-              <NButton @click="close" btn="ghost-gray" class="site-new-content-cancel">{{ $t('common.cancel') }}</NButton>
+              <NButton @click="close" btn="ghost-gray" class="site-new-content-cancel">{{ $ts('common.cancel') }}</NButton>
               <NButton :disabled="!name || creating" @click="create" btn="primary" class="site-new-content-submit" title="Cmd/Ctrl + Enter">
                 <NIcon :name="creating ? 'i-lucide-loader' : 'i-lucide-plus'" :class="{ 'animate-spin': creating }" />
-                <span>{{ $t('common.create') }}</span>
+                <span>{{ $ts('common.create') }}</span>
               </NButton>
             </div>
           </div>
@@ -61,37 +61,37 @@
 
         <div class="site-new-content-form">
           <label class="site-new-content-field">
-            <span>{{ $t('components.editPostDialog.titleLabel') }}</span>
-            <NInput v-model="name" :placeholder="$t('components.newPostDrawer.titlePlaceholder')" input="outline" autofocus />
+            <span>{{ $ts('components.editPostDialog.titleLabel') }}</span>
+            <NInput v-model="name" :placeholder="$ts('components.newPostDrawer.titlePlaceholder')" input="outline" autofocus />
           </label>
 
           <label class="site-new-content-field">
-            <span>{{ $t('components.editPostDialog.descriptionLabel') }}</span>
+            <span>{{ $ts('components.editPostDialog.descriptionLabel') }}</span>
             <NInput
               v-model="description"
               type="textarea"
               :rows="4"
-              :placeholder="$t('components.newPostDrawer.descriptionPlaceholder')"
+              :placeholder="$ts('components.newPostDrawer.descriptionPlaceholder')"
               input="outline"
             />
           </label>
 
           <label class="site-new-content-field">
-            <span>{{ $t('common.tags') }}</span>
-            <NInput v-model="tagsText" :placeholder="$t('components.newPostDrawer.tagsPlaceholder')" input="outline" />
+            <span>{{ $ts('common.tags') }}</span>
+            <NInput v-model="tagsText" :placeholder="$ts('components.newPostDrawer.tagsPlaceholder')" input="outline" />
           </label>
 
           <div v-if="assignedTag" class="site-new-content-assigned">
-            <span>{{ $t('components.newPostDrawer.assignedTag') }}</span>
+            <span>{{ $ts('components.newPostDrawer.assignedTag') }}</span>
             <span class="site-new-content-assigned-tag">{{ assignedTag }}</span>
           </div>
 
           <NDialogFooter class="site-new-content-footer">
             <span class="site-new-content-shortcut">⌘↵</span>
-            <NButton @click="close" btn="ghost-gray" class="site-new-content-cancel">{{ $t('common.cancel') }}</NButton>
+            <NButton @click="close" btn="ghost-gray" class="site-new-content-cancel">{{ $ts('common.cancel') }}</NButton>
             <NButton :disabled="!name || creating" @click="create" btn="primary" class="site-new-content-submit" title="Cmd/Ctrl + Enter">
               <NIcon :name="creating ? 'i-lucide-loader' : 'i-lucide-plus'" :class="{ 'animate-spin': creating }" />
-              <span>{{ $t('common.create') }}</span>
+              <span>{{ $ts('common.create') }}</span>
             </NButton>
           </NDialogFooter>
         </div>
@@ -104,7 +104,7 @@
 import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useMediaQuery } from '@vueuse/core'
 
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const props = defineProps({ modelValue: { type: Boolean, default: false }, defaultTag: { type: String, required: false } })
 const emit = defineEmits(['update:modelValue', 'created'])
 
@@ -140,7 +140,7 @@ const close = () => {
 
 const assignedTag = computed(() => props.defaultTag ? props.defaultTag.trim() : '')
 const isProjectCreation = computed(() => assignedTag.value.toLowerCase() === 'project')
-const creationTitle = computed(() => $t(isProjectCreation.value ? 'pages.projects.newProject' : 'pages.posts.newPost'))
+const creationTitle = computed(() => $ts(isProjectCreation.value ? 'pages.projects.newProject' : 'pages.posts.newPost'))
 
 const create = async () => {
   if (!name.value) return
@@ -170,8 +170,8 @@ const create = async () => {
     
     // Show success toast
     toast.toast({
-      title: $t(isProjectCreation.value ? 'components.newPostDrawer.projectCreated' : 'components.newPostDrawer.postCreated'),
-      description: $t('components.newPostDrawer.redirecting'),
+      title: $ts(isProjectCreation.value ? 'components.newPostDrawer.projectCreated' : 'components.newPostDrawer.postCreated'),
+      description: $ts('components.newPostDrawer.redirecting'),
       toast: 'success'
     })
     
@@ -191,7 +191,7 @@ const create = async () => {
     
     // Show error toast with detailed message
     toast.toast({
-      title: $t(isProjectCreation.value ? 'components.newPostDrawer.projectCreateFailed' : 'components.newPostDrawer.createFailed'),
+      title: $ts(isProjectCreation.value ? 'components.newPostDrawer.projectCreateFailed' : 'components.newPostDrawer.createFailed'),
       description: errorMessage,
       toast: 'danger'
     })

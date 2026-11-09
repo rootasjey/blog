@@ -1,33 +1,33 @@
 <template>
   <div class="space-y-4">
-    <div v-if="!draft.length" class="text-sm text-gray-500 dark:text-gray-400">{{ $t('components.socialsEditor.noSocials') }}</div>
+    <div v-if="!draft.length" class="text-sm text-gray-500 dark:text-gray-400">{{ $ts('components.socialsEditor.noSocials') }}</div>
 
     <div v-for="(s, i) in draft" :key="i" class="flex flex-col gap-3 rounded-xl border border-gray-100 dark:border-gray-800 p-3">
       <div class="flex items-center gap-3">
         <NIcon :name="platformIcon(s.platform)" />
-        <NInput v-model="s.platform" :placeholder="$t('components.socialsEditor.platformPlaceholder')" input="~" class="social-input w-42 focus:ring-0 border b-dashed focus:border-solid focus:shadow-sm transition-property-shadow" />
-        <NInput v-model="s.url" :placeholder="$t('components.socialsEditor.urlPlaceholder')" input="~" class="social-input flex-1 focus:ring-0 border b-dashed focus:border-solid focus:shadow-sm transition-property-shadow" />
-        <NTooltip :content="$t('components.socialsEditor.removeLink')">
+        <NInput v-model="s.platform" :placeholder="$ts('components.socialsEditor.platformPlaceholder')" input="~" class="social-input w-42 focus:ring-0 border b-dashed focus:border-solid focus:shadow-sm transition-property-shadow" />
+        <NInput v-model="s.url" :placeholder="$ts('components.socialsEditor.urlPlaceholder')" input="~" class="social-input flex-1 focus:ring-0 border b-dashed focus:border-solid focus:shadow-sm transition-property-shadow" />
+        <NTooltip :content="$ts('components.socialsEditor.removeLink')">
           <NButton @click="removeRow(i)" btn="soft-gray" size="sm" icon label="i-ph-trash" />
         </NTooltip>
       </div>
       <div class="ml-8 flex gap-3 items-center">
-        <NInput v-model="s.label" :placeholder="$t('components.socialsEditor.labelPlaceholder')" input="~" class="social-input w-42 focus:ring-0 border b-dashed focus:border-solid focus:shadow-sm transition-property-shadow" />
-        <NInput v-model.number="s.order" type="number" :placeholder="$t('components.socialsEditor.orderPlaceholder')" input="~" class="social-input focus:ring-0 border b-dashed focus:border-solid focus:shadow-sm transition-property-shadow" />
+        <NInput v-model="s.label" :placeholder="$ts('components.socialsEditor.labelPlaceholder')" input="~" class="social-input w-42 focus:ring-0 border b-dashed focus:border-solid focus:shadow-sm transition-property-shadow" />
+        <NInput v-model.number="s.order" type="number" :placeholder="$ts('components.socialsEditor.orderPlaceholder')" input="~" class="social-input focus:ring-0 border b-dashed focus:border-solid focus:shadow-sm transition-property-shadow" />
         <div class="flex items-center gap-2">
           <NSwitch switch-checked="blue" v-model="s.enabled" />
-          <span class="text-xs font-body uppercase font-700 text-gray-700 dark:text-gray-300">{{ s.enabled ? $t('components.socialsEditor.enabled') : $t('components.socialsEditor.disabled') }}</span>
+          <span class="text-xs font-body uppercase font-700 text-gray-700 dark:text-gray-300">{{ s.enabled ? $ts('components.socialsEditor.enabled') : $ts('components.socialsEditor.disabled') }}</span>
         </div>
       </div>
     </div>
 
     <div class="flex items-center gap-2">
-      <NButton @click="addRow" btn="soft" size="xs" class="px-6 font-600" :label="$t('components.socialsEditor.addSocialLink')" leading="i-ph-plus-bold" />
+      <NButton @click="addRow" btn="soft" size="xs" class="px-6 font-600" :label="$ts('components.socialsEditor.addSocialLink')" leading="i-ph-plus-bold" />
       <div class="ml-auto flex items-center gap-2">
-        <NButton @click="emitCancel" btn="ghost-gray" size="xs" :disabled="saving" class="font-600">{{ $t('common.cancel') }}</NButton>
+        <NButton @click="emitCancel" btn="ghost-gray" size="xs" :disabled="saving" class="font-600">{{ $ts('common.cancel') }}</NButton>
         <NButton @click="emitSave" :disabled="saving" btn="soft-pink" size="xs">
           <NIcon :name="saving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': saving }" />
-          <span class="ml-2 font-600">{{ $t('common.save') }}</span>
+          <span class="ml-2 font-600">{{ $ts('common.save') }}</span>
         </NButton>
       </div>
     </div>
@@ -45,7 +45,7 @@ export type SocialLink = {
   enabled?: boolean | null
 }
 
-const { $t } = useI18n()
+const { $ts } = useI18n()
 const props = defineProps({
   modelValue: { type: Array as () => SocialLink[], default: () => [] },
   saving: { type: Boolean, default: false },

@@ -1,16 +1,16 @@
 <template>
   <footer class="site-footer border-t">
     <div class="site-footer-inner">
-      <nav :aria-label="$t('footer.about')">
-        <NuxtLink class="site-footer-nav-link" :to="localizedPath('/about', $getLocale())">{{ $t('footer.about') }}</NuxtLink>
-        <NuxtLink class="site-footer-nav-link" :to="localizedPath('/credits', $getLocale())">{{ $t('footer.credits') }}</NuxtLink>
-        <NuxtLink class="site-footer-nav-link" to="https://github.com/rootasjey/corpinot" external target="_blank">{{ $t('footer.gitHubRepository') }}</NuxtLink>
+      <nav :aria-label="$ts('footer.about')">
+        <NuxtLink class="site-footer-nav-link" :to="localizedPath('/about', $getLocale())">{{ $ts('footer.about') }}</NuxtLink>
+        <NuxtLink class="site-footer-nav-link" :to="localizedPath('/credits', $getLocale())">{{ $ts('footer.credits') }}</NuxtLink>
+        <NuxtLink class="site-footer-nav-link" to="https://github.com/rootasjey/corpinot" external target="_blank">{{ $ts('footer.gitHubRepository') }}</NuxtLink>
       </nav>
 
       <div class="site-footer-copyright">
         © {{ currentYear }}
         <NuxtLink class="site-footer-author-link" to="https://github.com/rootasjey" external target="_blank">Jérémie CORPINOT</NuxtLink> •
-        {{ $t('nav.tagline') }}
+        {{ $ts('nav.tagline') }}
       </div>
     </div>
   </footer>
@@ -20,7 +20,7 @@
 import { localizedPath } from '~/utils/presentationPosts'
 
 const currentYear = new Date().getFullYear()
-const { $getLocale, $t } = useI18n()
+const { $getLocale, $ts } = useI18n()
 </script>
 
 <style>

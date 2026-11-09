@@ -14,11 +14,11 @@
       class="site-reading-progress-head"
       type="button"
       :aria-expanded="isOpen || isHovered"
-      :aria-label="$t('components.readingProgress.title')"
+      :aria-label="$ts('components.readingProgress.title')"
       @click="isOpen = !isOpen"
     >
       <span class="site-reading-progress-title">
-        {{ $t('components.readingProgress.title') }}
+        {{ $ts('components.readingProgress.title') }}
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="m9 6 6 6-6 6" />
         </svg>
@@ -36,7 +36,7 @@
       </svg>
     </button>
 
-    <nav class="site-reading-progress-menu" :aria-label="$t('components.readingProgress.contents')">
+    <nav class="site-reading-progress-menu" :aria-label="$ts('components.readingProgress.contents')">
       <a
         v-for="(heading, index) in headings"
         :key="heading.id"
@@ -65,7 +65,7 @@ interface HeadingItem {
 }
 
 const props = defineProps<Props>()
-const { $t } = useI18n()
+const { $ts } = useI18n()
 const headings = ref<HeadingItem[]>([])
 const readingMinutes = ref(1)
 const progress = ref(0)

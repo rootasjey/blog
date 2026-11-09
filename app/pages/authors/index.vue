@@ -7,7 +7,7 @@
         <div v-for="i in 2" :key="i" class="site-author-index-skeleton" />
       </div>
 
-      <p v-else-if="error" class="site-author-index-message">{{ $t('pages.authors.unavailable') }}</p>
+      <p v-else-if="error" class="site-author-index-message">{{ $ts('pages.authors.unavailable') }}</p>
 
       <div v-else class="site-author-index-list">
         <NuxtLink
@@ -69,7 +69,7 @@ type Author = {
   postCount: number
 }
 
-const { $getLocale } = useI18n()
+const { $getLocale, $ts } = useI18n()
 const locale = computed(() => $getLocale() === 'fr' ? 'fr' : 'en')
 const copy = computed(() => locale.value === 'fr'
   ? {

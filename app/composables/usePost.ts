@@ -2,14 +2,14 @@
  * Composable for post-related utilities and computed properties
  */
 export const usePost = () => {
-  const { $t } = useI18n()
+  const { $ts } = useI18n()
   /**
    * Calculate reading time from article content
    * @param article - The Tiptap JSON article object
    * @returns Reading time string (e.g., "5 min read")
    */
   const calculateReadingTime = (article?: object): string => {
-    if (!article) return $t('components.postMeta.oneMinRead')
+    if (!article) return $ts('components.postMeta.oneMinRead')
     
     try {
       // Extract text from Tiptap JSON structure
@@ -19,10 +19,10 @@ export const usePost = () => {
       // Average reading speed: 200 words per minute
       const minutes = Math.ceil(wordCount / 200)
       
-      return minutes === 1 ? $t('components.postMeta.oneMinRead') : $t('components.postMeta.minRead', { minutes })
+      return minutes === 1 ? $ts('components.postMeta.oneMinRead') : $ts('components.postMeta.minRead', { minutes })
     } catch (error) {
       console.error('Error calculating reading time:', error)
-      return $t('components.postMeta.oneMinRead')
+      return $ts('components.postMeta.oneMinRead')
     }
   }
 
@@ -130,7 +130,7 @@ export const usePost = () => {
    * @returns Alt text for image
    */
   const getPostImageAlt = (post: Post): string => {
-    return post.image?.alt || post.name || $t('components.postMeta.postImageAlt')
+    return post.image?.alt || post.name || $ts('components.postMeta.postImageAlt')
   }
 
   /**

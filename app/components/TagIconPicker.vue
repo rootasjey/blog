@@ -52,11 +52,11 @@ const emit = defineEmits<{
   'update:modelValue': [value: TagIconName | null]
 }>()
 
-const { $t } = useI18n()
+const { $ts } = useI18n()
 const initial = computed(() => Array.from(props.tagName.trim())[0]?.toLocaleUpperCase() || '#')
 const iconOptions = computed(() => TAG_ICON_OPTIONS.map(option => ({
   ...option,
-  label: $t(`pages.tags.icons.${option.label}`),
+  label: $ts(`pages.tags.icons.${option.label}`),
 })))
 </script>
 

@@ -4,7 +4,7 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import type { ApiTag } from '~~/shared/types/tags'
-import { ApiPost } from '~~/shared/types/post'
+import type { ApiPost } from '~~/shared/types/post'
 import { convertApiToPost, createArticle, createPostData, generateUniqueSlug } from '~~/server/utils/post'
 import { upsertPostTags } from '~~/server/utils/tags'
 

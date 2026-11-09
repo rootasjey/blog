@@ -1,4 +1,4 @@
-import { User } from '#auth-utils'
+import type { User } from '#auth-utils'
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 

@@ -2,7 +2,7 @@
   <NDialog v-model:open="translationsOpen" dialog="md">
     <NDialogContent>
       <NDialogHeader>
-        <NDialogTitle>{{ $t('editor.translationsManager.title') }}</NDialogTitle>
+        <NDialogTitle>{{ $ts('editor.translationsManager.title') }}</NDialogTitle>
       </NDialogHeader>
       <TranslationsManager
         :post-id="postId"
@@ -15,23 +15,23 @@
   <NDialog v-model:open="translateOpen">
     <NDialogContent class="max-w-md">
       <NDialogHeader>
-        <NDialogTitle>{{ $t('pages.postEditor.translateSelection') }}</NDialogTitle>
+        <NDialogTitle>{{ $ts('pages.postEditor.translateSelection') }}</NDialogTitle>
       </NDialogHeader>
 
       <NDialogDescription>
-        <p class="text-sm text-slate-600 dark:text-slate-300">{{ $t('pages.postEditor.translateDescription') }}</p>
+        <p class="text-sm text-slate-600 dark:text-slate-300">{{ $ts('pages.postEditor.translateDescription') }}</p>
       </NDialogDescription>
 
       <div class="mt-4 space-y-3">
         <div class="text-sm font-semibold flex items-center gap-2">
           <span class="i-lucide-languages" />
-          <span>{{ $t('pages.postEditor.sourceLanguage') }}</span>
+          <span>{{ $ts('pages.postEditor.sourceLanguage') }}</span>
         </div>
         <div class="text-sm text-slate-600 dark:text-slate-400">{{ sourceLanguageLabel }}</div>
 
         <label class="text-sm font-semibold flex items-center gap-2" for="translate-target">
           <span class="i-lucide-flag" />
-          <span>{{ $t('pages.postEditor.targetLanguage') }}</span>
+          <span>{{ $ts('pages.postEditor.targetLanguage') }}</span>
         </label>
         <select
           id="translate-target"
@@ -51,10 +51,10 @@
 
       <NDialogFooter class="flex items-center gap-2 justify-end mt-5">
         <NButton btn="ghost-gray" size="sm" :disabled="aiLoading" @click="$emit('cancel-translate')">
-          {{ $t('pages.postEditor.cancel') }}
+          {{ $ts('pages.postEditor.cancel') }}
         </NButton>
         <NButton btn="solid-black" size="sm" :disabled="aiLoading" @click="$emit('confirm-translate')">
-          {{ $t('pages.postEditor.translate') }}
+          {{ $ts('pages.postEditor.translate') }}
         </NButton>
       </NDialogFooter>
     </NDialogContent>
@@ -63,19 +63,19 @@
   <NDialog v-model:open="deletePostOpen">
     <NDialogContent class="max-w-md">
       <NDialogHeader>
-        <NDialogTitle>{{ $t('common.deletePost') }}</NDialogTitle>
+        <NDialogTitle>{{ $ts('common.deletePost') }}</NDialogTitle>
       </NDialogHeader>
 
       <NDialogDescription>
-        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $t('pages.postEditor.deletePostConfirm') }}</p>
+        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $ts('pages.postEditor.deletePostConfirm') }}</p>
       </NDialogDescription>
 
       <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
         <NButton btn="ghost-gray" size="sm" @click="deletePostOpen = false">
-          {{ $t('pages.postEditor.cancel') }}
+          {{ $ts('pages.postEditor.cancel') }}
         </NButton>
         <NButton btn="solid-red" size="sm" :loading="deletePostLoading" @click="$emit('confirm-delete-post')">
-          {{ $t('pages.postEditor.delete') }}
+          {{ $ts('pages.postEditor.delete') }}
         </NButton>
       </NDialogFooter>
     </NDialogContent>
@@ -84,19 +84,19 @@
   <NDialog v-model:open="deleteCoverOpen">
     <NDialogContent class="max-w-md">
       <NDialogHeader>
-        <NDialogTitle>{{ $t('pages.postEditor.removeCoverTitle') }}</NDialogTitle>
+        <NDialogTitle>{{ $ts('pages.postEditor.removeCoverTitle') }}</NDialogTitle>
       </NDialogHeader>
 
       <NDialogDescription>
-        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $t('pages.postEditor.removeCoverConfirm') }}</p>
+        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $ts('pages.postEditor.removeCoverConfirm') }}</p>
       </NDialogDescription>
 
       <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
         <NButton btn="ghost-gray" size="sm" @click="deleteCoverOpen = false">
-          {{ $t('pages.postEditor.cancel') }}
+          {{ $ts('pages.postEditor.cancel') }}
         </NButton>
         <NButton btn="solid-red" size="sm" :loading="deleteCoverLoading" @click="$emit('confirm-delete-cover')">
-          {{ $t('pages.postEditor.delete') }}
+          {{ $ts('pages.postEditor.delete') }}
         </NButton>
       </NDialogFooter>
     </NDialogContent>
@@ -125,6 +125,7 @@ const translateOpen = defineModel<boolean>('translateOpen', { required: true })
 const translateTargetLanguage = defineModel<string>('translateTargetLanguage', { required: true })
 const deletePostOpen = defineModel<boolean>('deletePostOpen', { required: true })
 const deleteCoverOpen = defineModel<boolean>('deleteCoverOpen', { required: true })
+const { $ts } = useI18n()
 
 defineEmits<{
   'translation-created': [postId: number]

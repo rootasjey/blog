@@ -60,14 +60,14 @@
       <!-- Overlay actions -->
       <div class="site-editor-cover-actions">
         <NButton @click="triggerFileInput" btn="solid-white" size="xs" :disabled="uploadingCover" leading="i-ph-image">
-          <span v-if="!uploadingCover">{{ $t('pages.postEditor.replace') }}</span>
+          <span v-if="!uploadingCover">{{ $ts('pages.postEditor.replace') }}</span>
           <span v-else>{{ uploadProgress }}%</span>
         </NButton>
         <NButton v-if="post.image?.src" @click="openDeleteCoverDialog" btn="solid-white" size="xs" leading="i-ph-trash" class="text-red-500" :disabled="uploadingCover">
-          {{ $t('pages.postEditor.delete') }}
+          {{ $ts('pages.postEditor.delete') }}
         </NButton>
         <NButton v-else-if="previewSrc && !uploadingCover" @click="clearPreview" btn="solid-white" size="xs" leading="i-ph-x">
-          {{ $t('pages.postEditor.cancel') }}
+          {{ $ts('pages.postEditor.cancel') }}
         </NButton>
       </div>
     </div>
@@ -88,12 +88,12 @@
           />
           <div class="site-editor-save-status">
             <span v-if="savingArticle || savingMetadata" class="i-lucide-loader animate-spin text-sm" aria-hidden />
-            <span v-if="savingArticle || savingMetadata">{{ $t('pages.postEditor.autosaving') }}</span>
+            <span v-if="savingArticle || savingMetadata">{{ $ts('pages.postEditor.autosaving') }}</span>
             <template v-else-if="autosaveFailed">
-              <span role="status">{{ $t('pages.postEditor.autosaveFailed') }}</span>
-              <NButton btn="ghost-gray" size="xs" @click="retryAutosave">{{ $t('pages.postEditor.retry') }}</NButton>
+              <span role="status">{{ $ts('pages.postEditor.autosaveFailed') }}</span>
+              <NButton btn="ghost-gray" size="xs" @click="retryAutosave">{{ $ts('pages.postEditor.retry') }}</NButton>
             </template>
-            <span v-else-if="lastArticleSavedAt">{{ $t('pages.postEditor.saved', { timeAgo }) }}</span>
+            <span v-else-if="lastArticleSavedAt">{{ $ts('pages.postEditor.saved', { timeAgo }) }}</span>
           </div>
         </div>
       </div>
@@ -117,7 +117,7 @@
               </div>
             </div>
             <div class="site-editor-autosave-status">
-              {{ $t('pages.postEditor.autosaveEnabled') }}
+              {{ $ts('pages.postEditor.autosaveEnabled') }}
             </div>
           </div>
         </div>
@@ -134,14 +134,14 @@
         <div class="flex items-center justify-between px-4 pt-3">
           <div class="flex items-center gap-2 font-semibold text-sm">
             <span class="i-lucide-sparkles text-[var(--site-color-accent)]" />
-            <span>{{ aiStatus === 'streaming' ? $t('pages.postEditor.aiWriting') : $t('pages.postEditor.aiSuggestionReady') }}</span>
+            <span>{{ aiStatus === 'streaming' ? $ts('pages.postEditor.aiWriting') : $ts('pages.postEditor.aiSuggestionReady') }}</span>
           </div>
-          <NBadge badge="soft" class="site-editor-ai-status">{{ aiStatus === 'streaming' ? $t('pages.postEditor.streaming') : $t('common.preview') }}</NBadge>
+          <NBadge badge="soft" class="site-editor-ai-status">{{ aiStatus === 'streaming' ? $ts('pages.postEditor.streaming') : $ts('common.preview') }}</NBadge>
         </div>
         <div class="flex justify-end gap-2 px-4 py-3">
-          <NButton btn="ghost-gray" size="xs" :disabled="aiLoading" @click="retryAI">{{ $t('pages.postEditor.retry') }}</NButton>
-          <NButton btn="ghost-gray" size="xs" :disabled="aiLoading" @click="revertAI">{{ $t('pages.postEditor.revert') }}</NButton>
-          <NButton btn="solid-black" size="xs" :disabled="aiLoading || aiStatus === 'streaming'" @click="commitAiDraft">{{ $t('pages.postEditor.applyChanges') }}</NButton>
+          <NButton btn="ghost-gray" size="xs" :disabled="aiLoading" @click="retryAI">{{ $ts('pages.postEditor.retry') }}</NButton>
+          <NButton btn="ghost-gray" size="xs" :disabled="aiLoading" @click="revertAI">{{ $ts('pages.postEditor.revert') }}</NButton>
+          <NButton btn="solid-black" size="xs" :disabled="aiLoading || aiStatus === 'streaming'" @click="commitAiDraft">{{ $ts('pages.postEditor.applyChanges') }}</NButton>
         </div>
       </div>
     </transition>
@@ -332,13 +332,13 @@ const { fileInput, uploadingCover, uploadProgress, previewSrc, clearPreview, tri
 const enhancedPost = computed(() => (post.value ? enhancePost(post.value) : ({ readingTime: '—' } as any)))
 const isNumericIdentifier = computed(() => /^\d+$/.test(String(identifier.value)))
 
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const languageOptions = [
-  { value: 'en', label: $t('pages.postEditor.en') },
-  { value: 'fr', label: $t('pages.postEditor.fr') },
-  { value: 'es', label: $t('pages.postEditor.es') },
-  { value: 'de', label: $t('pages.postEditor.de') },
-  { value: 'it', label: $t('pages.postEditor.it') },
+  { value: 'en', label: $ts('pages.postEditor.en') },
+  { value: 'fr', label: $ts('pages.postEditor.fr') },
+  { value: 'es', label: $ts('pages.postEditor.es') },
+  { value: 'de', label: $ts('pages.postEditor.de') },
+  { value: 'it', label: $ts('pages.postEditor.it') },
 ]
 const sourceLanguage = computed(() => post.value?.language || 'en')
 const sourceLanguageLabel = computed(() => languageOptions.find(o => o.value === sourceLanguage.value)?.label || sourceLanguage.value)
@@ -433,7 +433,7 @@ function openAiProviderDialog() {
 
 watch(aiError, (msg) => {
   if (!msg) return
-  useToast().toast({ title: $t('pages.postEditor.aiError'), description: msg, toast: 'danger' })
+  useToast().toast({ title: $ts('pages.postEditor.aiError'), description: msg, toast: 'danger' })
 })
 
 const confirmTranslate = async () => {
@@ -660,7 +660,7 @@ onBeforeUnmount(() => {
 
 const onTranslationCreated = (newPostId: number) => {
   useToast().toast({
-    title: $t('editor.translationsManager.createSuccess'),
+    title: $ts('editor.translationsManager.createSuccess'),
     toast: 'success',
   })
 }

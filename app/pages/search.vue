@@ -2,17 +2,17 @@
   <main class="site-page site-search">
     <div class="site-search-content">
       <header class="site-search-heading">
-        <h1>{{ $t('pages.search.title') }}</h1>
+        <h1>{{ $ts('pages.search.title') }}</h1>
       </header>
 
       <div class="site-search-field-wrap">
-        <label class="sr-only" for="search-page-input">{{ $t('pages.search.title') }}</label>
+        <label class="sr-only" for="search-page-input">{{ $ts('pages.search.title') }}</label>
         <input
           id="search-page-input"
           v-model="query"
           class="site-search-field"
           type="search"
-          :placeholder="$t('pages.search.placeholder')"
+          :placeholder="$ts('pages.search.placeholder')"
           autocomplete="off"
           autofocus
         >
@@ -20,8 +20,8 @@
       </div>
 
       <div v-if="recentSearches.length || suggestedTags.length" class="site-search-shortcuts">
-        <section v-if="recentSearches.length" class="site-search-shortcut-group" :aria-label="$t('pages.search.recent')">
-          <h2>{{ $t('pages.search.recent') }}</h2>
+        <section v-if="recentSearches.length" class="site-search-shortcut-group" :aria-label="$ts('pages.search.recent')">
+          <h2>{{ $ts('pages.search.recent') }}</h2>
           <div class="site-search-chip-list">
             <button
               v-for="item in recentSearches"
@@ -35,8 +35,8 @@
           </div>
         </section>
 
-        <section class="site-search-shortcut-group" :aria-label="$t('pages.search.suggestedTags')">
-          <h2>{{ $t('pages.search.suggestedTags') }}</h2>
+        <section class="site-search-shortcut-group" :aria-label="$ts('pages.search.suggestedTags')">
+          <h2>{{ $ts('pages.search.suggestedTags') }}</h2>
           <div class="site-search-chip-list">
             <button
               v-for="tag in suggestedTags"
@@ -48,8 +48,8 @@
             >
               #{{ tag.name }}
             </button>
-            <span v-if="!suggestedTags.length && tagsPending" class="site-search-muted">{{ $t('common.loading') }}</span>
-            <span v-else-if="!suggestedTags.length" class="site-search-muted">{{ $t('common.noTagsYet') }}</span>
+            <span v-if="!suggestedTags.length && tagsPending" class="site-search-muted">{{ $ts('common.loading') }}</span>
+            <span v-else-if="!suggestedTags.length" class="site-search-muted">{{ $ts('common.noTagsYet') }}</span>
           </div>
         </section>
       </div>
@@ -62,16 +62,16 @@
         :locale="locale"
       />
 
-      <section class="site-search-results" :aria-label="$t('pages.search.title')" aria-live="polite" :aria-busy="pending">
+      <section class="site-search-results" :aria-label="$ts('pages.search.title')" aria-live="polite" :aria-busy="pending">
         <div v-if="pending && showSkeleton" class="site-search-loading" aria-hidden="true">
           <div v-for="i in 5" :key="i" />
         </div>
 
         <p v-else-if="!results.length && query.trim()" class="site-search-empty">
-          {{ $t('pages.search.noResultsYet') }}
+          {{ $ts('pages.search.noResultsYet') }}
         </p>
         <p v-else-if="!results.length" class="site-search-empty">
-          {{ $t('pages.search.helperText') }}
+          {{ $ts('pages.search.helperText') }}
         </p>
 
         <ul v-else class="site-search-result-list">
@@ -86,7 +86,7 @@
                 <span class="site-search-result-title">{{ item.name }}</span>
                 <span v-if="item.type === 'post' && item.description" class="site-search-result-description">{{ item.description }}</span>
                 <span v-else-if="item.type === 'author' && item.biography" class="site-search-result-description">{{ item.biography }}</span>
-                <span v-else-if="item.type === 'tag'" class="site-search-result-description">{{ $t('pages.search.tag') }}</span>
+                <span v-else-if="item.type === 'tag'" class="site-search-result-description">{{ $ts('pages.search.tag') }}</span>
               </span>
               <span class="site-search-result-icon" aria-hidden="true">
                 <span v-if="item.type === 'post'" class="i-ph-newspaper" />
@@ -125,11 +125,11 @@ interface TagSuggestion {
 
 const router = useRouter()
 const route = useRoute()
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const locale = computed(() => $getLocale())
 const resultTypeLabels = computed<Record<SearchResultType, string>>(() => locale.value === 'fr'
-  ? { post: 'Article', author: 'Auteur', tag: $t('pages.search.tag') }
-  : { post: 'Post', author: 'Author', tag: $t('pages.search.tag') })
+  ? { post: 'Article', author: 'Auteur', tag: $ts('pages.search.tag') }
+  : { post: 'Post', author: 'Author', tag: $ts('pages.search.tag') })
 const initialQuery = typeof route.query.q === 'string' ? route.query.q : ''
 const query = ref(initialQuery)
 const results = ref<SearchResult[]>([])

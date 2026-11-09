@@ -1,24 +1,24 @@
 <template>
   <main class="site-page site-about">
     <header class="site-about-header">
-      <h1>{{ $t('pages.about.heading') }}</h1>
-      <p>{{ $t('pages.about.mainTitle') }}</p>
+      <h1>{{ $ts('pages.about.heading') }}</h1>
+      <p>{{ $ts('pages.about.mainTitle') }}</p>
     </header>
 
     <figure class="site-about-cover">
       <img
         src="/images/corpinot-cover.jpeg"
-        :alt="$t('pages.about.coverAlt')"
+        :alt="$ts('pages.about.coverAlt')"
       />
     </figure>
 
     <div class="site-about-content">
       <section class="site-about-introduction">
         <p>{{ intro }}</p>
-        <p>{{ $t('pages.about.description') }}</p>
+        <p>{{ $ts('pages.about.description') }}</p>
         <p class="site-about-links">
           <NuxtLink :to="localizedPath('/posts', $getLocale())">
-            {{ $t('pages.about.browsePosts') }}
+            {{ $ts('pages.about.browsePosts') }}
           </NuxtLink>
           <span aria-hidden="true">·</span>
           <a
@@ -26,18 +26,18 @@
             target="_blank"
             rel="noopener"
           >
-            {{ $t('pages.about.openSource') }}
+            {{ $ts('pages.about.openSource') }}
           </a>
         </p>
       </section>
 
       <section class="site-about-section">
-        <h2>{{ $t('pages.about.openSourceHeading') }}</h2>
+        <h2>{{ $ts('pages.about.openSourceHeading') }}</h2>
         <p>{{ openSourceText }}</p>
       </section>
 
       <section class="site-about-section site-about-faq">
-        <h2>{{ $t('pages.about.faqHeading') }}</h2>
+        <h2>{{ $ts('pages.about.faqHeading') }}</h2>
 
         <NAccordion
           type="single"
@@ -46,64 +46,64 @@
         >
           <NAccordionItem
             value="q1"
-            :label="$t('pages.about.faqWhoLabel')"
+            :label="$ts('pages.about.faqWhoLabel')"
             :una="accordionItemUna"
             :_accordion-trigger="accordionTriggerUna"
           >
             <template #content>
-              <p>{{ $t('pages.about.faqWhoContent') }}</p>
+              <p>{{ $ts('pages.about.faqWhoContent') }}</p>
             </template>
           </NAccordionItem>
 
           <NAccordionItem
             value="q2"
-            :label="$t('pages.about.faqTopicsLabel')"
+            :label="$ts('pages.about.faqTopicsLabel')"
             :una="accordionItemUna"
             :_accordion-trigger="accordionTriggerUna"
           >
             <template #content>
-              <p>{{ $t('pages.about.faqTopicsContent') }}</p>
+              <p>{{ $ts('pages.about.faqTopicsContent') }}</p>
             </template>
           </NAccordionItem>
 
           <NAccordionItem
             value="q3"
-            :label="$t('pages.about.faqOpenSourceLabel')"
+            :label="$ts('pages.about.faqOpenSourceLabel')"
             :una="accordionItemUna"
             :_accordion-trigger="accordionTriggerUna"
           >
             <template #content>
-              <p>{{ $t('pages.about.faqOpenSourceContent') }}</p>
+              <p>{{ $ts('pages.about.faqOpenSourceContent') }}</p>
             </template>
           </NAccordionItem>
 
           <NAccordionItem
             value="q4"
-            :label="$t('pages.about.faqContributeLabel')"
+            :label="$ts('pages.about.faqContributeLabel')"
             :una="accordionItemUna"
             :_accordion-trigger="accordionTriggerUna"
           >
             <template #content>
-              <p>{{ $t('pages.about.faqContributeContent') }}</p>
+              <p>{{ $ts('pages.about.faqContributeContent') }}</p>
             </template>
           </NAccordionItem>
 
           <NAccordionItem
             value="q5"
-            :label="$t('pages.about.faqNewsletterLabel')"
+            :label="$ts('pages.about.faqNewsletterLabel')"
             :una="accordionItemUna"
             :_accordion-trigger="accordionTriggerUna"
           >
             <template #content>
-              <p>{{ $t('pages.about.faqNewsletterContent') }}</p>
+              <p>{{ $ts('pages.about.faqNewsletterContent') }}</p>
             </template>
           </NAccordionItem>
         </NAccordion>
       </section>
 
       <section class="site-about-section site-about-contact">
-        <h2>{{ $t('pages.about.contactHeading') }}</h2>
-        <p>{{ $t('pages.about.contactText') }}</p>
+        <h2>{{ $ts('pages.about.contactHeading') }}</h2>
+        <p>{{ $ts('pages.about.contactText') }}</p>
       </section>
     </div>
 
@@ -114,10 +114,10 @@
 <script setup lang="ts">
 import { localizedPath } from '~/utils/presentationPosts'
 
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const config = useRuntimeConfig()
-const intro = computed(() => $t('pages.about.intro').replaceAll('**', ''))
-const openSourceText = computed(() => $t('pages.about.openSourceText').replaceAll('**', ''))
+const intro = computed(() => $ts('pages.about.intro').replaceAll('**', ''))
+const openSourceText = computed(() => $ts('pages.about.openSourceText').replaceAll('**', ''))
 const accordionItemUna = {
   accordionItem: 'border-[var(--site-color-border)]',
   accordionLeading: 'text-[var(--site-color-text)] hover:bg-[var(--site-color-hover-background)] hover:text-[var(--site-color-heading)]',
@@ -130,10 +130,10 @@ const accordionTriggerUna = {
 }
 
 useSeoMeta({
-  title: $t('pages.about.metaTitle'),
-  ogTitle: $t('pages.about.metaTitle'),
-  description: $t('pages.about.metaDescription'),
-  ogDescription: $t('pages.about.metaDescription'),
+  title: $ts('pages.about.metaTitle'),
+  ogTitle: $ts('pages.about.metaTitle'),
+  description: $ts('pages.about.metaDescription'),
+  ogDescription: $ts('pages.about.metaDescription'),
   ogUrl: `${config.public.siteUrl}/about`,
   twitterCard: 'summary_large_image',
 })

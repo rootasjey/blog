@@ -50,7 +50,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: string | null]
 }>()
 
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const fallbackColor = '#6d28d9'
 const options = computed(() => TAG_COLOR_OPTIONS.map(option => ({
   ...option,
@@ -64,7 +64,7 @@ const colorNames = {
 }
 
 function translate(key: string, frenchFallback: string, englishFallback: string): string {
-  const value = $t(key)
+  const value = $ts(key)
   if (typeof value === 'string' && value !== key) return value
   return $getLocale().startsWith('fr') ? frenchFallback : englishFallback
 }

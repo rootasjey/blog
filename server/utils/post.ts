@@ -1,6 +1,6 @@
 import { sql, eq } from 'drizzle-orm'
 import { schema } from 'hub:db'
-import { ApiPost, Post } from "~~/shared/types/post"
+import type { ApiPost, Post } from "~~/shared/types/post"
 
 /**
  * Creates a new post data object with default values for SQLite storage.

@@ -4,7 +4,7 @@
       <div class="home-project-heading">
         <HomeSectionHeading
           :to="localizedPath('/projects', $getLocale())"
-          :title="$t('components.projectsCarousel.heading')"
+          :title="$ts('components.projectsCarousel.heading')"
         />
       </div>
 
@@ -14,8 +14,8 @@
 
       <EmptyState
         v-else-if="error"
-        :title="$t('components.projectsCarousel.unavailable')"
-        :description="$t('components.projectsCarousel.unavailableDesc')"
+        :title="$ts('components.projectsCarousel.unavailable')"
+        :description="$ts('components.projectsCarousel.unavailableDesc')"
         variant="card"
         icon="i-ph-folder-duotone"
       />
@@ -42,7 +42,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Post } from '~~/shared/types/post'
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 import {
   FEATURED_PROJECT_FALLBACK_IMAGE,
   FEATURED_PROJECT_TAG,
@@ -65,7 +65,7 @@ const projects = computed(() => {
       to: localizedPath(`/posts/${post.slug}`, $getLocale()),
       title: post.name,
       image: post.image?.src || FEATURED_PROJECT_FALLBACK_IMAGE,
-      tag: post.tags?.[0]?.name || $t('components.projectsCarousel.project'),
+      tag: post.tags?.[0]?.name || $ts('components.projectsCarousel.project'),
       year: post.formattedDate.match(/\d{4}/)?.[0] || '',
     }))
   }

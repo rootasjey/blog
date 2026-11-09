@@ -1,6 +1,6 @@
 <template>
   <section v-if="articles.length" class="site-post-related" :aria-labelledby="headingId">
-    <h2 :id="headingId">{{ $t('components.relatedPosts.heading') }}</h2>
+    <h2 :id="headingId">{{ $ts('components.relatedPosts.heading') }}</h2>
     <div class="site-post-related-grid">
       <NuxtLink v-for="article in articles" :key="article.to" class="site-post-related-card" :to="article.to">
         <PostImage :src="article.image" :alt="article.title" loading="lazy" decoding="async" />
@@ -28,7 +28,7 @@ defineProps<{
   }>
 }>()
 
-const { $t } = useI18n()
+const { $ts } = useI18n()
 const headingId = useId()
 </script>
 

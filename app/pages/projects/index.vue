@@ -12,8 +12,8 @@
       <div v-if="isAdmin" class="site-admin-list-header">
         <div class="site-admin-list-header-copy-wrap">
           <SlidingCopy
-            :title="activeTab === 'published' ? $t('pages.projects.heading') : activeTab === 'drafts' ? $t('pages.posts.draftsHeading') : $t('pages.posts.archivedHeading')"
-            :description="activeTab === 'published' ? $t('pages.projects.description') : activeTab === 'drafts' ? $t('pages.projects.draftsDescription') : $t('pages.projects.archivedDescription')"
+            :title="activeTab === 'published' ? $ts('pages.projects.heading') : activeTab === 'drafts' ? $ts('pages.posts.draftsHeading') : $ts('pages.posts.archivedHeading')"
+            :description="activeTab === 'published' ? $ts('pages.projects.description') : activeTab === 'drafts' ? $ts('pages.projects.draftsDescription') : $ts('pages.projects.archivedDescription')"
             :direction="copySlideDirection"
             title-class="site-admin-heading"
             description-class="site-admin-intro"
@@ -23,15 +23,15 @@
 
       <ClientOnly>
         <div v-if="isAdmin" class="site-admin-post-controls">
-          <AdminListTabs :model-value="activeTab" :items="adminTabs" :label="$t('pages.projects.heading')" @select="setTab" />
+          <AdminListTabs :model-value="activeTab" :items="adminTabs" :label="$ts('pages.projects.heading')" @select="setTab" />
 
           <div class="site-admin-post-actions">
             <NButton @click="isNewDrawerOpen = true" btn="primary" size="xs" leading="i-ph-plus-bold" class="site-admin-post-create">
-              {{ $t('pages.projects.newProject') }}
+              {{ $ts('pages.projects.newProject') }}
             </NButton>
             <NDropdownMenu :items="viewDropdownItems" :_dropdownMenuContent="{ side: 'bottom', align: 'end' }">
               <template #default>
-                <NButton btn="ghost-gray" size="xs" icon :aria-label="$t('common.changeView')" class="site-admin-post-options-trigger">
+                <NButton btn="ghost-gray" size="xs" icon :aria-label="$ts('common.changeView')" class="site-admin-post-options-trigger">
                   <NIcon name="i-ph-dots-three-vertical" />
                 </NButton>
               </template>
@@ -75,14 +75,14 @@
 
       <!-- Loading state -->
       <div v-else-if="isLoadingVisible" class="text-center py-12">
-        <p class="text-slate-500 dark:text-slate-400">{{ $t('pages.projects.loading') }}</p>
+        <p class="text-slate-500 dark:text-slate-400">{{ $ts('pages.projects.loading') }}</p>
       </div>
 
       <CollectionEmptyState
         v-else-if="!hasVisiblePosts && !isLoadingVisible"
         :title="emptyStateCopy.title"
         :description="emptyStateCopy.description"
-        :action-label="isAdmin ? $t('pages.projects.newProject') : undefined"
+        :action-label="isAdmin ? $ts('pages.projects.newProject') : undefined"
         @action="isNewDrawerOpen = true"
       />
 
@@ -139,16 +139,16 @@
   <NDialog v-model:open="confirmDialogOpen">
     <NDialogContent class="max-w-md">
       <NDialogHeader>
-        <NDialogTitle>{{ $t('common.deletePost') }}</NDialogTitle>
+        <NDialogTitle>{{ $ts('common.deletePost') }}</NDialogTitle>
       </NDialogHeader>
 
       <NDialogDescription>
-        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $t('pages.projects.deleteConfirm', { name: postPendingDelete?.name }) }}</p>
+        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $ts('pages.projects.deleteConfirm', { name: postPendingDelete?.name ?? '' }) }}</p>
       </NDialogDescription>
 
       <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
-        <NButton btn="ghost-gray" size="sm" @click="confirmDialogOpen = false">{{ $t('common.cancel') }}</NButton>
-        <NButton btn="solid-red" size="sm" @click="confirmDelete" :loading="deleting">{{ $t('common.delete') }}</NButton>
+        <NButton btn="ghost-gray" size="sm" @click="confirmDialogOpen = false">{{ $ts('common.cancel') }}</NButton>
+        <NButton btn="solid-red" size="sm" @click="confirmDelete" :loading="deleting">{{ $ts('common.delete') }}</NButton>
       </NDialogFooter>
     </NDialogContent>
   </NDialog>
@@ -231,9 +231,9 @@ const { data: archived, pending: archivedPending, execute: fetchArchived } = awa
 // Admin tab state – controls which list is shown for admins (published/drafts/archived)
 const activeTab = useStorage<'published'|'drafts'|'archived'>('projects.activeTab', 'published')
 const adminTabs = computed(() => [
-  { value: 'published' as const, label: $t('pages.posts.published') },
-  { value: 'drafts' as const, label: $t('pages.posts.drafts') },
-  { value: 'archived' as const, label: $t('pages.posts.archived') },
+  { value: 'published' as const, label: $ts('pages.posts.published') },
+  { value: 'drafts' as const, label: $ts('pages.posts.drafts') },
+  { value: 'archived' as const, label: $ts('pages.posts.archived') },
 ])
 const copySlideDirection = ref(1)
 const tabOrder = ['published', 'drafts', 'archived'] as const
@@ -252,8 +252,8 @@ const isAdmin = computed(() => loggedIn.value && user.value?.role === 'admin')
 const viewMode = useStorage<'cards'|'list'>('projects.viewMode.v3', 'cards')
 const isListView = computed(() => viewMode.value === 'list')
 const viewDropdownItems = computed(() => [
-  { label: $t('pages.posts.cardsView'), onSelect: () => (viewMode.value = 'cards'), leading: 'i-ph-squares-four', trailing: viewMode.value === 'cards' ? 'i-ph-check' : undefined },
-  { label: $t('pages.posts.listView'), onSelect: () => (viewMode.value = 'list'), leading: 'i-ph-list-checks', trailing: viewMode.value === 'list' ? 'i-ph-check' : undefined },
+  { label: $ts('pages.posts.cardsView'), onSelect: () => (viewMode.value = 'cards'), leading: 'i-ph-squares-four', trailing: viewMode.value === 'cards' ? 'i-ph-check' : undefined },
+  { label: $ts('pages.posts.listView'), onSelect: () => (viewMode.value = 'list'), leading: 'i-ph-list-checks', trailing: viewMode.value === 'list' ? 'i-ph-check' : undefined },
 ])
 
 // Enhance posts with computed properties
@@ -373,25 +373,25 @@ onUnmounted(() => {
   }
 })
 
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const emptyStateCopy = computed(() => {
   if (isAdmin.value && activeTab.value === 'drafts') {
     return {
-      title: $t('pages.projects.emptyDraftsHeading'),
-      description: $t('pages.projects.emptyDraftsDescription'),
+      title: $ts('pages.projects.emptyDraftsHeading'),
+      description: $ts('pages.projects.emptyDraftsDescription'),
     }
   }
 
   if (isAdmin.value && activeTab.value === 'archived') {
     return {
-      title: $t('pages.projects.emptyArchivedHeading'),
-      description: $t('pages.projects.emptyArchivedDescription'),
+      title: $ts('pages.projects.emptyArchivedHeading'),
+      description: $ts('pages.projects.emptyArchivedDescription'),
     }
   }
 
   return {
-    title: $t('pages.projects.emptyHeading'),
-    description: $t('pages.projects.emptyDescription'),
+    title: $ts('pages.projects.emptyHeading'),
+    description: $ts('pages.projects.emptyDescription'),
   }
 })
 
@@ -440,10 +440,10 @@ const publicProjects = computed(() => {
 const config = useRuntimeConfig()
 
 useSeoMeta({
-  title: $t('pages.projects.metaTitle'),
-  description: $t('pages.projects.metaDescription'),
-  ogTitle: $t('pages.projects.metaTitle'),
-  ogDescription: $t('pages.projects.metaDescription'),
+  title: $ts('pages.projects.metaTitle'),
+  description: $ts('pages.projects.metaDescription'),
+  ogTitle: $ts('pages.projects.metaTitle'),
+  ogDescription: $ts('pages.projects.metaDescription'),
   ogUrl: `${config.public.siteUrl}/projects`,
   twitterCard: 'summary_large_image',
 })
@@ -491,17 +491,17 @@ function menuItemsForPost(post: Post) {
   const isDup = duplicatingPosts.value.has(post.slug)
   return [
     {
-      label: $t('pages.posts.status'),
+      label: $ts('pages.posts.status'),
       items: [
-        { label: $t('pages.posts.draft'), trailing: post.status === 'draft' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'draft'), disabled: isDup },
-        { label: $t('pages.posts.published'), trailing: post.status === 'published' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'published'), disabled: isDup },
-        { label: $t('pages.posts.archived'), trailing: post.status === 'archived' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'archived'), disabled: isDup },
+        { label: $ts('pages.posts.draft'), trailing: post.status === 'draft' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'draft'), disabled: isDup },
+        { label: $ts('pages.posts.published'), trailing: post.status === 'published' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'published'), disabled: isDup },
+        { label: $ts('pages.posts.archived'), trailing: post.status === 'archived' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'archived'), disabled: isDup },
       ]
     },
-    { label: $t('common.preview'), onSelect: () => previewPost(post), leading: 'i-ph-external-link', disabled: isDup },
-    { label: $t('common.edit'), onSelect: () => !isDup && editPost(post), leading: 'i-ph-pencil', disabled: isDup },
-    { label: $t('pages.posts.duplicate'), onSelect: () => !isDup && duplicatePost(post), leading: 'i-ph-copy', disabled: isDup },
-    { label: $t('common.deletePost'), onSelect: () => !isDup && (postPendingDelete.value = post, confirmDialogOpen.value = true), leading: 'i-ph-trash', color: 'danger', disabled: isDup },
+    { label: $ts('common.preview'), onSelect: () => previewPost(post), leading: 'i-ph-external-link', disabled: isDup },
+    { label: $ts('common.edit'), onSelect: () => !isDup && editPost(post), leading: 'i-ph-pencil', disabled: isDup },
+    { label: $ts('pages.posts.duplicate'), onSelect: () => !isDup && duplicatePost(post), leading: 'i-ph-copy', disabled: isDup },
+    { label: $ts('common.deletePost'), onSelect: () => !isDup && (postPendingDelete.value = post, confirmDialogOpen.value = true), leading: 'i-ph-trash', color: 'danger', disabled: isDup },
   ]
 }
 

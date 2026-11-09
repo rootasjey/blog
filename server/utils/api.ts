@@ -13,7 +13,7 @@ export type AuthenticatedUser = {
   name: string
   email: string
   role: string
-  slug: string
+  slug?: string | null
 }
 
 export function apiSuccess<T>(event: any, data: T, meta?: ApiMeta) {

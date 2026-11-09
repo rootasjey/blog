@@ -20,35 +20,35 @@
             class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
             @click="closeMobileMenu"
           >
-            {{ $t('nav.home') }}
+            {{ $ts('nav.home') }}
           </NuxtLink>
           <NuxtLink
             :to="localizedPath('/about', $getLocale())"
             class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
             @click="closeMobileMenu"
           >
-            {{ $t('nav.about') }}
+            {{ $ts('nav.about') }}
           </NuxtLink>
           <NuxtLink
             :to="localizedPath('/authors', $getLocale())"
             class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
             @click="closeMobileMenu"
           >
-            {{ $t('nav.authors') }}
+            {{ $ts('nav.authors') }}
           </NuxtLink>
           <NuxtLink
             :to="localizedPath('/tags', $getLocale())"
             class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
             @click="closeMobileMenu"
           >
-            {{ $t('nav.tags') }}
+            {{ $ts('nav.tags') }}
           </NuxtLink>
           <NuxtLink
             :to="localizedPath('/recommendations', $getLocale())"
             class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
             @click="closeMobileMenu"
           >
-            {{ $t('nav.recommendations') }}
+            {{ $ts('nav.recommendations') }}
           </NuxtLink>
           <template v-if="!isLoggedIn">
             <NuxtLink
@@ -56,38 +56,38 @@
               class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
               @click="closeMobileMenu"
             >
-              {{ $t('common.signin') }}
+              {{ $ts('common.signin') }}
             </NuxtLink>
           </template>
           <template v-else>
-            <button @click="() => { handleLogout(); closeMobileMenu(); }" class="w-full text-left block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors">{{ $t('common.signout') }}</button>
+            <button @click="() => { handleLogout(); closeMobileMenu(); }" class="w-full text-left block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors">{{ $ts('common.signout') }}</button>
           </template>
           <NuxtLink
             :to="localizedPath('/signup', $getLocale())"
             class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
             @click="closeMobileMenu"
           >
-            {{ $t('common.signup') }}
+            {{ $ts('common.signup') }}
           </NuxtLink>
           <NuxtLink
             :to="localizedPath('/subscribe', $getLocale())"
             class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
             @click="closeMobileMenu"
           >
-            {{ $t('common.subscribe') }}
+            {{ $ts('common.subscribe') }}
           </NuxtLink>
           <NuxtLink
             :to="localizedPath('/membership', $getLocale())"
             class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
             @click="closeMobileMenu"
           >
-            {{ $t('nav.membership') }}
+            {{ $ts('nav.membership') }}
           </NuxtLink>
         </nav>
 
         <!-- Keep account controls together when signed in. -->
         <div v-if="!isLoggedIn" class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3 px-4">{{ $t('common.language') }}</p>
+          <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3 px-4">{{ $ts('common.language') }}</p>
           <div class="flex flex-wrap gap-2 px-4">
             <NuxtLink
               v-for="locale in $getLocales()"
@@ -137,7 +137,7 @@
               'text-white': !isScrolled && router.currentRoute.value.path === '/',
             }"
           >
-          {{ $t('nav.brand') }}
+          {{ $ts('nav.brand') }}
         </span>
         </NuxtLink>
         <div class="site-header-controls flex items-center gap-3">
@@ -151,20 +151,20 @@
               btn="~"
               rounded="full"
               class="site-interactive-hover site-header-avatar-trigger min-w-0 p-1"
-              :aria-label="$t('common.profile')"
+              :aria-label="$ts('common.profile')"
             >
               <NuxtImg
                 v-if="currentAvatarProvider === 'hubblob' && !generatedAvatarFailed"
                 provider="hubblob"
                 :src="currentAvatarUrl"
-                :alt="currentUser.value?.name || $t('common.profile')"
+                :alt="currentUser.value?.name || $ts('common.profile')"
                 class="site-header-avatar-image w-6 h-6 rounded-full"
                 @error="generatedAvatarFailed = true"
               />
               <img
                 v-else-if="currentAvatarUrl && !generatedAvatarFailed"
                 :src="currentAvatarUrl"
-                :alt="currentUser.value?.name || $t('common.profile')"
+                :alt="currentUser.value?.name || $ts('common.profile')"
                 class="site-header-avatar-image w-6 h-6 rounded-full"
                 @error="generatedAvatarFailed = true"
               />
@@ -180,12 +180,12 @@
               'color-white': scrollY === 0 && router.currentRoute.value.path === '/',
             }"
             @click="toggleTheme"
-            :aria-label="$t('nav.toggleTheme')"
+            :aria-label="$ts('nav.toggleTheme')"
           >
             <!-- SSR friendly: render both icons and toggle with CSS `dark:` utilities to avoid hydration mismatch. -->
             <div class="i-ph-moon-bold block dark:hidden w-6 h-6"></div>
             <div class="i-ph-sun-bold hidden dark:block w-6 h-6"></div>
-            <span class="sr-only">{{ $t('nav.toggleTheme') }}</span>
+            <span class="sr-only">{{ $ts('nav.toggleTheme') }}</span>
           </NButton>
         </div>
       </div>
@@ -200,7 +200,7 @@
             <span
               class="site-wordmark"
             >
-              {{ $t('nav.brand') }}
+              {{ $ts('nav.brand') }}
             </span>
           </NuxtLink>
         </div>
@@ -224,13 +224,13 @@
           <!-- Center: Navigation Links -->
           <nav class="site-header-nav">
             <NuxtLink :to="localizedPath('/', $getLocale())" class="site-interactive-hover font-600">
-              {{ $t('nav.home') }}
+              {{ $ts('nav.home') }}
             </NuxtLink>
             <NuxtLink :to="localizedPath('/posts', $getLocale())" class="site-interactive-hover font-600">
-              {{ $t('nav.posts') }}
+              {{ $ts('nav.posts') }}
             </NuxtLink>
             <NuxtLink :to="localizedPath('/projects', $getLocale())" class="site-interactive-hover font-600">
-              {{ $t('nav.projects') }}
+              {{ $ts('nav.projects') }}
             </NuxtLink>
             <div
               class="site-header-pages"
@@ -251,11 +251,11 @@
                 {{ pagesLabel }}
               </button>
               <nav class="site-header-pages-menu" :aria-label="pagesLabel">
-                <NuxtLink :to="localizedPath('/about', $getLocale())">{{ $t('nav.about') }}</NuxtLink>
-                <NuxtLink :to="localizedPath('/tags', $getLocale())">{{ $t('nav.tags') }}</NuxtLink>
-                <NuxtLink :to="localizedPath('/recommendations', $getLocale())">{{ $t('nav.recommendations') }}</NuxtLink>
-                <NuxtLink :to="localizedPath('/authors', $getLocale())">{{ $t('nav.authors') }}</NuxtLink>
-                <NuxtLink :to="localizedPath('/credits', $getLocale())">{{ $t('footer.credits') }}</NuxtLink>
+                <NuxtLink :to="localizedPath('/about', $getLocale())">{{ $ts('nav.about') }}</NuxtLink>
+                <NuxtLink :to="localizedPath('/tags', $getLocale())">{{ $ts('nav.tags') }}</NuxtLink>
+                <NuxtLink :to="localizedPath('/recommendations', $getLocale())">{{ $ts('nav.recommendations') }}</NuxtLink>
+                <NuxtLink :to="localizedPath('/authors', $getLocale())">{{ $ts('nav.authors') }}</NuxtLink>
+                <NuxtLink :to="localizedPath('/credits', $getLocale())">{{ $ts('footer.credits') }}</NuxtLink>
               </nav>
             </div>
           </nav>
@@ -264,7 +264,7 @@
           <div class="site-header-controls flex items-center gap-3 justify-self-end">
             <template v-if="!isLoggedIn">
               <NuxtLink :to="localizedPath('/signin', $getLocale())" class="site-interactive-hover text-sm font-600 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors">
-                {{ $t('common.signin') }}
+                {{ $ts('common.signin') }}
               </NuxtLink>
             </template>
 
@@ -279,14 +279,14 @@
                     v-if="currentAvatarProvider === 'hubblob' && !generatedAvatarFailed"
                     provider="hubblob"
                     :src="currentAvatarUrl"
-                    :alt="currentUser.value?.name || $t('common.profile')"
+                    :alt="currentUser.value?.name || $ts('common.profile')"
                     class="site-header-avatar-image w-6 h-6 rounded-full"
                     @error="generatedAvatarFailed = true"
                   />
                   <img
                     v-else-if="currentAvatarUrl && !generatedAvatarFailed"
                     :src="currentAvatarUrl"
-                    :alt="currentUser.value?.name || $t('common.profile')"
+                    :alt="currentUser.value?.name || $ts('common.profile')"
                     class="site-header-avatar-image w-6 h-6 rounded-full"
                     @error="generatedAvatarFailed = true"
                   />
@@ -295,7 +295,7 @@
               </NDropdownMenu>
             </template>
             <NuxtLink :to="localizedPath('/donate', $getLocale())" class="site-interactive-hover site-header-donate px-4 py-2 bg-black dark:bg-white text-white dark:text-black text-xs font-bold tracking-wide rounded-4 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
-              {{ $t('nav.donate') }}
+              {{ $ts('nav.donate') }}
             </NuxtLink>
 
             <NCombobox
@@ -319,7 +319,7 @@
                 </div>
               </template>
             </NCombobox>
-            <button v-if="!isLoggedIn" type="button" @click="openSearch" class="site-interactive-hover site-header-search text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors" :aria-label="$t('nav.openSearch')">
+            <button v-if="!isLoggedIn" type="button" @click="openSearch" class="site-interactive-hover site-header-search text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors" :aria-label="$ts('nav.openSearch')">
               <div class="i-ph-magnifying-glass w-3.5 h-3.5"></div>
             </button>
             <NCombobox
@@ -414,9 +414,9 @@ async function handleLogout() {
   }
 }
 
-const { $t, $ts, $getLocale, $switchLocale, $getLocales } = useI18n()
+const { $ts, $getLocale, $switchLocale, $switchLocalePath, $getLocales } = useI18n()
 const pagesLabel = computed(() => {
-  const translated = $t('nav.pages')
+  const translated = $ts('nav.pages')
   return (translated.toLocaleLowerCase() === 'nav.pages' ? 'pages' : translated).toLocaleLowerCase()
 })
 
@@ -443,10 +443,10 @@ const currentThemeObj = computed(() => {
 })
 
 const dropdownItems = computed(() => [
-  { label: $t('common.search'), leading: 'i-ph-magnifying-glass', onSelect: openSearch },
+  { label: $ts('common.search'), leading: 'i-ph-magnifying-glass', onSelect: openSearch },
   { class: 'site-header-user-menu-separator', _dropdownMenuSeparator: { class: 'site-header-user-menu-separator' } },
   {
-    label: $t('common.language'),
+    label: $ts('common.language'),
     leading: 'i-ph-globe',
     _dropdownMenuSubContent: { class: 'site-header-user-menu-sub' },
     items: localeOptions.value.map(locale => ({
@@ -456,24 +456,24 @@ const dropdownItems = computed(() => [
     })),
   },
   {
-    label: $t('nav.theme'),
+    label: $ts('nav.theme'),
     leading: 'i-ph-sun',
     _dropdownMenuSubContent: { class: 'site-header-user-menu-sub' },
     items: themeOptions.value.map(theme => ({
       label: theme.label,
       leading: theme.icon,
-      trailing: theme.value === currentThemeObj.value.value ? 'i-ph-check' : undefined,
+      trailing: theme.value === currentThemeObj.value?.value ? 'i-ph-check' : undefined,
       onSelect: () => onThemeChange(theme),
     })),
   },
   { class: 'site-header-user-menu-separator', _dropdownMenuSeparator: { class: 'site-header-user-menu-separator' } },
   ...(isAdmin.value
-    ? [{ label: $t('nav.siteSocials'), leading: 'i-ph-share-network', onSelect: () => { siteSettingsDrawerOpen.value = true } }]
+    ? [{ label: $ts('nav.siteSocials'), leading: 'i-ph-share-network', onSelect: () => { siteSettingsDrawerOpen.value = true } }]
     : []),
-  { label: $t('common.settings'), leading: 'i-ph-gear-six', onSelect: () => { router.push(localizedPath('/settings', $getLocale())) } },
-  { label: $t('common.profile'), leading: 'i-ph-user-circle', onSelect: () => { router.push(localizedPath('/profile', $getLocale())) } },
+  { label: $ts('common.settings'), leading: 'i-ph-gear-six', onSelect: () => { router.push(localizedPath('/settings', $getLocale())) } },
+  { label: $ts('common.profile'), leading: 'i-ph-user-circle', onSelect: () => { router.push(localizedPath('/profile', $getLocale())) } },
   { class: 'site-header-user-menu-separator', _dropdownMenuSeparator: { class: 'site-header-user-menu-separator' } },
-  { label: $t('common.signout'), leading: 'i-ph-sign-out', onSelect: async () => { await handleLogout() } },
+  { label: $ts('common.signout'), leading: 'i-ph-sign-out', onSelect: async () => { await handleLogout() } },
 ])
 
 function onThemeChange(item: { value: string } | null) {

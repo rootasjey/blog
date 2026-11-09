@@ -2,16 +2,16 @@
   <header class="site-post-header site-editor-metadata">
     <div class="container">
       <div>
-        <nav class="site-preview-topic-nav site-editor-tags-wrap" :aria-label="$t('common.tags')">
+        <nav class="site-preview-topic-nav site-editor-tags-wrap" :aria-label="$ts('common.tags')">
           <span class="site-post-nav-spacer" aria-hidden="true" />
           <div class="site-editor-tags">
             <NBadge v-for="tag in localTags" :key="tag.id" badge="~" rounded="full" class="site-editor-tag" :style="{ '--editor-tag-color': postTagColor(tag.name, tag.color) }">
               <NLink :to="tagPath(tag.name)" class="site-editor-tag-link">{{ tag.name }}</NLink>
               <NTooltip>
                 <template #content>
-                  <span class="font-600 text-gray-300 dark:text-gray-600">{{ $t('common.removeTag') }}</span>
+                  <span class="font-600 text-gray-300 dark:text-gray-600">{{ $ts('common.removeTag') }}</span>
                 </template>
-                <button :aria-label="$t('common.removeTag')" @click="removeTag(tag.id)" :disabled="isAssigningTags" class="site-editor-tag-remove">
+                <button :aria-label="$ts('common.removeTag')" @click="removeTag(tag.id)" :disabled="isAssigningTags" class="site-editor-tag-remove">
                   <NIcon name="i-ph-x-bold" size="3" />
                 </button>
               </NTooltip>
@@ -27,7 +27,7 @@
               v-model:open="comboboxOpen"
               :_combobox-input="{
                 id: 'post-tag-search-input',
-                placeholder: $t('editor.postMetadataEditor.searchTagPlaceholder'),
+                placeholder: $ts('editor.postMetadataEditor.searchTagPlaceholder'),
                 modelValue: editingTagName,
                 'onUpdate:modelValue': (v: string) => editingTagName = v,
                 onKeydown: handleComboboxInputKeydown,
@@ -39,7 +39,7 @@
             >
               <template #trigger>
                 <span class="site-editor-add-tag">
-                  <span>{{ selectedTag?.name || $t('editor.postMetadataEditor.addTag') }}</span>
+                  <span>{{ selectedTag?.name || $ts('editor.postMetadataEditor.addTag') }}</span>
                 </span>
               </template>
 
@@ -63,10 +63,10 @@
                       @click="addTagByName(trimmedEditingTagName)"
                     >
                       <NIcon name="i-ph-plus-circle" class="mr-2" />
-                      <span class="uppercase font-semibold text-xs">{{ $t('editor.postMetadataEditor.createTag', { name: trimmedEditingTagName }) }}</span>
+                      <span class="uppercase font-semibold text-xs">{{ $ts('editor.postMetadataEditor.createTag', { name: trimmedEditingTagName }) }}</span>
                     </NButton>
                   </div>
-                  <div v-else class="px-3 text-sm text-slate-500">{{ $t('editor.postMetadataEditor.alreadyAdded') }}</div>
+                  <div v-else class="px-3 text-sm text-slate-500">{{ $ts('editor.postMetadataEditor.alreadyAdded') }}</div>
                 </div>
               </template>
             </NCombobox>
@@ -80,10 +80,10 @@
                 class="site-editor-add-tag-button"
                 :class="{ 'h-6 w-6': localTags.length > 0 }"
                 @click="startNewTag"
-                :aria-label="$t('editor.postMetadataEditor.addTag')"
+                :aria-label="$ts('editor.postMetadataEditor.addTag')"
               >
                 <NIcon name="i-ph-plus-bold" />
-                <span v-if="localTags.length === 0">{{ $t('editor.postMetadataEditor.addTag') }}</span>
+                <span v-if="localTags.length === 0">{{ $ts('editor.postMetadataEditor.addTag') }}</span>
               </NButton>
             </template>
           </div>
@@ -95,7 +95,7 @@
           v-model="nameProxy"
           rows="1"
           class="site-editor-title w-full resize-none overflow-hidden bg-transparent outline-none focus:outline-none focus:ring-0"
-          :placeholder="$t('editor.postMetadataEditor.untitled')"
+          :placeholder="$ts('editor.postMetadataEditor.untitled')"
           @input="autoResize"
         />
 
@@ -103,7 +103,7 @@
           v-model="descriptionProxy"
           type="textarea"
           input="~"
-          :placeholder="$t('editor.postMetadataEditor.descriptionPlaceholder')"
+          :placeholder="$ts('editor.postMetadataEditor.descriptionPlaceholder')"
           class="site-editor-description post-summary max-w-3xl description-input"
           :rows="1"
           ref="descriptionInput"
@@ -122,7 +122,7 @@ import { useTagStore } from '~/stores/tags'
 import type { ApiTag } from '~~/shared/types/tags'
 import { postTagColor } from '~/utils/postTagColor'
 import { localizedPath } from '~/utils/presentationPosts'
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const tagPath = (name: string) => `${localizedPath('/tags', $getLocale())}?tag=${encodeURIComponent(name)}`
 
 interface Props {

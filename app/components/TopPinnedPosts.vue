@@ -15,10 +15,10 @@
       <!-- Error -->
       <EmptyState
         v-else-if="error"
-        :title="$t('components.topPinned.unavailable')"
-        :description="$t('components.topPinned.unavailableDesc')"
+        :title="$ts('components.topPinned.unavailable')"
+        :description="$ts('components.topPinned.unavailableDesc')"
         :secondary-to="localizedPath('/posts', $getLocale())"
-        :secondary-label="$t('common.viewAllPosts')"
+        :secondary-label="$ts('common.viewAllPosts')"
         variant="card"
         icon="i-ph-chats-duotone"
       />
@@ -59,7 +59,7 @@
           <NuxtLink :to="localizedPath(`/preview/${item.slug}`, $getLocale())" class="flex gap-3 md:gap-4 items-start">
             <!-- Image placeholder on Left -->
             <div class="relative overflow-hidden rounded-xl w-24 h-24 md:w-28 md:h-28 xl:w-24 xl:h-24 flex-shrink-0 bg-gray-200 dark:bg-gray-800">
-              <PostImage v-if="item.img.src" :src="item.img.src" :alt="$t('components.topPinned.placeholderImgAlt')" class="w-full h-full object-cover" />
+              <PostImage v-if="item.img.src" :src="item.img.src" :alt="$ts('components.topPinned.placeholderImgAlt')" class="w-full h-full object-cover" />
               <div v-else class="w-full h-full flex items-center justify-center">
                 <div class="i-ph-image-duotone text-2xl text-gray-400" />
               </div>
@@ -101,13 +101,13 @@ const scrollerClasses = 'flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-m
 const itemClass = 'min-w-[16rem] flex-shrink-0 snap-start md:min-w-0'
 
 // Dummy items when empty – match the final UI
-const { $t } = useI18n()
+const { $ts } = useI18n()
 const locale = computed(() => $getLocale() === 'fr' ? 'fr' : 'en')
 const dummyHero = computed(() => PRESENTATION_POSTS.slice(0, 4).map((post, index) => ({
   slug: post.slug,
-  title: index === 0 ? $t('components.topPinned.dummyTitle1') : post.title[locale.value],
+  title: index === 0 ? $ts('components.topPinned.dummyTitle1') : post.title[locale.value],
   date: new Date(post.publishedAt).toLocaleDateString(locale.value, { day: 'numeric', month: 'short', year: 'numeric' }),
-  author: $t(`components.topPinned.dummyAuthor${index + 1}`),
+  author: $ts(`components.topPinned.dummyAuthor${index + 1}`),
   img: { src: post.image },
 })))
 </script>

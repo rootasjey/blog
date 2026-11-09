@@ -48,7 +48,8 @@ export default defineEventHandler(async (event) => {
     // stored.pathname should be like 'posts/<id>/images/<filename>'
     const storedPath = stored.pathname.replace(/^\/+/, '')
     const parts = storedPath.split('/')
-    const filename = parts[parts.length - 1]
+    const filename = parts.at(-1)
+    if (!filename) throw createError({ statusCode: 500, message: 'Image filename could not be resolved' })
 
     // Return a URL that the frontend can fetch via the existing /images route.
     // Example: /images/<filename>?relatedTo=posts&slug=1/images

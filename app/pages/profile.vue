@@ -8,11 +8,11 @@
           <NButton link :to="localizedPath('/', $getLocale())" btn="ghost-gray" size="sm" icon label="i-lucide-arrow-left" class="md:hidden" />
           <NButton link :to="localizedPath('/', $getLocale())" btn="ghost-gray" size="sm" class="hidden md:flex">
             <NIcon name="i-lucide-arrow-left" />
-            <span class="ml-2">{{ $t('common.back') }}</span>
+            <span class="ml-2">{{ $ts('common.back') }}</span>
           </NButton>
           
           <div class="flex-1 text-center">
-            <div class="text-base font-semibold text-gray-900 dark:text-gray-100 lowercase">{{ $t('pages.profile.heading') }}</div>
+            <div class="text-base font-semibold text-gray-900 dark:text-gray-100 lowercase">{{ $ts('pages.profile.heading') }}</div>
           </div>
           
           <div class="flex items-center gap-2">
@@ -23,7 +23,7 @@
               size="sm"
               class="hidden md:flex"
               :disabled="isSaving"
-            >{{ $t('pages.profile.resetChanges') }}</NButton>
+            >{{ $ts('pages.profile.resetChanges') }}</NButton>
             <NButton 
               :disabled="!hasChanges || isSaving" 
               @click="onSubmit" 
@@ -32,7 +32,7 @@
               size="sm"
             >
               <NIcon :name="isSaving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': isSaving }" />
-              <span class="ml-2">{{ isSaving ? $t('common.saving') : $t('common.save') }}</span>
+              <span class="ml-2">{{ isSaving ? $ts('common.saving') : $ts('common.save') }}</span>
             </NButton>
           </div>
         </div>
@@ -50,8 +50,8 @@
     </div>
     
     <div class="container mx-auto px-4 sm:px-6 max-w-7xl py-4 sm:py-6 md:py-10 pb-24 md:pb-10">
-      <h1 class="site-profile-visually-hidden">{{ $t('pages.profile.heading') }}</h1>
-      <section class="site-profile-identity animate-entrance" :aria-label="$t('pages.profile.heading')" style="animation-delay:80ms;">
+      <h1 class="site-profile-visually-hidden">{{ $ts('pages.profile.heading') }}</h1>
+      <section class="site-profile-identity animate-entrance" :aria-label="$ts('pages.profile.heading')" style="animation-delay:80ms;">
         <div class="site-profile-identity-header">
           <ProfileAvatarEditor
             v-model:avatar="form.avatar"
@@ -66,14 +66,14 @@
               v-model="form.name"
               rows="1"
               class="site-profile-name w-full resize-none overflow-hidden leading-tight bg-transparent outline-none focus:outline-none"
-              :placeholder="$t('pages.profile.namePlaceholder')"
-              :aria-label="$t('pages.profile.namePlaceholder')"
+              :placeholder="$ts('pages.profile.namePlaceholder')"
+              :aria-label="$ts('pages.profile.namePlaceholder')"
               @input="autoResizeName"
             />
             <NInput
               v-model="form.job"
-              :placeholder="$t('pages.profile.jobTitlePlaceholder')"
-              :aria-label="$t('pages.profile.job')"
+              :placeholder="$ts('pages.profile.jobTitlePlaceholder')"
+              :aria-label="$ts('pages.profile.job')"
               input="~"
               class="site-profile-job"
             />
@@ -86,12 +86,12 @@
           :rows="2"
           input="~"
           class="site-profile-biography"
-          :aria-label="$t('pages.profile.biography')"
-          :placeholder="$t('pages.profile.bioPlaceholder')"
+          :aria-label="$ts('pages.profile.biography')"
+          :placeholder="$ts('pages.profile.bioPlaceholder')"
         />
         <NButton @click="openSocialsDialog" btn="ghost-gray" size="sm" class="site-profile-socials-action">
           <NIcon name="i-lucide-link" />
-          <span class="ml-2">{{ $t('pages.profile.editSocials') }}</span>
+          <span class="ml-2">{{ $ts('pages.profile.editSocials') }}</span>
         </NButton>
       </section>
 
@@ -100,11 +100,11 @@
           <div class="site-profile-fields">
             <!-- Email -->
             <div class="site-profile-field">
-              <label for="profile-email" class="site-profile-field-label">{{ $t('pages.profile.email') }}</label>
+              <label for="profile-email" class="site-profile-field-label">{{ $ts('pages.profile.email') }}</label>
               <NInput
                 id="profile-email"
                 v-model="form.email"
-                :placeholder="$t('pages.profile.emailPlaceholder')"
+                :placeholder="$ts('pages.profile.emailPlaceholder')"
                 input="outline"
                 type="email"
                 class="w-full"
@@ -114,11 +114,11 @@
 
             <!-- Location -->
             <div class="site-profile-field">
-              <label for="profile-location" class="site-profile-field-label">{{ $t('pages.profile.location') }}</label>
+              <label for="profile-location" class="site-profile-field-label">{{ $ts('pages.profile.location') }}</label>
               <NInput
                 id="profile-location"
                 v-model="form.location"
-                :placeholder="$t('pages.profile.locationPlaceholder')"
+                :placeholder="$ts('pages.profile.locationPlaceholder')"
                 input="outline"
                 class="w-full"
                 size="md"
@@ -127,15 +127,13 @@
 
             <!-- Language -->
             <div class="site-profile-field">
-              <label for="profile-language" class="site-profile-field-label">{{ $t('pages.profile.language') }}</label>
+              <label for="profile-language" class="site-profile-field-label">{{ $ts('pages.profile.language') }}</label>
               <NSelect
                 id="profile-language"
                 v-model="selectedLanguage"
                 :items="languageOptions"
-                item-key="label"
-                value-key="label"
-                :placeholder="$t('pages.profile.languagePlaceholder')"
-                :aria-label="$t('pages.profile.language')"
+                :placeholder="$ts('pages.profile.languagePlaceholder')"
+                :aria-label="$ts('pages.profile.language')"
                 class="w-full"
               />
             </div>
@@ -148,7 +146,7 @@
       <div class="site-profile-mobile-actions fixed bottom-0 left-0 right-0 z-2 p-4 backdrop-blur-lg md:hidden">
         <div class="container mx-auto max-w-7xl">
           <div class="flex gap-2">
-            <NTooltip :content="$t('pages.profile.resetChanges')">
+            <NTooltip :content="$ts('pages.profile.resetChanges')">
               <NButton 
                 @click="resetForm" 
                 btn="soft-gray" 
@@ -164,10 +162,10 @@
               btn="solid-black"
               size="md"
               class="site-profile-save flex-1"
-              :aria-label="isSaving ? $t('common.saving') : $t('pages.profile.saveChanges')"
+              :aria-label="isSaving ? $ts('common.saving') : $ts('pages.profile.saveChanges')"
             >
               <NIcon :name="isSaving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': isSaving }" />
-              <span class="ml-2">{{ isSaving ? $t('common.saving') : $t('common.save') }}</span>
+              <span class="ml-2">{{ isSaving ? $ts('common.saving') : $ts('common.save') }}</span>
             </NButton>
           </div>
         </div>
@@ -185,12 +183,14 @@
 </template>
 
 <script setup lang="ts">
+import { localizedPath } from '~/utils/presentationPosts'
+
 import { computed, reactive, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const { $t, $getLocale } = useI18n()
-useHead({ title: `${$t('pages.profile.heading')} - ${$t('seo.siteName')}` })
+const { $ts, $getLocale } = useI18n()
+useHead({ title: `${$ts('pages.profile.heading')} - ${$ts('seo.siteName')}` })
 const { user, loggedIn, fetch: refreshSession } = useUserSession()
 
 // Redirect unauthenticated users on client-side
@@ -330,14 +330,14 @@ async function saveSocialsDialog(socials: string) {
   try {
     const payload: any = { socials: form.socials }
     await $fetch('/api/user/profile', { method: 'PUT', body: payload })
-    showSuccess($t('pages.profile.socialsUpdated'))
+    showSuccess($ts('pages.profile.socialsUpdated'))
     // Refresh session/profile data
     await refreshSession()
     initialForm.value = { ...form }
     socialsDialogOpen.value = false
   } catch (error: any) {
     console.error('Failed to update social links:', error)
-    errorMessage.value = $t('pages.profile.socialsUpdateFailed')
+    errorMessage.value = $ts('pages.profile.socialsUpdateFailed')
     // keep dialog open so user can retry
   } finally {
     socialsSaving.value = false
@@ -348,15 +348,15 @@ function validateForm() {
   errorMessage.value = ''
   // Simple validation: name required
   if (!form.name || !form.name.trim()) {
-    errorMessage.value = $t('pages.profile.nameRequired')
+    errorMessage.value = $ts('pages.profile.nameRequired')
     return false
   }
   if (form.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) {
-    errorMessage.value = $t('pages.profile.emailValid')
+    errorMessage.value = $ts('pages.profile.emailValid')
     return false
   }
   if (form.socials && form.socials.trim().length) {
-    try { JSON.parse(form.socials) } catch { errorMessage.value = $t('pages.profile.socialsJson'); return false }
+    try { JSON.parse(form.socials) } catch { errorMessage.value = $ts('pages.profile.socialsJson'); return false }
   }
   return true
 }
@@ -376,14 +376,14 @@ async function onSubmit() {
 
   try {
     await $fetch('/api/user/profile', { method: 'PUT', body: payload })
-    showSuccess($t('pages.profile.updatedSuccess'))
+    showSuccess($ts('pages.profile.updatedSuccess'))
     if (userProfile.value) Object.assign(userProfile.value, payload)
     // refresh session data if available
     await refreshSession()
     initialForm.value = { ...form }
   } catch (error: any) {
     console.error('Failed to update profile:', error)
-    errorMessage.value = $t('pages.profile.updateFailed')
+    errorMessage.value = $ts('pages.profile.updateFailed')
   } finally {
     isSaving.value = false
   }

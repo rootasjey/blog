@@ -33,7 +33,7 @@ const sanitizePath = (p: string) => {
 
 const guessContentType = (urlOrName: string, fetchedType?: string | null) => {
   if (fetchedType) return fetchedType
-  const ext = (urlOrName.split('?')[0].split('.').pop() || '').toLowerCase()
+  const ext = urlOrName.split('?')[0]?.split('.').pop()?.toLowerCase() ?? ''
   const map: Record<string, string> = {
     png: 'image/png',
     jpg: 'image/jpeg',

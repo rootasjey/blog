@@ -1,5 +1,5 @@
 <template>
-  <section class="site-public-post-archive" :aria-label="$t('pages.posts.publishedHeading')">
+  <section class="site-public-post-archive" :aria-label="$ts('pages.posts.publishedHeading')">
     <div class="site-public-post-grid">
       <article
         v-for="post in visiblePosts"
@@ -57,7 +57,7 @@ import { localizedPath } from '~/utils/presentationPosts'
 import { postTagColor } from '~/utils/postTagColor'
 
 const props = defineProps<{ posts: Post[] }>()
-const { $getLocale, $t } = useI18n()
+const { $getLocale, $ts } = useI18n()
 const locale = computed(() => $getLocale() === 'fr' ? 'fr' : 'en')
 const pageSize = 4
 const visibleCount = ref(pageSize)

@@ -55,6 +55,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { localizedPath } from '~/utils/presentationPosts'
 const { $getLocale } = useI18n()
 
 const props = defineProps<{ open: boolean; provider: 'cloudflare' | 'openrouter' }>()

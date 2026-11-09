@@ -2,20 +2,20 @@
   <NuxtLayout>
     <section class="site-error-page">
       <section class="site-error-content" aria-labelledby="error-title">
-        <p v-if="is404" class="site-error-eyebrow">{{ error?.statusCode }} <span aria-hidden="true">·</span> {{ $t('error.pageNotFound') }}</p>
+        <p v-if="is404" class="site-error-eyebrow">{{ error?.statusCode }} <span aria-hidden="true">·</span> {{ $ts('error.pageNotFound') }}</p>
         <p v-else class="site-error-code" aria-hidden="true">{{ error?.statusCode || '500' }}</p>
         <h1 id="error-title">{{ errorTitle }}</h1>
         <p class="site-error-message">{{ errorMessage }}</p>
 
         <div class="site-error-actions">
           <button class="site-interactive-hover site-outline-action site-error-home-action" type="button" @click="handleError">
-            <span>{{ $t(is404 ? 'error.returnHome' : 'common.goHome') }}</span>
+            <span>{{ $ts(is404 ? 'error.returnHome' : 'common.goHome') }}</span>
             <span aria-hidden="true">→</span>
           </button>
         </div>
 
         <details v-if="error?.stack && isAdmin" class="site-error-debug">
-          <summary>{{ $t('error.debugInfo') }}</summary>
+          <summary>{{ $ts('error.debugInfo') }}</summary>
           <pre>{{ error.stack }}</pre>
         </details>
       </section>
@@ -29,11 +29,11 @@ import { localizedPath } from '~/utils/presentationPosts'
 
 const props = defineProps<{ error: NuxtError }>()
 const { loggedIn, user } = useUserSession()
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const is404 = computed(() => props.error?.statusCode === 404)
 const isAdmin = computed(() => loggedIn.value && user.value?.role === 'admin')
-const errorTitle = computed(() => is404.value ? $t('error.notFoundTitle') : $t('error.somethingWentWrong'))
-const errorMessage = computed(() => is404.value ? $t('error.notFoundDescription') : $t('error.genericErrorDescription'))
+const errorTitle = computed(() => is404.value ? $ts('error.notFoundTitle') : $ts('error.somethingWentWrong'))
+const errorMessage = computed(() => is404.value ? $ts('error.notFoundDescription') : $ts('error.genericErrorDescription'))
 
 function handleError() {
   clearError({ redirect: localizedPath('/', $getLocale()) })

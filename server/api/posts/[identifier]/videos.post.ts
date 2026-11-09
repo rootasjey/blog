@@ -49,7 +49,8 @@ export default defineEventHandler(async (event) => {
 
     const storedPath = stored.pathname.replace(/^\/+/, '')
     const parts = storedPath.split('/')
-    const filename = parts[parts.length - 1]
+    const filename = parts.at(-1)
+    if (!filename) throw createError({ statusCode: 500, message: 'Video filename could not be resolved' })
 
     const servingUrl = `/images/${encodeURIComponent(filename)}?relatedTo=posts&slug=${encodeURIComponent(`${post.id}/videos`)}`
 
@@ -69,8 +70,10 @@ export default defineEventHandler(async (event) => {
         const storedPoster = await hb.put(`${videosFolder}/${posterPathnameFile}`, posterBlobFile, { addRandomSuffix: true })
         posterStoredPath = storedPoster.pathname.replace(/^\/+/, '')
         const posterParts = posterStoredPath.split('/')
-        posterFilename = posterParts[posterParts.length - 1]
-        posterServingUrl = `/images/${encodeURIComponent(posterFilename)}?relatedTo=posts&slug=${encodeURIComponent(`${post.id}/videos`)}`
+        posterFilename = posterParts.at(-1) ?? null
+        if (posterFilename) {
+          posterServingUrl = `/images/${encodeURIComponent(posterFilename)}?relatedTo=posts&slug=${encodeURIComponent(`${post.id}/videos`)}`
+        }
       }
     }
 

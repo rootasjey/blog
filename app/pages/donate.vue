@@ -2,26 +2,26 @@
   <main class="site-page site-donate">
     <div class="site-donate-content">
       <header class="site-donate-intro">
-        <h1>{{ $t('pages.donate.heading') }}</h1>
-        <p>{{ $t('pages.donate.description') }}</p>
+        <h1>{{ $ts('pages.donate.heading') }}</h1>
+        <p>{{ $ts('pages.donate.description') }}</p>
       </header>
 
       <p class="site-donate-status" role="status">
         <span aria-hidden="true" />
-        {{ $t('pages.donate.notAvailable') }}
+        {{ $ts('pages.donate.notAvailable') }}
       </p>
 
       <section class="site-donate-reasons" :aria-labelledby="reasonsHeadingId">
-        <h2 :id="reasonsHeadingId">{{ $t('pages.donate.whyDonate') }}</h2>
+        <h2 :id="reasonsHeadingId">{{ $ts('pages.donate.whyDonate') }}</h2>
         <ul>
-          <li>{{ $t('pages.donate.supportAuthors') }}</li>
-          <li>{{ $t('pages.donate.fundImprovements') }}</li>
-          <li>{{ $t('pages.donate.perks') }}</li>
+          <li>{{ $ts('pages.donate.supportAuthors') }}</li>
+          <li>{{ $ts('pages.donate.fundImprovements') }}</li>
+          <li>{{ $ts('pages.donate.perks') }}</li>
         </ul>
       </section>
 
       <NuxtLink class="site-donate-home" :to="localizedPath('/', locale)">
-        {{ $t('pages.donate.returnHome') }}
+        {{ $ts('pages.donate.returnHome') }}
       </NuxtLink>
     </div>
   </main>
@@ -31,7 +31,7 @@
 import { computed } from 'vue'
 import { localizedPath } from '~/utils/presentationPosts'
 
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const locale = computed(() => $getLocale())
 const reasonsHeadingId = 'donation-reasons-heading'
 </script>

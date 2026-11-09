@@ -11,8 +11,8 @@
       <div v-if="isAdmin" class="site-admin-list-header">
         <div class="site-admin-list-header-copy site-admin-list-header-copy-wrap">
           <SlidingCopy
-            :title="activeTab === 'published' ? $t('pages.posts.publishedHeading') : activeTab === 'drafts' ? $t('pages.posts.draftsHeading') : $t('pages.posts.archivedHeading')"
-            :description="activeTab === 'published' ? $t('pages.posts.publishedDescription') : activeTab === 'drafts' ? $t('pages.posts.draftsDescription') : $t('pages.posts.archivedDescription')"
+            :title="activeTab === 'published' ? $ts('pages.posts.publishedHeading') : activeTab === 'drafts' ? $ts('pages.posts.draftsHeading') : $ts('pages.posts.archivedHeading')"
+            :description="activeTab === 'published' ? $ts('pages.posts.publishedDescription') : activeTab === 'drafts' ? $ts('pages.posts.draftsDescription') : $ts('pages.posts.archivedDescription')"
             :direction="copySlideDirection"
             title-class="site-admin-heading"
             description-class="site-admin-intro"
@@ -22,34 +22,34 @@
 
       <ClientOnly>
         <div v-if="isAdmin" class="site-admin-post-controls">
-          <AdminListTabs :model-value="activeTab" :items="adminTabs" :label="$t('pages.posts.publishedHeading')" @select="setTab" />
+          <AdminListTabs :model-value="activeTab" :items="adminTabs" :label="$ts('pages.posts.publishedHeading')" @select="setTab" />
 
           <div class="site-admin-post-actions">
             <template v-if="selection.selectionMode.value">
               <NDropdownMenu :items="exportDropdownItems" :_dropdownMenuContent="{ side: 'bottom', align: 'start' }">
                 <NButton btn="ghost-gray" size="sm" :disabled="!selection.hasSelection" :loading="exporting">
                   <NIcon :name="exporting ? 'i-lucide-loader' : 'i-ph-download-simple'" :class="{ 'animate-spin': exporting }" />
-                  {{ $t('pages.posts.export') }}
+                  {{ $ts('pages.posts.export') }}
                 </NButton>
               </NDropdownMenu>
               <NBadge badge="soft" color="primary">{{ selection.selectedCount }}</NBadge>
               <NButton @click="() => selection.toggleSelectAllVisible(visiblePosts)" btn="ghost-gray" size="sm"
                 :leading="selection.allVisibleSelected(visiblePosts) ? 'i-ph-square-duotone' : 'i-ph-list-checks'">
-                {{ selection.allVisibleSelected(visiblePosts) ? $t('pages.posts.clearAll') : $t('pages.posts.selectAll') }}
+                {{ selection.allVisibleSelected(visiblePosts) ? $ts('pages.posts.clearAll') : $ts('pages.posts.selectAll') }}
               </NButton>
-              <NTooltip :content="$t('pages.posts.exitSelection')">
+              <NTooltip :content="$ts('pages.posts.exitSelection')">
                 <NButton btn="ghost-gray" icon label="i-ph-x" size="sm" @click="selection.clearSelection" />
               </NTooltip>
             </template>
             <template v-else>
               <NButton @click="isNewDrawerOpen = true" btn="primary" size="xs" leading="i-ph-plus-bold" class="site-admin-post-create">
-                {{ $t('pages.posts.newPost') }}
+                {{ $ts('pages.posts.newPost') }}
               </NButton>
             </template>
 
             <NDropdownMenu :items="postOptionsDropdownItems" :_dropdownMenuContent="{ side: 'bottom', align: 'end' }">
               <template #default>
-                <NButton btn="ghost-gray" size="xs" icon :aria-label="`${currentLanguageLabel}, ${$t('pages.posts.import')}, ${$t('common.changeView')}`" class="site-admin-post-options-trigger">
+                <NButton btn="ghost-gray" size="xs" icon :aria-label="`${currentLanguageLabel}, ${$ts('pages.posts.import')}, ${$ts('common.changeView')}`" class="site-admin-post-options-trigger">
                   <NIcon name="i-ph-dots-three-vertical" />
                 </NButton>
               </template>
@@ -68,13 +68,13 @@
       >
         <span class="site-admin-post-active-filter-label">
           <NIcon name="i-ph-tag" aria-hidden="true" />
-          {{ $t('pages.posts.filteredByTag', { tag: publicTagFilter }) }}
+          {{ $ts('pages.posts.filteredByTag', { tag: publicTagFilter }) }}
         </span>
         <NuxtLink
           :to="localizedPath('/posts', $getLocale())"
           class="site-admin-post-active-filter-clear"
-          :aria-label="$t('pages.posts.clearTagFilter')"
-          :title="$t('pages.posts.clearTagFilter')"
+          :aria-label="$ts('pages.posts.clearTagFilter')"
+          :title="$ts('pages.posts.clearTagFilter')"
         >
           <NIcon name="i-ph-x" aria-hidden="true" />
         </NuxtLink>
@@ -99,7 +99,7 @@
       />
 
       <div v-else-if="isAdmin && activeTab === 'published' && publicTagFilter && posts && !pending" class="site-public-tag-empty">
-        <p>{{ $t('pages.tags.noPostsFound') }} — {{ publicTagFilter }}</p>
+        <p>{{ $ts('pages.tags.noPostsFound') }} — {{ publicTagFilter }}</p>
         <NuxtLink :to="localizedPath('/posts', $getLocale())">{{ $getLocale() === 'fr' ? 'Voir tous les articles' : 'View all posts' }}</NuxtLink>
       </div>
 
@@ -121,14 +121,14 @@
 
       <!-- Loading state -->
       <div v-else-if="isLoadingVisible" class="text-center py-12">
-        <p class="text-slate-500 dark:text-slate-400">{{ $t('pages.posts.loading') }}</p>
+        <p class="text-slate-500 dark:text-slate-400">{{ $ts('pages.posts.loading') }}</p>
       </div>
 
       <CollectionEmptyState
         v-else-if="!hasVisiblePosts && !isLoadingVisible"
         :title="emptyStateCopy.title"
         :description="emptyStateCopy.description"
-        :action-label="isAdmin ? $t('pages.posts.newPost') : undefined"
+        :action-label="isAdmin ? $ts('pages.posts.newPost') : undefined"
         @action="isNewDrawerOpen = true"
       />
 
@@ -186,16 +186,16 @@
   <NDialog v-model:open="confirmDialogOpen">
     <NDialogContent class="max-w-md">
       <NDialogHeader>
-        <NDialogTitle>{{ $t('common.deletePost') }}</NDialogTitle>
+        <NDialogTitle>{{ $ts('common.deletePost') }}</NDialogTitle>
       </NDialogHeader>
 
       <NDialogDescription>
-        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $t('pages.posts.deletePostConfirm', { name: postPendingDelete?.name }) }}</p>
+        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $ts('pages.posts.deletePostConfirm', { name: postPendingDelete?.name ?? '' }) }}</p>
       </NDialogDescription>
 
       <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
-        <NButton btn="ghost-gray" size="sm" @click="confirmDialogOpen = false">{{ $t('common.cancel') }}</NButton>
-        <NButton btn="solid-red" size="sm" @click="confirmDelete" :loading="deleting">{{ $t('common.delete') }}</NButton>
+        <NButton btn="ghost-gray" size="sm" @click="confirmDialogOpen = false">{{ $ts('common.cancel') }}</NButton>
+        <NButton btn="solid-red" size="sm" @click="confirmDelete" :loading="deleting">{{ $ts('common.delete') }}</NButton>
       </NDialogFooter>
     </NDialogContent>
   </NDialog>
@@ -253,7 +253,7 @@ function onPostSaved(updated: Post) {
   refreshAllLists()
 }
 
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const config = useRuntimeConfig()
 const publicArchiveCopy = computed(() => $getLocale() === 'fr'
   ? {
@@ -315,16 +315,16 @@ const {
 const copySlideDirection = ref(1)
 const tabOrder = ['published', 'drafts', 'archived'] as const
 const adminTabs = computed(() => [
-  { value: 'published' as const, label: $t('pages.posts.published') },
-  { value: 'drafts' as const, label: $t('pages.posts.drafts') },
-  { value: 'archived' as const, label: $t('pages.posts.archived') },
+  { value: 'published' as const, label: $ts('pages.posts.published') },
+  { value: 'drafts' as const, label: $ts('pages.posts.drafts') },
+  { value: 'archived' as const, label: $ts('pages.posts.archived') },
 ])
 // Persistent view preference: 'cards' or 'list'
 const viewMode = useStorage<'cards'|'list'>('posts.viewMode.v2', 'list')
 
 const viewDropdownItems = computed(() => [
-  { label: $t('pages.posts.cardsView'), onSelect: () => (viewMode.value = 'cards'), leading: 'i-ph-squares-four', trailing: viewMode.value === 'cards' ? 'i-ph-check' : undefined },
-  { label: $t('pages.posts.listView'), onSelect: () => (viewMode.value = 'list'), leading: 'i-ph-list-checks', trailing: viewMode.value === 'list' ? 'i-ph-check' : undefined },
+  { label: $ts('pages.posts.cardsView'), onSelect: () => (viewMode.value = 'cards'), leading: 'i-ph-squares-four', trailing: viewMode.value === 'cards' ? 'i-ph-check' : undefined },
+  { label: $ts('pages.posts.listView'), onSelect: () => (viewMode.value = 'list'), leading: 'i-ph-list-checks', trailing: viewMode.value === 'list' ? 'i-ph-check' : undefined },
 ])
 
 const languageDropdownItems = computed(() => [
@@ -351,15 +351,15 @@ const languageDropdownItems = computed(() => [
 
 const postOptionsDropdownItems = computed(() => [
   {
-    label: $t('common.language'),
+    label: $ts('common.language'),
     leading: 'i-ph-globe',
     items: languageDropdownItems.value,
   },
   { class: 'site-admin-post-options-separator', _dropdownMenuSeparator: { class: 'site-admin-post-options-separator' } },
-  { label: $t('pages.posts.import'), onSelect: triggerImportFile, leading: 'i-ph-file-arrow-up' },
+  { label: $ts('pages.posts.import'), onSelect: triggerImportFile, leading: 'i-ph-file-arrow-up' },
   { class: 'site-admin-post-options-separator', _dropdownMenuSeparator: { class: 'site-admin-post-options-separator' } },
   {
-    label: $t('common.changeView'),
+    label: $ts('common.changeView'),
     leading: viewMode.value === 'cards' ? 'i-ph-squares-four' : 'i-ph-list-checks',
     items: viewDropdownItems.value,
   },
@@ -377,21 +377,21 @@ const isAdmin = computed(() => loggedIn.value && user.value?.role === 'admin')
 const emptyStateCopy = computed(() => {
   if (isAdmin.value && activeTab.value === 'drafts') {
     return {
-      title: $t('pages.posts.emptyDraftsHeading'),
-      description: $t('pages.posts.emptyDraftsDescription'),
+      title: $ts('pages.posts.emptyDraftsHeading'),
+      description: $ts('pages.posts.emptyDraftsDescription'),
     }
   }
 
   if (isAdmin.value && activeTab.value === 'archived') {
     return {
-      title: $t('pages.posts.emptyArchivedHeading'),
-      description: $t('pages.posts.emptyArchivedDescription'),
+      title: $ts('pages.posts.emptyArchivedHeading'),
+      description: $ts('pages.posts.emptyArchivedDescription'),
     }
   }
 
   return {
-    title: $t('pages.posts.emptyHeading'),
-    description: $t('pages.posts.emptyDescription'),
+    title: $ts('pages.posts.emptyHeading'),
+    description: $ts('pages.posts.emptyDescription'),
   }
 })
 
@@ -490,10 +490,10 @@ watch(
 )
 
 useSeoMeta({
-  title: $t('pages.posts.metaTitle'),
-  description: $t('pages.posts.metaDescription'),
-  ogTitle: $t('pages.posts.metaTitle'),
-  ogDescription: $t('pages.posts.metaDescription'),
+  title: $ts('pages.posts.metaTitle'),
+  description: $ts('pages.posts.metaDescription'),
+  ogTitle: $ts('pages.posts.metaTitle'),
+  ogDescription: $ts('pages.posts.metaDescription'),
   ogUrl: `${config.public.siteUrl}/posts`,
   twitterCard: 'summary_large_image',
 })
@@ -553,9 +553,9 @@ async function exportPosts(format: 'zip' | 'json', includeAssets: boolean, idsOv
 }
 
 const exportDropdownItems = computed(() => [
-  { label: $t('pages.posts.exportZip', { count: selection.selectedCount.value || 0 }), onSelect: () => exportPosts('zip', true), leading: exporting.value ? 'i-lucide-loader animate-spin' : 'i-ph-download-simple', disabled: !selection.hasSelection.value },
-  { label: $t('pages.posts.clearSelection'), onSelect: () => selection.clearSelection(), leading: 'i-ph-x', disabled: !selection.hasSelection.value },
-  { label: $t('common.done'), onSelect: () => selection.setSelectionMode(false), leading: 'i-ph-check', disabled: false },
+  { label: $ts('pages.posts.exportZip', { count: selection.selectedCount.value || 0 }), onSelect: () => exportPosts('zip', true), leading: exporting.value ? 'i-lucide-loader animate-spin' : 'i-ph-download-simple', disabled: !selection.hasSelection.value },
+  { label: $ts('pages.posts.clearSelection'), onSelect: () => selection.clearSelection(), leading: 'i-ph-x', disabled: !selection.hasSelection.value },
+  { label: $ts('common.done'), onSelect: () => selection.setSelectionMode(false), leading: 'i-ph-check', disabled: false },
 ])
 
 // Router + post management actions (admin only)
@@ -600,27 +600,27 @@ function menuItemsForPost(post: Post) {
   const isCoverBusy = coverUploadingPosts.value.has(post.slug)
   return [
     {
-      label: $t('pages.posts.status'),
+      label: $ts('pages.posts.status'),
       items: [
-        { label: $t('pages.posts.draft'), trailing: post.status === 'draft' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'draft'), disabled: isDup },
-        { label: $t('pages.posts.published'), trailing: post.status === 'published' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'published'), disabled: isDup },
-        { label: $t('pages.posts.archived'), trailing: post.status === 'archived' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'archived'), disabled: isDup },
+        { label: $ts('pages.posts.draft'), trailing: post.status === 'draft' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'draft'), disabled: isDup },
+        { label: $ts('pages.posts.published'), trailing: post.status === 'published' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'published'), disabled: isDup },
+        { label: $ts('pages.posts.archived'), trailing: post.status === 'archived' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'archived'), disabled: isDup },
       ]
     },
     {
-      label: $t('pages.posts.cover'),
+      label: $ts('pages.posts.cover'),
       items: [
-        { label: post.image?.src ? $t('pages.posts.replaceCover') : $t('pages.posts.addCover'), leading: 'i-ph-image', onSelect: () => !isDup && !isCoverBusy && triggerCoverUpload(post), disabled: isDup || isCoverBusy },
-        { label: $t('pages.posts.removeCover'), leading: 'i-ph-trash', onSelect: () => !isDup && !isCoverBusy && removeCover(post), disabled: isDup || isCoverBusy || !post.image?.src, color: 'danger' },
+        { label: post.image?.src ? $ts('pages.posts.replaceCover') : $ts('pages.posts.addCover'), leading: 'i-ph-image', onSelect: () => !isDup && !isCoverBusy && triggerCoverUpload(post), disabled: isDup || isCoverBusy },
+        { label: $ts('pages.posts.removeCover'), leading: 'i-ph-trash', onSelect: () => !isDup && !isCoverBusy && removeCover(post), disabled: isDup || isCoverBusy || !post.image?.src, color: 'danger' },
       ],
     },
-    { label: $t('common.preview'), onSelect: () => previewPost(post), leading: 'i-ph-external-link', disabled: isDup },
-    { label: $t('pages.posts.select'), onSelect: () => (selection.setSelectionMode(true), selection.toggleSelected(post.slug)), leading: 'i-ph-check', disabled: isDup },
-    { label: $t('pages.posts.exportZip', { count: 1 }), onSelect: () => exportPosts('zip', true, [post.slug]), leading: 'i-ph-download-simple', disabled: isDup },
-    { label: $t('pages.posts.openEditor'), onSelect: () => !isDup && editPost(post), leading: 'i-ph-pencil-line-fill', disabled: isDup },
-    { label: $t('common.edit'), onSelect: () => !isDup && (postToEdit.value = post, editDialogOpen.value = true), leading: 'i-ph-pencil', disabled: isDup },
-    { label: $t('pages.posts.duplicate'), onSelect: () => !isDup && duplicatePost(post), leading: 'i-ph-copy', disabled: isDup },
-    { label: $t('common.deletePost'), onSelect: () => !isDup && (postPendingDelete.value = post, confirmDialogOpen.value = true), leading: 'i-ph-trash', color: 'danger', disabled: isDup },
+    { label: $ts('common.preview'), onSelect: () => previewPost(post), leading: 'i-ph-external-link', disabled: isDup },
+    { label: $ts('pages.posts.select'), onSelect: () => (selection.setSelectionMode(true), selection.toggleSelected(post.slug)), leading: 'i-ph-check', disabled: isDup },
+    { label: $ts('pages.posts.exportZip', { count: 1 }), onSelect: () => exportPosts('zip', true, [post.slug]), leading: 'i-ph-download-simple', disabled: isDup },
+    { label: $ts('pages.posts.openEditor'), onSelect: () => !isDup && editPost(post), leading: 'i-ph-pencil-line-fill', disabled: isDup },
+    { label: $ts('common.edit'), onSelect: () => !isDup && (postToEdit.value = post, editDialogOpen.value = true), leading: 'i-ph-pencil', disabled: isDup },
+    { label: $ts('pages.posts.duplicate'), onSelect: () => !isDup && duplicatePost(post), leading: 'i-ph-copy', disabled: isDup },
+    { label: $ts('common.deletePost'), onSelect: () => !isDup && (postPendingDelete.value = post, confirmDialogOpen.value = true), leading: 'i-ph-trash', color: 'danger', disabled: isDup },
   ]
 }
 

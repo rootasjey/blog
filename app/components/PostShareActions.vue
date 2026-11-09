@@ -1,12 +1,12 @@
 <template>
-  <div class="site-post-share-actions" role="group" :aria-label="$t('components.postShare.label')">
-    <button type="button" :aria-label="$t('components.postShare.copy')" :data-cursor-tooltip="$t('components.postShare.copy')" @click="copyLink">
+  <div class="site-post-share-actions" role="group" :aria-label="$ts('components.postShare.label')">
+    <button type="button" :aria-label="$ts('components.postShare.copy')" :data-cursor-tooltip="$ts('components.postShare.copy')" @click="copyLink">
       <span class="i-tabler-link" aria-hidden="true" />
     </button>
     <a
       :href="facebookShareUrl"
-      :aria-label="$t('components.postShare.facebook')"
-      :data-cursor-tooltip="$t('components.postShare.facebook')"
+      :aria-label="$ts('components.postShare.facebook')"
+      :data-cursor-tooltip="$ts('components.postShare.facebook')"
       target="_blank"
       rel="noopener noreferrer"
     >
@@ -14,24 +14,24 @@
     </a>
     <a
       :href="xShareUrl"
-      :aria-label="$t('components.postShare.x')"
-      :data-cursor-tooltip="$t('components.postShare.x')"
+      :aria-label="$ts('components.postShare.x')"
+      :data-cursor-tooltip="$ts('components.postShare.x')"
       target="_blank"
       rel="noopener noreferrer"
     >
       <span class="i-tabler-brand-twitter-filled" aria-hidden="true" />
     </a>
-    <a :href="linkedinShareUrl" :aria-label="$t('components.postShare.linkedin')" :data-cursor-tooltip="$t('components.postShare.linkedin')" target="_blank" rel="noopener noreferrer">
+    <a :href="linkedinShareUrl" :aria-label="$ts('components.postShare.linkedin')" :data-cursor-tooltip="$ts('components.postShare.linkedin')" target="_blank" rel="noopener noreferrer">
       <span class="i-tabler-brand-linkedin-filled" aria-hidden="true" />
     </a>
-    <a :href="blueskyShareUrl" :aria-label="$t('components.postShare.bluesky')" :data-cursor-tooltip="$t('components.postShare.bluesky')" target="_blank" rel="noopener noreferrer">
+    <a :href="blueskyShareUrl" :aria-label="$ts('components.postShare.bluesky')" :data-cursor-tooltip="$ts('components.postShare.bluesky')" target="_blank" rel="noopener noreferrer">
       <span class="i-ri-bluesky-fill" aria-hidden="true" />
     </a>
-    <a :href="pinterestShareUrl" :aria-label="$t('components.postShare.pinterest')" :data-cursor-tooltip="$t('components.postShare.pinterest')" target="_blank" rel="noopener noreferrer">
+    <a :href="pinterestShareUrl" :aria-label="$ts('components.postShare.pinterest')" :data-cursor-tooltip="$ts('components.postShare.pinterest')" target="_blank" rel="noopener noreferrer">
       <span class="i-tabler-brand-pinterest-filled" aria-hidden="true" />
     </a>
     <span v-if="copied || copyFailed" class="site-post-share-status" role="status">
-      {{ $t(copied ? 'components.postShare.copied' : 'components.postShare.copyFailed') }}
+      {{ $ts(copied ? 'components.postShare.copied' : 'components.postShare.copyFailed') }}
     </span>
   </div>
 </template>
@@ -40,7 +40,7 @@
 import { computed, onMounted, ref } from 'vue'
 
 const props = defineProps<{ title: string }>()
-const { $t } = useI18n()
+const { $ts } = useI18n()
 const pageUrl = ref('')
 const pageImage = ref('')
 const copied = ref(false)

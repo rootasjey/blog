@@ -3,11 +3,11 @@
     <div class="container mx-auto">
       <h2>
         <NuxtLink class="home-trending-tags-heading" :to="localizedPath('/tags', $getLocale())">
-          <span>{{ $t('components.trendingTags.heading') }}</span>
+          <span>{{ $ts('components.trendingTags.heading') }}</span>
           <span class="i-ph-arrow-right" aria-hidden="true" />
         </NuxtLink>
       </h2>
-      <nav :aria-label="$t('components.trendingTags.heading')">
+      <nav :aria-label="$ts('components.trendingTags.heading')">
         <NuxtLink
           v-for="tag in tags"
           :key="tag.name"
@@ -35,7 +35,7 @@ import { EXCLUDED_TAGS } from '~/utils/tagConstants'
 import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
 import { postTagColor } from '~/utils/postTagColor'
 
-const { $getLocale, $t } = useI18n()
+const { $getLocale, $ts } = useI18n()
 const tagStore = useTagStore()
 
 try {
@@ -68,7 +68,7 @@ const tags = computed(() => {
     }))
   }
 
-  return [...sampleCounts].slice(0, 4).map(([name, count]) => ({ name, count, icon: null }))
+  return [...sampleCounts].slice(0, 4).map(([name, count]) => ({ name, count, icon: null, color: null }))
 })
 
 function tagInitial(name: string) {

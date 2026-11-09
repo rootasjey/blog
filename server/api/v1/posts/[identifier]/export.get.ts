@@ -18,7 +18,7 @@ const sanitizePath = (p: string) => p.replace(/^[\\/]+/, '').split('/').filter(B
 
 const guessContentType = (urlOrName: string, fetchedType?: string | null) => {
   if (fetchedType) return fetchedType
-  const ext = (urlOrName.split('?')[0].split('.').pop() || '').toLowerCase()
+  const ext = urlOrName.split('?')[0]?.split('.').pop()?.toLowerCase() ?? ''
   const map: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', svg: 'image/svg+xml', mp4: 'video/mp4' }
   return map[ext] ?? 'application/octet-stream'
 }

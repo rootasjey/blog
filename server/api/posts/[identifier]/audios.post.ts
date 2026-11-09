@@ -48,7 +48,8 @@ export default defineEventHandler(async (event) => {
 
     const storedPath = stored.pathname.replace(/^\/+/, '')
     const parts = storedPath.split('/')
-    const filename = parts[parts.length - 1]
+    const filename = parts.at(-1)
+    if (!filename) throw createError({ statusCode: 500, message: 'Audio filename could not be resolved' })
 
     const servingUrl = `/images/${encodeURIComponent(filename)}?relatedTo=posts&slug=${encodeURIComponent(`${post.id}/audios`)}`
 

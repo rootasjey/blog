@@ -3,7 +3,7 @@ import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import type { ApiTag } from '~~/shared/types/tags'
-import { ApiPost } from '~~/shared/types/post'
+import type { ApiPost } from '~~/shared/types/post'
 import { convertApiToPost, createArticle, createPostData, generateUniqueSlug } from '~~/server/utils/post'
 import { upsertPostTags } from '~~/server/utils/tags'
 import { unzipSync } from 'fflate'
@@ -161,8 +161,9 @@ async function persistImportedPost(params: {
 
   if (Object.keys(urlMap).length > 0) {
     replaceUrlsRec(finalArticleObj, urlMap)
-    if (postBody.image?.src && urlMap[postBody.image.src]) {
-      postData.image_src = urlMap[postBody.image.src]
+    const importedCover = postBody.image?.src ? urlMap[postBody.image.src] : undefined
+    if (importedCover) {
+      postData.image_src = importedCover
     }
     await blobStorage.put(blobPath, JSON.stringify(finalArticleObj))
   }
@@ -261,7 +262,8 @@ export default defineEventHandler(async (event) => {
     for (const [zipKey, u8] of assetEntries) {
       const idx = findCandidateIndex(zipKey)
       if (idx === -1) continue
-      candidates[idx].assets[zipKey] = u8
+      const candidate = candidates[idx]
+      if (candidate) candidate.assets[zipKey] = u8
     }
   } else {
     const body = await readValidatedBody(event, importPayloadSchema.parse)

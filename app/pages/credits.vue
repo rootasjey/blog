@@ -1,107 +1,107 @@
 <template>
   <main class="site-page site-credits">
     <header class="site-credits-header">
-      <h1>{{ $t('pages.credits.heading') }}</h1>
+      <h1>{{ $ts('pages.credits.heading') }}</h1>
       <p class="site-credits-description">
-        {{ $t('pages.credits.description') }}
+        {{ $ts('pages.credits.description') }}
       </p>
     </header>
 
     <div class="site-credits-sections">
       <section class="site-credits-section">
-        <h2>{{ $t('pages.credits.frameworksAndCore') }}</h2>
+        <h2>{{ $ts('pages.credits.frameworksAndCore') }}</h2>
         <ul class="site-credits-list">
           <li>
             <a href="https://nuxt.com" target="_blank" rel="noopener">Nuxt 4</a>
-            <span> — {{ $t('pages.credits.items.nuxt') }}</span>
+            <span> — {{ $ts('pages.credits.items.nuxt') }}</span>
           </li>
           <li>
             <a href="https://vuejs.org" target="_blank" rel="noopener">Vue 3</a>
-            <span> — {{ $t('pages.credits.items.vue') }}</span>
+            <span> — {{ $ts('pages.credits.items.vue') }}</span>
           </li>
           <li>
             <a href="https://pinia.vuejs.org" target="_blank" rel="noopener">Pinia</a>
-            <span> — {{ $t('pages.credits.items.pinia') }}</span>
+            <span> — {{ $ts('pages.credits.items.pinia') }}</span>
           </li>
           <li>
             <a href="https://router.vuejs.org" target="_blank" rel="noopener">Vue Router</a>
-            <span> — {{ $t('pages.credits.items.vueRouter') }}</span>
+            <span> — {{ $ts('pages.credits.items.vueRouter') }}</span>
           </li>
           <li>
             <a href="https://image.nuxt.com" target="_blank" rel="noopener">@nuxt/image</a>
-            <span> — {{ $t('pages.credits.items.nuxtImage') }}</span>
+            <span> — {{ $ts('pages.credits.items.nuxtImage') }}</span>
           </li>
           <li>
             <a href="https://github.com/atinux/nuxt-auth-utils" target="_blank" rel="noopener">nuxt-auth-utils</a>
-            <span> — {{ $t('pages.credits.items.authUtils') }}</span>
+            <span> — {{ $ts('pages.credits.items.authUtils') }}</span>
           </li>
         </ul>
       </section>
 
       <section class="site-credits-section">
-        <h2>{{ $t('pages.credits.platformAndData') }}</h2>
+        <h2>{{ $ts('pages.credits.platformAndData') }}</h2>
         <ul class="site-credits-list">
           <li>
             <a href="https://hub.nuxt.com" target="_blank" rel="noopener">@nuxthub/core</a>
-            <span> — {{ $t('pages.credits.items.nuxtHub') }}</span>
+            <span> — {{ $ts('pages.credits.items.nuxtHub') }}</span>
           </li>
           <li>
-            <a href="https://developers.cloudflare.com/workers/" target="_blank" rel="noopener">{{ $t('pages.credits.cloudflareTools') }}</a>
-            <span> — {{ $t('pages.credits.items.cloudflare') }}</span>
+            <a href="https://developers.cloudflare.com/workers/" target="_blank" rel="noopener">{{ $ts('pages.credits.cloudflareTools') }}</a>
+            <span> — {{ $ts('pages.credits.items.cloudflare') }}</span>
           </li>
         </ul>
       </section>
 
       <section class="site-credits-section">
-        <h2>{{ $t('pages.credits.uiAndStyling') }}</h2>
+        <h2>{{ $ts('pages.credits.uiAndStyling') }}</h2>
         <ul class="site-credits-list">
           <li>
             <a href="https://una-ui.com" target="_blank" rel="noopener">Una UI</a>
-            <span> — {{ $t('pages.credits.items.unaUi') }}</span>
+            <span> — {{ $ts('pages.credits.items.unaUi') }}</span>
           </li>
           <li>
             <a href="https://unocss.dev" target="_blank" rel="noopener">UnoCSS</a>
-            <span> — {{ $t('pages.credits.items.unocss') }}</span>
+            <span> — {{ $ts('pages.credits.items.unocss') }}</span>
           </li>
           <li>
             <a href="https://iconify.design" target="_blank" rel="noopener">Iconify</a>
-            <span> — {{ $t('pages.credits.items.iconify') }}</span>
+            <span> — {{ $ts('pages.credits.items.iconify') }}</span>
           </li>
           <li>
             <a href="https://fonts.google.com/" target="_blank" rel="noopener">Google Fonts</a>
-            <span> — {{ $t('pages.credits.items.googleFonts') }}</span>
+            <span> — {{ $ts('pages.credits.items.googleFonts') }}</span>
           </li>
           <li>
             <a href="https://color-mode.nuxtjs.org/" target="_blank" rel="noopener">@nuxtjs/color-mode</a>
-            <span> — {{ $t('pages.credits.items.colorMode') }}</span>
+            <span> — {{ $ts('pages.credits.items.colorMode') }}</span>
           </li>
           <li>
-            <a href="https://woords.trexthemes.dev/" target="_blank" rel="noopener">{{ $t('pages.credits.woordsTemplate') }}</a>
-            <span> — {{ $t('pages.credits.items.woords') }}</span>
+            <a href="https://woords.trexthemes.dev/" target="_blank" rel="noopener">{{ $ts('pages.credits.woordsTemplate') }}</a>
+            <span> — {{ $ts('pages.credits.items.woords') }}</span>
           </li>
         </ul>
       </section>
 
       <section class="site-credits-section">
-        <h2>{{ $t('pages.credits.contentAndEditing') }}</h2>
+        <h2>{{ $ts('pages.credits.contentAndEditing') }}</h2>
         <ul class="site-credits-list">
           <li>
             <a href="https://tiptap.dev/" target="_blank" rel="noopener">Tiptap</a>
-            <span> — {{ $t('pages.credits.items.tiptap') }}</span>
+            <span> — {{ $ts('pages.credits.items.tiptap') }}</span>
           </li>
           <li>
             <a href="https://github.com/jimp-dev/jimp" target="_blank" rel="noopener">Jimp</a>
-            <span> — {{ $t('pages.credits.items.jimp') }}</span>
+            <span> — {{ $ts('pages.credits.items.jimp') }}</span>
           </li>
           <li>
             <a href="https://pptr.dev/" target="_blank" rel="noopener">Puppeteer</a>
-            <span> — {{ $t('pages.credits.items.puppeteer') }}</span>
+            <span> — {{ $ts('pages.credits.items.puppeteer') }}</span>
           </li>
         </ul>
       </section>
 
       <section class="site-credits-section">
-        <h2>{{ $t('pages.credits.imagesAndMedia') }}</h2>
+        <h2>{{ $ts('pages.credits.imagesAndMedia') }}</h2>
         <ul class="site-credits-media-list">
           <li v-for="item in pexelsAttributions" :key="item.href">
             <NTooltip :_tooltipContent="{ side: 'top', sideOffset: 8, align: 'center' }" :_tooltipProvider="{ delayDuration: 300 }">
@@ -126,8 +126,8 @@
       </section>
 
       <section class="site-credits-section site-credits-thank-you">
-        <h2>{{ $t('pages.credits.thankYou') }}</h2>
-        <p>{{ $t('pages.credits.thankYouText') }}</p>
+        <h2>{{ $ts('pages.credits.thankYou') }}</h2>
+        <p>{{ $ts('pages.credits.thankYouText') }}</p>
       </section>
     </div>
   </main>
@@ -228,7 +228,7 @@ const pexelsAttributions: Attribution[] = [
   },
 ]
 
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const locale = computed(() => $getLocale() === 'fr' ? 'fr' : 'en')
 const config = useRuntimeConfig()
 
@@ -241,10 +241,10 @@ function formatAttribution(author: string, subject?: Attribution['subject']) {
 }
 
 useSeoMeta({
-  title: $t('pages.credits.heading'),
-  description: $t('pages.credits.description'),
-  ogTitle: $t('pages.credits.heading'),
-  ogDescription: $t('pages.credits.description'),
+  title: $ts('pages.credits.heading'),
+  description: $ts('pages.credits.description'),
+  ogTitle: $ts('pages.credits.heading'),
+  ogDescription: $ts('pages.credits.description'),
   ogUrl: `${config.public.siteUrl}/credits`,
   twitterCard: 'summary_large_image',
 })

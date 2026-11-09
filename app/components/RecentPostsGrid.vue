@@ -4,15 +4,15 @@
       <div class="site-recent-header flex items-center justify-between mb-6">
         <HomeSectionHeading
           :to="localizedPath('/posts', $getLocale())"
-          :title="$t('components.recentPosts.heading')"
+          :title="$ts('components.recentPosts.heading')"
         />
 
         <NuxtLink
           :to="localizedPath('/posts', $getLocale())"
           class="text-[11px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400"
-          :aria-label="$t('common.viewAllPosts')"
+          :aria-label="$ts('common.viewAllPosts')"
         >
-          <span>{{ $t('common.seeAll') }}</span>
+          <span>{{ $ts('common.seeAll') }}</span>
           <NIcon name="i-ph-arrow-up-right" />
         </NuxtLink>
       </div>
@@ -25,10 +25,10 @@
       <!-- Error -->
       <EmptyState
         v-else-if="error"
-        :title="$t('components.recentPosts.unavailable')"
-        :description="$t('components.recentPosts.unavailableDesc')"
+        :title="$ts('components.recentPosts.unavailable')"
+        :description="$ts('components.recentPosts.unavailableDesc')"
         :secondary-to="localizedPath('/posts', $getLocale())"
-        :secondary-label="$t('common.retry')"
+        :secondary-label="$ts('common.retry')"
         variant="card"
         icon="i-ph-clock-counter-clockwise-duotone"
       />
@@ -71,7 +71,7 @@
                 {{ post.name }}
               </h3>
               <div v-if="post.tags?.length || post.formattedDate" class="home-recent-meta">
-                <span v-if="post.tags?.length" class="home-recent-tag" :style="{ color: postTagColor(post.tags[0].name, post.tags[0].color) }">{{ post.tags[0].name }}</span>
+                <span v-if="post.tags?.[0]?.name" class="home-recent-tag" :style="{ color: postTagColor(post.tags[0].name, post.tags[0].color) }">{{ post.tags[0].name }}</span>
                 <time v-if="post.formattedDate">{{ post.formattedDate }}</time>
               </div>
             </div>
@@ -88,7 +88,7 @@ import { EXCLUDED_TAGS } from '~/utils/tagConstants'
 import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
 import { postTagColor } from '~/utils/postTagColor'
 
-const { $t, $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const { enhancePost } = usePost()
 
 const { data: items, pending, error } = await useFetch<Post[]>('/api/posts', {

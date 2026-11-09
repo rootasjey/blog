@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
     if (!['image/jpeg', 'image/png', 'image/bmp', 'image/tiff', 'image/gif', 'image/webp'].includes(type)) {
       return apiError(event, 400, 'VALIDATION_ERROR', 'File must be an image')
     }
+    const mimeType = type as 'image/jpeg' | 'image/png' | 'image/bmp' | 'image/tiff' | 'image/gif' | 'image/webp'
 
     const apiPost: any = await getPostByIdentifier(db, identifier)
     if (!apiPost) return apiError(event, 404, 'NOT_FOUND', 'Post not found')
@@ -36,11 +37,13 @@ export default defineEventHandler(async (event) => {
     const hb = blob
     const fileBlob = new Blob([new Uint8Array(file)], { type })
     await hb.put(`original.${extension}`, fileBlob, { prefix: coverFolder })
+    const resizedMimeType = mimeType === 'image/webp' ? 'image/png' : mimeType
+    const resizedExtension = resizedMimeType === 'image/jpeg' ? 'jpg' : resizedMimeType.slice('image/'.length)
 
     for (const size of sizes) {
       const resized = originalImage.clone().resize({ w: size.width })
-      const buffer = await resized.getBuffer(type)
-      await hb.put(`${coverFolder}/${size.suffix}.${extension}`, new Blob([new Uint8Array(buffer)], { type }), { addRandomSuffix: false })
+      const buffer = await resized.getBuffer(resizedMimeType)
+      await hb.put(`${coverFolder}/${size.suffix}.${resizedExtension}`, new Blob([new Uint8Array(buffer)], { type: resizedMimeType }), { addRandomSuffix: false })
     }
 
     const originalPath = `/${coverFolder}/original.${extension}`

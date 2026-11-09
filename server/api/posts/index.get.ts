@@ -1,7 +1,7 @@
 // GET /api/posts
 import { db, schema } from 'hub:db'
 import { and, desc, eq, like, or, sql } from 'drizzle-orm'
-import { Post, ApiPost } from '~~/shared/types/post'
+import type { Post, ApiPost } from '~~/shared/types/post'
 import { convertApiToPost } from '~~/server/utils/post'
 
 export default defineEventHandler(async (event) => {

@@ -1,6 +1,6 @@
 <template>
   <section class="site-search-recent-posts">
-    <h2>{{ $t('pages.search.recentPosts') }}</h2>
+    <h2>{{ $ts('pages.search.recentPosts') }}</h2>
     <div v-if="pending" class="site-search-recent-loading" aria-hidden="true">
       <div v-for="index in 4" :key="index" />
     </div>
@@ -25,7 +25,7 @@
         </NuxtLink>
       </li>
     </ul>
-    <p v-if="hasError" class="site-search-muted">{{ $t('pages.search.recentPostsError') }}</p>
+    <p v-if="hasError" class="site-search-muted">{{ $ts('pages.search.recentPostsError') }}</p>
   </section>
 </template>
 
@@ -47,7 +47,7 @@ defineProps<{
   locale: string
 }>()
 
-const { $t } = useI18n()
+const { $ts } = useI18n()
 </script>
 
 <style scoped>

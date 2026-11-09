@@ -27,7 +27,7 @@
 
       <div class="site-project-admin-copy">
         <span v-if="post.status !== 'published'" class="site-project-admin-status">
-          {{ post.status === 'draft' ? $t('components.postMeta.draft') : $t('components.postMeta.archived') }}
+          {{ post.status === 'draft' ? $ts('components.postMeta.draft') : $ts('components.postMeta.archived') }}
         </span>
         <h2>{{ post.name }}</h2>
         <p class="site-project-admin-meta">
@@ -71,5 +71,5 @@ defineEmits<{
 const category = computed(() => props.post.tags?.find(tag => !['project', 'featured project'].includes(tag.name.toLowerCase()))?.name)
 const projectDate = computed(() => props.post.publishedAt || props.post.createdAt || '')
 const projectYear = computed(() => projectDate.value ? new Date(projectDate.value).getFullYear() : '')
-const { $t } = useI18n()
+const { $ts } = useI18n()
 </script>

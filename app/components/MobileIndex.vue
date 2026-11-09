@@ -10,8 +10,14 @@
       <NewsletterSubscription />
 
       <div>
-        <NButton btn="solid-blue" :to="localizedPath('/donate', $getLocale())" class="w-full py-6" rounded="6" :label="$t('components.mobileIndex.donateNow')" trailing="i-ph-cursor-click-duotone" />
+        <NButton btn="solid-blue" :to="localizedPath('/donate', $getLocale())" class="w-full py-6" rounded="6" :label="$ts('components.mobileIndex.donateNow')" trailing="i-ph-cursor-click-duotone" />
       </div>
     </section>
   </div>
 </template>
+
+<script setup lang="ts">
+import { localizedPath } from '~/utils/presentationPosts'
+
+const { $getLocale, $ts } = useI18n()
+</script>

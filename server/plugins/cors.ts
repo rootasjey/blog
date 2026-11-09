@@ -6,6 +6,6 @@ export default defineNitroPlugin((nitroApp) => {
     setResponseHeader(event, 'access-control-allow-origin', '*')
     setResponseHeader(event, 'access-control-allow-methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
     setResponseHeader(event, 'access-control-allow-headers', 'Content-Type, Authorization')
-    setResponseHeader(event, 'access-control-max-age', '86400')
+    setResponseHeader(event, 'access-control-max-age', 86400)
   })
 })
