@@ -95,7 +95,7 @@ function forwardEditor(ed: any) { emit('editor-ready', ed) }
   line-height: 1.35;
 }
 .site-shell .site-post-content .post-content .ProseMirror .auto-link-preview .auto-link-preview__description {
-  margin: 8px 0 0;
+  margin: 12px 0 0;
   color: var(--site-color-text);
   font-size: 16px;
   line-height: 1.5;

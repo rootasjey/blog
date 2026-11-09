@@ -87,7 +87,11 @@ function resizeDescription() {
   textarea.style.height = `${textarea.scrollHeight}px`
 }
 
-onMounted(resizeDescription)
+onMounted(async () => {
+  await nextTick()
+  resizeDescription()
+  requestAnimationFrame(resizeDescription)
+})
 onBeforeUnmount(() => {
   if (titleTimer) clearTimeout(titleTimer)
   if (descTimer) clearTimeout(descTimer)
@@ -143,19 +147,44 @@ function onMetaClick(e: MouseEvent) {
 @layer components {
 
 /* Tiptap styles for this component. */
-.post-content .ProseMirror .auto-link-preview { @apply relative flex items-center gap-4 border-1.5 border-border rounded-xl p-3 my-2 md:p-4 bg-background hover:scale-102 active:scale-99 transition-transform duration-200 ease-in; }
+.post-content .ProseMirror .auto-link-preview {
+  @apply relative flex items-center my-2;
+  box-sizing: border-box;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid color-mix(in srgb, var(--site-color-text) 8%, var(--site-color-background));
+  border-radius: var(--site-radius-card);
+  background: transparent;
+  transition: border-color 200ms ease, background-color 200ms ease, transform 220ms var(--site-ease-standard);
+}
+.post-content .ProseMirror .auto-link-preview:hover,
+.post-content .ProseMirror .auto-link-preview:focus-within {
+  border-color: color-mix(in srgb, var(--site-color-text) 14%, var(--site-color-background));
+  background: var(--site-color-hover-background);
+}
+.post-content .ProseMirror .auto-link-preview:hover { transform: translateY(-2px); }
+.post-content .ProseMirror .auto-link-preview:focus-within { outline: 2px solid var(--site-color-focus-ring); outline-offset: 3px; }
 .post-content .ProseMirror .auto-link-preview[data-image-position="right"] { flex-direction: row-reverse; }
 .dark .post-content .ProseMirror .auto-link-preview ::selection { @apply bg-transparent color-white; }
 .post-content .ProseMirror .auto-link-preview__link,
 .post-content .ProseMirror .auto-link-preview__link:hover { display: block; width: 100%; color: inherit; text-decoration: none; }
-.post-content .ProseMirror .auto-link-preview__media { @apply relative w-24 h-24 flex-shrink-0 overflow-hidden rounded-lg bg-muted flex items-center justify-center; }
+.post-content .ProseMirror .auto-link-preview__media {
+  @apply relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex-shrink-0 overflow-hidden bg-muted flex items-center justify-center;
+  border-radius: var(--site-radius-inline-media);
+}
 .post-content .ProseMirror .auto-link-preview__image { @apply w-full h-full object-cover; }
 .post-content .ProseMirror .auto-link-preview__placeholder { @apply text-xs text-slate-500 dark:text-slate-400; }
 .post-content .ProseMirror .auto-link-preview__spinner { @apply absolute inset-0 flex items-center justify-center bg-background/40; }
 .post-content .ProseMirror .spinner { @apply w-4 h-4 border-2 border-slate-300 border-t-transparent rounded-full animate-spin; }
 .post-content .ProseMirror .auto-link-preview__meta { @apply flex-1 flex flex-col justify-center min-w-0; }
-.post-content .ProseMirror .auto-link-preview__title { @apply text-lg font-semibold truncate mt-0 mb-0; font-family: var(--site-font-body); line-height: 1.35; }
-.post-content .ProseMirror .auto-link-preview__description { @apply text-base; color: var(--site-color-text); margin: 8px 0 0; line-height: 1.5; }
+.post-content .ProseMirror .auto-link-preview__title { @apply text-lg font-semibold mt-0 mb-0; font-family: var(--site-font-body); line-height: 1.35; }
+.post-content .ProseMirror .auto-link-preview__link .auto-link-preview__title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.post-content .ProseMirror .auto-link-preview__description { @apply text-base; color: var(--site-color-text); margin: 12px 0 0; line-height: 1.5; }
 .post-content .ProseMirror .auto-link-preview__title-input {
   @apply w-full p-0 bg-transparent;
   border: 0;
@@ -197,5 +226,15 @@ function onMetaClick(e: MouseEvent) {
 .post-content .ProseMirror .auto-link-preview.is-selected .auto-link-preview__revert-btn { opacity: 1; pointer-events: auto; }
 .post-content .ProseMirror .auto-link-preview__media.is-clickable { cursor: pointer; }
 .post-content .ProseMirror .auto-link-preview__meta.is-clickable { cursor: pointer; }
+
+@media (max-width: 640px) {
+  .post-content .ProseMirror .auto-link-preview { gap: 16px; padding: 16px; }
+  .post-content .ProseMirror .auto-link-preview__media { @apply w-20 h-20; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post-content .ProseMirror .auto-link-preview { transition: none; }
+  .post-content .ProseMirror .auto-link-preview:hover { transform: none; }
+}
 }
 </style>
