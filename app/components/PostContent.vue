@@ -100,6 +100,22 @@ function forwardEditor(ed: any) { emit('editor-ready', ed) }
   font-size: 16px;
   line-height: 1.5;
 }
+.site-shell .site-post-content .post-content .ProseMirror .horizontal-card__body h3 {
+  margin: 0;
+  color: var(--site-color-heading);
+  font-family: var(--site-font-body);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.site-shell .site-post-content .post-content .ProseMirror .horizontal-card__body p {
+  margin: 12px 0 0;
+  color: var(--site-color-text);
+  font-family: var(--site-font-body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.site-shell .site-post-content .post-content .ProseMirror .horizontal-card__body > :first-child { margin-top: 0; }
 .site-shell .site-post-content .post-content blockquote { border: 0; background: var(--site-color-hover-background); color: var(--site-color-text); }
 .site-shell .site-post-content .post-content img { border-radius: var(--site-radius-inline-media); }
 .post-content figure.image-figure--full-bleed { width: 100vw; max-width: none; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); padding-inline: 16px; box-sizing: border-box; }
