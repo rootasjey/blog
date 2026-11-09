@@ -84,6 +84,8 @@ function forwardEditor(ed: any) { emit('editor-ready', ed) }
   transition: color 160ms ease;
 }
 .site-shell .site-post-content .post-content a:hover { color: var(--site-color-heading); }
+.site-shell .site-post-content .post-content .ProseMirror .auto-link-preview__link,
+.site-shell .site-post-content .post-content .ProseMirror .auto-link-preview__link:hover { text-decoration-line: none; }
 .site-shell .site-post-content .post-content blockquote { border: 0; background: var(--site-color-hover-background); color: var(--site-color-text); }
 .site-shell .site-post-content .post-content img { border-radius: var(--site-radius-inline-media); }
 .post-content figure.image-figure--full-bleed { width: 100vw; max-width: none; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); padding-inline: 16px; box-sizing: border-box; }
