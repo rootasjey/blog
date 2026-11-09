@@ -152,14 +152,14 @@ function onMetaClick(e: MouseEvent) {
   box-sizing: border-box;
   gap: 20px;
   padding: 20px;
-  border: 1px solid color-mix(in srgb, var(--site-color-text) 8%, var(--site-color-background));
+  border: 1px solid var(--site-color-card-border);
   border-radius: var(--site-radius-card);
   background: transparent;
   transition: border-color 200ms ease, background-color 200ms ease, transform 220ms var(--site-ease-standard);
 }
 .post-content .ProseMirror .auto-link-preview:hover,
 .post-content .ProseMirror .auto-link-preview:focus-within {
-  border-color: color-mix(in srgb, var(--site-color-text) 14%, var(--site-color-background));
+  border-color: var(--site-color-hover-background);
   background: var(--site-color-hover-background);
 }
 .post-content .ProseMirror .auto-link-preview:hover { transform: translateY(-2px); }

@@ -26,6 +26,7 @@
   --site-color-tag-pink: #be185d;
   --site-color-tag-neutral: #52525b;
   --site-color-border: #e5e5e7;
+  --site-color-card-border: rgba(125, 125, 125, 0.4);
   --site-color-focus-ring: #737378;
   --site-color-input-focus-background: #f2f2f2;
   --site-color-selection-background: #d4d4d8;
@@ -372,7 +373,7 @@ body {
   box-sizing: border-box;
   margin: 40px auto 0;
   padding: 20px;
-  border: 1px solid color-mix(in srgb, var(--site-color-text) 8%, var(--site-color-background));
+  border: 1px solid var(--site-color-card-border);
   border-radius: var(--site-radius-card);
   color: inherit;
   text-decoration: none;
@@ -384,7 +385,7 @@ body {
 }
 
 .site-shell .site-post-author-card:hover {
-  border-color: color-mix(in srgb, var(--site-color-text) 14%, var(--site-color-background));
+  border-color: var(--site-color-hover-background);
 }
 
 @media (max-width: 640px) {
