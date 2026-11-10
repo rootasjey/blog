@@ -203,12 +203,13 @@ body {
 }
 
 .site-shell .site-preview-topic-nav .site-preview-tag {
-  display: grid;
+  display: inline-flex;
   height: 28px;
   min-height: 28px;
   align-items: center;
+  gap: 6px;
   box-sizing: border-box;
-  padding: 4px 8px;
+  padding: 4px 9px;
   border: 1px solid color-mix(in srgb, var(--post-tag-color) 35%, transparent);
   border-radius: var(--site-radius-tag);
   color: var(--post-tag-color);
@@ -217,6 +218,24 @@ body {
   line-height: 18px;
   text-decoration: none;
   transition: border-color 200ms ease, background-color 200ms ease, color 200ms ease, opacity 200ms ease, transform 220ms var(--site-ease-standard);
+}
+
+.site-shell .site-preview-topic-nav .site-preview-tag-mark {
+  display: inline-grid;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  place-items: center;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--post-tag-color) 14%, var(--site-color-surface));
+  color: inherit;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.site-shell .site-preview-topic-nav .site-preview-tag-mark .iconify {
+  font-size: 11px;
 }
 
 .site-shell .site-preview-topic-nav .site-preview-tag:hover,
@@ -447,6 +466,33 @@ body {
   padding: 20px;
 }
 
+.site-shell .site-post-public-byline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.site-shell .site-post-author-link {
+  display: block;
+  min-width: 0;
+  flex: 1;
+  color: inherit;
+  text-decoration: none;
+}
+
+.site-shell .site-post-public-meta {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--site-color-muted);
+  font-size: 13px;
+  font-weight: 550;
+}
+
 .site-shell .site-post-author-card:hover {
   border-color: var(--site-color-hover-background);
 }
@@ -454,6 +500,16 @@ body {
 @media (max-width: 640px) {
   .site-shell .site-post > section.site-post-end > .container > .site-post-author-card {
     padding: 16px;
+  }
+
+  .site-shell .site-post-public-byline {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .site-shell .site-post-public-meta {
+    justify-content: flex-start;
   }
 }
 }

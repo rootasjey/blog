@@ -5,8 +5,21 @@
         <nav class="site-preview-topic-nav site-editor-tags-wrap" :aria-label="$ts('common.tags')">
           <span class="site-post-nav-spacer" aria-hidden="true" />
           <div class="site-editor-tags">
-            <NBadge v-for="tag in localTags" :key="tag.id" badge="~" rounded="full" class="site-editor-tag" :style="{ '--editor-tag-color': postTagColor(tag.name, tag.color) }">
-              <NLink :to="tagPath(tag.name)" class="site-editor-tag-link">{{ tag.name }}</NLink>
+            <NBadge
+              v-for="tag in localTags"
+              :key="tag.id"
+              badge="~"
+              rounded="full"
+              class="site-editor-tag"
+              :style="{ '--editor-tag-color': postTagColor(tag.name, tag.color) }"
+            >
+              <NLink :to="tagPath(tag.name)" class="site-editor-tag-link">
+                <span class="site-editor-tag-mark" aria-hidden="true">
+                  <NIcon v-if="tag.icon" :name="tag.icon" class="site-editor-tag-icon" />
+                  <span v-else class="site-editor-tag-initial">{{ tag.name.slice(0, 1).toUpperCase() }}</span>
+                </span>
+                {{ tag.name }}
+              </NLink>
               <NTooltip>
                 <template #content>
                   <span class="font-600 text-gray-300 dark:text-gray-600">{{ $ts('common.removeTag') }}</span>
@@ -78,7 +91,6 @@
                 size="xs"
                 btn="ghost-gray"
                 class="site-editor-add-tag-button"
-                :class="{ 'h-6 w-6': localTags.length > 0 }"
                 @click="startNewTag"
                 :aria-label="$ts('editor.postMetadataEditor.addTag')"
               >

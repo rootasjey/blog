@@ -53,3 +53,10 @@ For releases, also create an annotated git tag:
 bun run version <patch|minor|major>
 git push origin v<version>
 ```
+
+## CSS cascade and visual regression checks
+
+- Treat the global CSS layer order as an explicit project contract. Do not remove, relocate, or reorder its declaration or change how global styles are injected without documenting why the change is intentional and checking the resulting cascade.
+- Preserve the single layered imports for UnoCSS reset and UnaUI. Changes to the Nuxt CSS filter or stylesheet injection must keep these styles from being injected a second time outside their intended layers.
+- For CSS-layer or global-style changes, run the targeted stylesheet-injection unit test and `bun run visual:check` against the existing local server on port 3000. Review the generated screenshots and computed style checks; do not treat passing unit tests or a CSS value alone as proof that the rendered page is correct.
+- For visual changes, show the user a screenshot of the rendered result with the route, theme, viewport, and relevant interaction represented. If an authenticated view cannot be checked, state that limitation instead of claiming it was verified.

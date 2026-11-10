@@ -68,13 +68,16 @@
 .site-shell .site-post-editor .site-editor-tag:focus-within {
   border-color: color-mix(in srgb, var(--editor-tag-color) 48%, transparent);
   background-color: var(--site-color-hover-background);
-  color: var(--site-color-heading);
+  color: var(--editor-tag-color);
 }
 
-.site-shell .site-post-editor .site-editor-tag-link { color: inherit; font-weight: 500; text-decoration: none; }
-.site-shell .site-post-editor .site-editor-tag-link:hover { color: var(--site-color-heading); }
-.site-shell .site-post-editor .site-editor-tag-remove { display: grid; width: 18px; height: 18px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; opacity: 0.72; }
-.site-shell .site-post-editor .site-editor-tag-remove:hover { background: color-mix(in srgb, var(--editor-tag-color) 12%, transparent); opacity: 1; }
+.site-shell .site-post-editor .site-editor-tag-link { display: inline-flex; align-items: center; gap: 5px; color: inherit; font-weight: 500; text-decoration: none; }
+.site-shell .site-post-editor .site-editor-tag-mark { display: inline-grid; width: 18px; height: 18px; flex: none; place-items: center; border-radius: 5px; background: color-mix(in srgb, var(--editor-tag-color) 14%, var(--site-color-surface)); color: inherit; }
+.site-shell .site-post-editor .site-editor-tag-icon { font-size: 11px; }
+.site-shell .site-post-editor .site-editor-tag-initial { color: inherit; font-size: 10px; font-weight: 650; line-height: 1; }
+.site-shell .site-post-editor .site-editor-tag-link:hover { color: var(--editor-tag-color); }
+.site-shell .site-post-editor .site-editor-tag-remove { display: grid; width: 20px; height: 20px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--editor-tag-color) 10%, var(--site-color-surface)); color: inherit; cursor: pointer; opacity: 0.82; transition: background-color 160ms ease, opacity 160ms ease; }
+.site-shell .site-post-editor .site-editor-tag-remove:hover { background: color-mix(in srgb, var(--editor-tag-color) 20%, var(--site-color-surface)); opacity: 1; }
 
 .site-shell .site-post-editor .site-editor-add-tag,
 .site-shell .site-post-editor .site-editor-add-tag-button {
@@ -97,7 +100,12 @@
 .site-shell .site-post-editor .site-editor-add-tag:hover,
 .site-shell .site-post-editor .site-editor-add-tag-button:hover { background: var(--site-color-hover-background); color: var(--site-color-heading); }
 .site-shell .site-post-editor .site-editor-add-tag-button {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
   border-color: var(--site-color-border);
+  border-radius: var(--site-radius-icon);
   background: var(--site-color-surface);
   color: var(--site-color-text);
   font-weight: 500;
@@ -109,7 +117,25 @@
 
 @media (max-width: 640px) {
   .site-shell .site-post-editor .site-editor-description { font-size: 16px; }
-  .site-shell .site-post-editor .site-editor-tags { gap: 6px; }
+  .site-shell .site-post-editor .site-editor-tags-wrap {
+    justify-content: flex-start;
+    overflow: hidden;
+  }
+  .site-shell .site-post-editor .site-editor-tags-wrap > .site-post-nav-spacer { display: none; }
+  .site-shell .site-post-editor .site-editor-tags {
+    width: 100%;
+    min-width: 0;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 6px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+  }
+  .site-shell .site-post-editor .site-editor-tags::-webkit-scrollbar { display: none; }
+  .site-shell .site-post-editor .site-editor-tag,
+  .site-shell .site-post-editor .site-editor-add-tag-button,
+  .site-shell .site-post-editor .site-editor-tag-combobox { flex: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

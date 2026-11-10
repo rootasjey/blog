@@ -198,6 +198,10 @@
   margin-inline: auto;
 }
 
+.site-shell .site-post-editor .site-editor-canvas .post-content--editor > .ProseMirror {
+  border: 0;
+}
+
 .site-shell .site-post-editor .post-content--editor .ProseMirror {
   min-height: 160px;
   padding-block: 0 28px;
@@ -215,31 +219,39 @@
 }
 
 .site-shell .site-post-editor .site-editor-byline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
   margin-top: 40px;
+}
+
+.site-shell .site-post-editor .site-editor-byline:hover {
+  border-color: color-mix(in srgb, var(--site-color-card-border) 65%, var(--site-color-heading));
 }
 
 .site-shell .site-post-editor .site-editor-byline-author {
   display: flex;
-  min-height: 36px;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
 }
 
 .site-shell .site-post-editor .site-editor-author { display: inline-flex; min-width: 0; align-items: center; gap: 10px; }
+.site-shell .site-post-editor .site-editor-author-copy { display: grid; min-width: 0; gap: 3px; }
 .site-shell .site-post-editor .site-editor-byline-avatar { width: 32px; height: 32px; border-radius: var(--site-radius-pill); object-fit: cover; }
 .site-shell .site-post-editor .site-editor-byline-name { color: var(--site-color-heading); font-size: 14px; font-weight: 550; }
-.site-shell .site-post-editor .site-editor-autosave-status { color: var(--site-color-muted); font-size: 12px; line-height: 1.5; }
+.site-shell .site-post-editor .site-editor-autosave-status { color: var(--site-color-muted); font-size: 12px; font-weight: 600; line-height: 1.5; }
 
 .site-shell .site-post-editor .site-editor-end-meta {
   display: flex;
-  width: min(700px, calc(100% - 32px));
+  flex: none;
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  margin: 16px auto 0;
+  margin: 0;
+  padding-top: 0;
   color: var(--site-color-muted);
   font-size: 13px;
+  font-weight: 550;
 }
 
 @media (max-width: 640px) {
@@ -249,7 +261,7 @@
   .site-shell .site-post-editor .site-editor-tool-button { width: 44px; padding-inline: 0; }
   .site-shell .site-post-editor .site-editor-cover { border-radius: var(--site-radius-card); }
   .site-shell .site-post-editor .site-editor-cover-actions { top: 10px; right: 10px; opacity: 1; }
-  .site-shell .site-post-editor .site-editor-byline-author { align-items: flex-start; flex-direction: column; justify-content: center; gap: 8px; }
+  .site-shell .site-post-editor .site-editor-byline { align-items: flex-start; flex-direction: column; gap: 14px; }
   .site-shell .site-post-editor .site-editor-end-meta { justify-content: flex-start; }
   .site-shell .site-post-editor .site-editor-save-status { justify-content: flex-start; }
 }

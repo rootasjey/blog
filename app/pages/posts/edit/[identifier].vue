@@ -112,19 +112,21 @@
                 fit="cover"
                 class="site-editor-byline-avatar"
               />
-              <div v-if="post.user.name" class="site-editor-byline-name">
-                {{ post.user.name }}
+              <div class="site-editor-author-copy">
+                <div v-if="post.user.name" class="site-editor-byline-name">
+                  {{ post.user.name }}
+                </div>
+                <div class="site-editor-autosave-status">
+                  {{ $ts('pages.postEditor.autosaveEnabled') }}
+                </div>
               </div>
             </div>
-            <div class="site-editor-autosave-status">
-              {{ $ts('pages.postEditor.autosaveEnabled') }}
-            </div>
           </div>
-        </div>
-        <div class="site-editor-end-meta">
-          <time>{{ formatPostDate(post.publishedAt || post.createdAt) }}</time>
-          <span aria-hidden="true">·</span>
-          <span>{{ enhancedPost.readingTime }}</span>
+          <div class="site-editor-end-meta">
+            <time>{{ formatPostDate(post.publishedAt || post.createdAt) }}</time>
+            <span aria-hidden="true">·</span>
+            <span>{{ enhancedPost.readingTime }}</span>
+          </div>
         </div>
       </div>
     </section>

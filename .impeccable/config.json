@@ -10,7 +10,7 @@
           "app/components/editor/PostViewer.vue"
         ],
         "createdAt": "2026-11-07T22:16:42.023Z",
-        "reason": "Reviewed current source: line 159 is the blockquote rule and border is explicitly reset to 0; there is no side-tab accent border in PostViewer.vue, so this finding does not match the current design."
+        "reason": "The reported line now closes the article-link decoration rule; this file has no side-tab accent border at that location, so the finding is stale or misattributed."
       },
       {
         "rule": "side-tab",

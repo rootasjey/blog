@@ -1,6 +1,7 @@
 import { sql, eq } from 'drizzle-orm'
 import { schema } from 'hub:db'
 import type { ApiPost, Post } from "~~/shared/types/post"
+import type { ApiTag } from '~~/shared/types/tags'
 
 /**
  * Creates a new post data object with default values for SQLite storage.
@@ -143,7 +144,7 @@ export async function getPostByIdentifier(db: any, identifier: string | number) 
 export function convertApiToPost(
   apiPost: ApiPost,
   options?: {
-    tags?: Record<string, unknown>[]
+    tags?: ApiTag[]
     article?: string
     userName?: string
     userAvatar?: string
@@ -172,14 +173,7 @@ export function convertApiToPost(
     slug: apiPost.slug,
     status: apiPost.status,
     translationGroupId: apiPost.translation_group_id ?? undefined,
-    tags: (options?.tags || []).map(t => ({
-      id: Number(t.id),
-      name: String(t.name),
-      category: typeof t.category === 'string' ? t.category : '',
-      description: typeof (t as any).description === 'string' ? (t as any).description : '',
-      created_at: t.created_at ? String(t.created_at) : '',
-      updated_at: t.updated_at ? String(t.updated_at) : ''
-    })),
+    tags: options?.tags ?? [],
     updatedAt: apiPost.updated_at,
     user: {
       id: apiPost.user_id,

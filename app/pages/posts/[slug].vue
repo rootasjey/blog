@@ -20,6 +20,10 @@
               :to="`${localizedPath('/posts', locale)}?tag=${encodeURIComponent(primaryTag.name)}`"
               :style="{ '--post-tag-color': postTagColor(primaryTag.name, primaryTag.color) }"
             >
+              <span class="site-preview-tag-mark" aria-hidden="true">
+                <NIcon v-if="primaryTag.icon" :name="primaryTag.icon" />
+                <span v-else>{{ primaryTag.name.slice(0, 1).toUpperCase() }}</span>
+              </span>
               {{ primaryTag.name }}
             </NuxtLink>
             <span v-else class="site-post-nav-spacer" aria-hidden="true" />
@@ -63,34 +67,42 @@
 
     <section v-if="!post.isProject" class="site-post-end">
       <div class="container">
-        <NuxtLink
-          v-if="post.user"
-          class="site-post-author-card site-interactive-hover"
-          :to="authorPath"
-          :aria-label="post.user.name || $ts('components.postEndMatter.authorName')"
-        >
-          <div class="site-post-author-heading">
-            <PostImage
-              v-if="post.user.avatar"
-              provider="hubblob"
-              :src="post.user.avatar"
-              :alt="post.user.name || $ts('pages.post.userAlt')"
-              width="32"
-              height="32"
-              loading="lazy"
-            />
-            <span>{{ post.user.name || $ts('components.postEndMatter.authorName') }}</span>
+        <div class="site-post-author-card site-post-public-byline">
+          <NuxtLink
+            v-if="post.user"
+            class="site-post-author-link"
+            :to="authorPath"
+            :aria-label="post.user.name || $ts('components.postEndMatter.authorName')"
+          >
+            <div class="site-post-author-heading">
+              <PostImage
+                v-if="post.user.avatar"
+                provider="hubblob"
+                :src="post.user.avatar"
+                :alt="post.user.name || $ts('pages.post.userAlt')"
+                width="32"
+                height="32"
+                loading="lazy"
+              />
+              <span>{{ post.user.name || $ts('components.postEndMatter.authorName') }}</span>
+            </div>
+            <p class="site-post-author-bio">{{ authorProfile?.biography || $ts('components.postEndMatter.authorBio') }}</p>
+          </NuxtLink>
+
+          <div class="site-post-public-meta">
+            <time :datetime="post.publishedAt || post.createdAt">{{ formatPostDate(post.publishedAt || post.createdAt) }}</time>
+            <NuxtLink v-if="isAdmin" class="site-post-edit-link" :to="editPostUrl">
+              {{ $ts('pages.post.editPost') }}
+            </NuxtLink>
           </div>
-          <p class="site-post-author-bio">{{ authorProfile?.biography || $ts('components.postEndMatter.authorBio') }}</p>
-        </NuxtLink>
+        </div>
 
         <div class="site-post-share-row">
           <PostShareActions :title="post.name" />
         </div>
 
-        <div class="site-post-end-meta">
-          <time :datetime="post.publishedAt || post.createdAt">{{ formatPostDate(post.publishedAt || post.createdAt) }}</time>
-          <div v-if="translations.length" class="site-post-language-switcher" :aria-label="$ts('common.language')">
+        <div v-if="translations.length" class="site-post-end-meta">
+          <div class="site-post-language-switcher" :aria-label="$ts('common.language')">
             <template v-for="version in allVersions" :key="version.language">
               <NuxtLink
                 v-if="version.slug"
@@ -103,9 +115,6 @@
               <span v-else class="is-active" aria-current="page">{{ version.label }}</span>
             </template>
           </div>
-          <NuxtLink v-if="isAdmin" class="site-post-edit-link" :to="editPostUrl">
-            {{ $ts('pages.post.editPost') }}
-          </NuxtLink>
         </div>
 
         <PostRelatedArticles :articles="relatedArticles" />
