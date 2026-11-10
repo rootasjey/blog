@@ -12,8 +12,6 @@
 </template>
 
 <script setup lang="ts">
-import '@/styles/main.css'
-import 'uno.css'
 import { onMounted, onBeforeUnmount } from 'vue'
 import useGlobalSearch from './composables/useGlobalSearch'
 

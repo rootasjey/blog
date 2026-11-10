@@ -1,6 +1,6 @@
 {
   "name": "eneide",
-  "version": "4.24.0",
+  "version": "4.24.1",
   "type": "module",
   "private": true,
   "workspaces": [
@@ -23,6 +23,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ci": "vitest run --reporter=verbose",
+    "visual:check": "node scripts/visual-smoke.mjs",
     "bump:minor": "node ./scripts/bump-version.mjs minor",
     "bump:major": "node ./scripts/bump-version.mjs major",
     "version": "node ./scripts/tag-version.mjs"
