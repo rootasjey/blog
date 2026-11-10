@@ -249,6 +249,10 @@ useHead({
     color: var(--site-color-muted);
   }
 
+  .site-about-faq :deep(.accordion-panel) {
+    border-top-color: var(--site-color-border);
+  }
+
   .site-about-contact {
     margin-bottom: 0;
   }

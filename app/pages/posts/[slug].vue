@@ -92,6 +92,7 @@
           <div class="site-post-public-meta">
             <time :datetime="post.publishedAt || post.createdAt">{{ formatPostDate(post.publishedAt || post.createdAt) }}</time>
             <NuxtLink v-if="isAdmin" class="site-post-edit-link" :to="editPostUrl">
+              <NIcon name="i-ph-pencil-line" aria-hidden="true" />
               {{ $ts('pages.post.editPost') }}
             </NuxtLink>
           </div>
@@ -603,6 +604,7 @@ useHead({
 .site-shell .site-post-language-switcher a,
 .site-shell .site-post-language-switcher span,
 .site-shell .site-post-edit-link { padding: 4px 9px; border: 1px solid var(--site-color-border); border-radius: 999px; color: var(--site-color-muted); font-size: 12px; text-decoration: none; }
+.site-shell .site-post-edit-link { display: inline-flex; align-items: center; gap: 6px; }
 .site-shell .site-post-language-switcher .is-active { color: var(--site-color-heading); }
 .site-shell .site-post-language-switcher a:hover,
 .site-shell .site-post-edit-link:hover { background: var(--site-color-hover-background); color: var(--site-color-heading); }
