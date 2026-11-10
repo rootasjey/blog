@@ -5,7 +5,7 @@
 .site-shell .site-masthead { background: var(--site-color-background); color: var(--site-color-text); }
 .site-shell .site-header-desktop {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: center;
   width: min(700px, calc(100% - 32px));
   max-width: 700px;

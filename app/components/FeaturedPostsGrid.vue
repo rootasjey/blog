@@ -1,5 +1,5 @@
 <template>
-  <section class="home-featured-posts animate-entrance" :aria-label="$ts('components.featuredPosts.heading')">
+  <section ref="section" class="home-featured-posts animate-entrance" :aria-label="$ts('components.featuredPosts.heading')">
     <div ref="track" class="home-featured-track" @scroll.passive="updateActivePost">
       <article
         v-for="(post, index) in posts"
@@ -12,9 +12,11 @@
             <img v-if="post.image.startsWith('/images/')" :src="post.image" :alt="post.title" loading="lazy" decoding="async">
             <PostImage v-else :src="post.image" :alt="post.title" loading="lazy" />
           </div>
-          <h3>{{ post.title }}</h3>
-          <p>{{ post.description }}</p>
-          <span class="home-featured-meta">{{ post.date }}<template v-if="post.author"> — {{ post.author }}</template></span>
+          <div class="home-featured-content">
+            <h3>{{ post.title }}</h3>
+            <p>{{ post.description }}</p>
+            <span class="home-featured-meta">{{ post.date }}<template v-if="post.author"> — {{ post.author }}</template></span>
+          </div>
         </NuxtLink>
       </article>
     </div>
@@ -33,11 +35,13 @@
 </template>
 
 <script setup lang="ts">
+import { useEventListener } from '@vueuse/core'
 import type { Post } from '~~/shared/types/post'
 import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
 
 const { $ts, $getLocale } = useI18n()
 const { enhancePost } = usePost()
+const section = ref<HTMLElement>()
 const track = ref<HTMLElement>()
 const activeIndex = ref(0)
 
@@ -86,6 +90,50 @@ function scroll(direction: 'left' | 'right') {
   container.scrollTo({ left: targetCard.offsetLeft - firstCard.offsetLeft, behavior: 'smooth' })
 }
 
+function handleKeyboardNavigation(event: KeyboardEvent) {
+  const isArrowKey = event.key === 'ArrowLeft' || event.key === 'ArrowRight'
+  const isOpenKey = event.key === 'Enter' || event.key.toLowerCase() === 'o'
+  if (!isArrowKey && !isOpenKey) return
+  if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+  if (isArrowKey && posts.value.length < 2) return
+
+  const target = event.target
+  if (target instanceof HTMLElement && (target.isContentEditable || target.closest('[role="dialog"], [role="menu"]'))) return
+  if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement) return
+
+  const carousel = section.value
+  if (!carousel) return
+
+  if (isOpenKey && target instanceof HTMLElement) {
+    const interactiveTarget = target.closest('a, button, [role="button"]')
+    if (interactiveTarget && !carousel.contains(interactiveTarget)) return
+  }
+
+  const bounds = carousel.getBoundingClientRect()
+  const isVisible = bounds.top < window.innerHeight && bounds.bottom > 0
+  if (!isVisible) return
+
+  event.preventDefault()
+
+  if (isOpenKey) {
+    const activePost = posts.value[activeIndex.value]
+    if (activePost) void navigateTo(activePost.to)
+    return
+  }
+
+  const isPartiallyVisible = bounds.top < 0 || bounds.bottom > window.innerHeight
+  if (isPartiallyVisible) {
+    carousel.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' })
+  }
+
+  if (event.key === 'ArrowLeft') {
+    scroll('left')
+    return
+  }
+
+  scroll('right')
+}
+
 function updateActivePost() {
   const container = track.value
   if (!container) return
@@ -105,6 +153,10 @@ function updateActivePost() {
 
   activeIndex.value = closestIndex
 }
+
+if (import.meta.client) {
+  useEventListener(window, 'keydown', handleKeyboardNavigation)
+}
 </script>
 
 <style>
@@ -119,9 +171,6 @@ function updateActivePost() {
 }
 .site-shell .home-featured-posts { overflow: hidden; padding: 52px 0 15px; background: var(--site-color-background); color: var(--site-color-text); }
 .site-shell .home-featured-posts > div { overflow: visible; }
-.site-shell .home-featured-posts > .home-featured-track { width: 100vw; max-width: 100vw; box-sizing: border-box; padding: 0 max(16px, calc(50vw - 360px)) 8px; }
-.site-shell .home-featured-posts > .home-featured-track { gap: 10px; }
-.site-shell .home-featured-card { flex-basis: min(720px, calc(100vw - 32px)); }
 .site-shell .home-featured-posts > div > h2 {
   margin: 0 0 20px;
   color: var(--site-color-text);
@@ -136,20 +185,27 @@ function updateActivePost() {
   width: 100%;
   gap: 10px;
   overflow-x: auto;
-  padding: 0 max(16px, calc(50vw - 360px)) 8px;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
 }
-.site-shell .home-featured-posts > .home-featured-track { width: 100vw; max-width: 100vw; margin: 0; overflow-x: auto; }
+.site-shell .home-featured-posts > .home-featured-track {
+  width: 100vw;
+  max-width: 100vw;
+  box-sizing: border-box;
+  margin: 0;
+  overflow-x: auto;
+  padding: 0 max(16px, calc(50vw - 350px)) 8px;
+}
 .site-shell .home-featured-track::-webkit-scrollbar { display: none; }
-.site-shell .home-featured-card { flex: 0 0 min(720px, calc(100vw - 32px)); scroll-snap-align: center; transform: scale(.9); transform-origin: center; transition: transform 300ms ease; }
+.site-shell .home-featured-card { flex: 0 0 min(700px, calc(100vw - 32px)); scroll-snap-align: center; transform: scale(.9); transform-origin: center; transition: transform 300ms ease; }
 .site-shell .home-featured-card.is-active { transform: scale(1); }
 .site-shell .home-featured-card > a { display: block; color: inherit; text-decoration: none; }
-.site-shell .home-featured-card .home-featured-image { aspect-ratio: 16 / 9; overflow: hidden; border-radius: 24px; background: #2b2b30; }
+.site-shell .home-featured-card .home-featured-image { width: calc(100% + 20px); aspect-ratio: 16 / 9; margin-left: -10px; overflow: hidden; border-radius: 24px; background: #2b2b30; }
 .site-shell .home-featured-card .home-featured-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 250ms ease; }
 .site-shell .home-featured-card > a:hover .home-featured-image img { transform: scale(1.025); }
-.site-shell .home-featured-card h3 { margin: 12px 0 8px; color: var(--site-color-heading); font-size: 18px; font-weight: 550; line-height: 1.4; }
-.site-shell .home-featured-card p { display: -webkit-box; max-width: 620px; min-height: 3em; margin: 0 0 8px; overflow: hidden; color: var(--site-color-text); font-size: 16px; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.site-shell .home-featured-content { margin-top: 30px; }
+.site-shell .home-featured-card h3 { margin: 0; color: var(--site-color-heading); font-size: 18px; font-weight: 550; line-height: 1.4; }
+.site-shell .home-featured-card p { display: -webkit-box; max-width: 500px; margin: 12px 0 8px; overflow: hidden; color: var(--site-color-text); font-size: 16px; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 .site-shell .home-featured-card .home-featured-meta { display: block; color: var(--site-color-muted); font-size: 13px; }
 .site-shell .home-featured-controls { display: flex; justify-content: flex-start; width: min(700px, calc(100% - 32px)); margin: 30px auto 0; overflow: visible; }
 .site-shell .home-featured-control-group {
@@ -175,6 +231,7 @@ function updateActivePost() {
 .site-shell .home-featured-controls button span { width: 16px; height: 16px; }
 @media (max-width: 1023px) {
   .site-shell .home-featured-card { flex-basis: min(88vw, 620px); }
+  .site-shell .home-featured-card .home-featured-image { width: 100%; margin-left: 0; }
 }
 @media (max-width: 1023px) {
   .site-shell .home-featured-card:not(:first-child) { flex-basis: min(88vw, 620px); margin: 0; }

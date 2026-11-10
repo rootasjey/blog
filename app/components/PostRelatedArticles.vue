@@ -7,7 +7,7 @@
         <span class="site-post-related-copy">
           <span class="site-post-related-title">{{ article.title }}</span>
           <span class="site-post-related-meta">
-            <span>{{ article.tag }}</span>
+            <span v-if="article.tag">{{ article.tag }}</span>
             <time v-if="article.date" :datetime="article.date">{{ article.dateLabel }}</time>
           </span>
         </span>
@@ -22,7 +22,7 @@ defineProps<{
     to: string
     title: string
     image: string
-    tag: string
+    tag?: string
     date?: string
     dateLabel?: string
   }>

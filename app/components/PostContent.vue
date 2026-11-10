@@ -76,14 +76,42 @@ function forwardEditor(ed: any) { emit('editor-ready', ed) }
 .site-shell .site-post-content .post-content h2,
 .site-shell .site-post-content .post-content h3 { color: var(--site-color-heading); font-family: var(--site-font-body); font-weight: 550; letter-spacing: 0; }
 .site-shell .site-post-content .post-content p { margin-block: 0 24px; font-size: 16px; line-height: 1.7; }
-.site-shell .site-post-content .post-content a {
-  color: var(--site-color-accent);
-  text-decoration-line: underline;
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: var(--site-link-underline-offset);
-  transition: color 160ms ease;
+.site-shell .site-post-content .post-content a:not(.auto-link-preview__link) {
+  color: color-mix(in srgb, var(--site-color-text) 78%, var(--site-color-accent));
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  background-size: 8px 1px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: color 180ms ease, background-size 220ms ease;
 }
-.site-shell .site-post-content .post-content a:hover { color: var(--site-color-heading); }
+.site-shell .site-post-content .post-content a:not(.auto-link-preview__link):hover,
+.site-shell .site-post-content .post-content a:not(.auto-link-preview__link):focus-visible {
+  color: var(--site-color-accent);
+  background-size: 100% 1px;
+}
+.site-shell .site-post-content .post-content a[target="_blank"]:not(.auto-link-preview__link)::after {
+  content: "";
+  display: inline-block;
+  width: 0.32em;
+  height: 0.32em;
+  margin-inline-start: 0.08em;
+  position: relative;
+  top: 0.35em;
+  border-top: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+  opacity: 0;
+  transform: rotate(45deg) scale(0.7);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+.site-shell .site-post-content .post-content a[target="_blank"]:not(.auto-link-preview__link):hover::after,
+.site-shell .site-post-content .post-content a[target="_blank"]:not(.auto-link-preview__link):focus-visible::after {
+  opacity: 1;
+  transform: rotate(45deg) scale(1);
+  transition-delay: 150ms;
+}
 .site-shell .site-post-content .post-content .ProseMirror .auto-link-preview__link,
 .site-shell .site-post-content .post-content .ProseMirror .auto-link-preview__link:hover { text-decoration-line: none; }
 .site-shell .site-post-content .post-content .ProseMirror .auto-link-preview .auto-link-preview__title {

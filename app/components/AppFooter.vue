@@ -1,5 +1,5 @@
 <template>
-  <footer class="site-footer border-t">
+  <footer class="site-footer">
     <div class="site-footer-inner">
       <nav :aria-label="$ts('footer.about')">
         <NuxtLink class="site-footer-nav-link" :to="localizedPath('/about', $getLocale())">{{ $ts('footer.about') }}</NuxtLink>

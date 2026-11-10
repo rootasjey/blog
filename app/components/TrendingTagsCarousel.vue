@@ -85,7 +85,7 @@ function tagInitial(name: string) {
     width: min(700px, calc(100% - 32px));
     max-width: 700px;
     min-width: 0;
-    row-gap: 32px;
+    row-gap: 24px;
     margin-inline: auto;
     padding-inline: 0;
   }
@@ -169,7 +169,7 @@ function tagInitial(name: string) {
     flex: 0 0 44px;
     align-items: center;
     gap: 12px;
-    padding-inline: 10px;
+    padding: 0 10px 0 0;
     color: var(--site-color-heading);
     font-size: 15px;
     font-weight: 500;

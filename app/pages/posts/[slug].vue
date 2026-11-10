@@ -247,7 +247,7 @@ const relatedArticles = computed(() => {
     to: localizedPath(`/posts/${candidate.slug}`, $getLocale()),
     title: candidate.name,
     image: candidate.image?.src || '/images/presentation/esc.webp',
-    tag: candidate.tags?.[0]?.name || $ts('components.relatedPosts.heading'),
+    tag: candidate.tags?.[0]?.name,
     date: candidate.publishedAt || candidate.createdAt,
     dateLabel: formatPostDate(candidate.publishedAt || candidate.createdAt),
   }))
