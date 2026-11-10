@@ -13,10 +13,13 @@ export function useHeaderScroll(options?: { threshold?: number }) {
     const currentY = window.scrollY || document.documentElement.scrollTop || 0
     if (!ticking) {
       window.requestAnimationFrame(() => {
-        isScrollingDown.value = currentY > lastY
+        const scrollDelta = currentY - lastY
+        if (Math.abs(scrollDelta) >= 2) {
+          isScrollingDown.value = scrollDelta > 0
+          lastY = currentY
+        }
         y.value = currentY
         isScrolled.value = currentY > threshold
-        lastY = currentY
         ticking = false
       })
       ticking = true
