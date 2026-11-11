@@ -3,6 +3,8 @@
 </template>
 
 <script setup lang="ts">
+import type { ConfiguredImageProviders } from '@nuxt/image'
+
 const props = defineProps<{
   src?: string
   alt?: string
@@ -14,7 +16,7 @@ const attrs = useAttrs()
 
 // Respect explicit provider if passed via attrs, otherwise infer from src
 const provider = computed(() => {
-  if ((attrs as any).provider) return (attrs as any).provider as string
+  if ((attrs as any).provider) return (attrs as any).provider as keyof ConfiguredImageProviders
   const s = props.src ?? ''
   return s.startsWith('/posts/') ? 'hubblob' : undefined
 })

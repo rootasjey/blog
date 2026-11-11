@@ -1,19 +1,12 @@
 import { joinURL } from 'ufo'
 import type { ProviderGetImage } from '@nuxt/image'
-import { createOperationsGenerator, createImage } from '#image'
+import { createOperationsGenerator, defineProvider } from '@nuxt/image/runtime'
 
 const operationsGenerator = createOperationsGenerator()
-
-export const getImage: ProviderGetImage = (
-  src,
-  { modifiers = {}, baseURL } = {}
-) => {
-  if (!baseURL) {
-    baseURL = useRuntimeConfig().public.siteUrl
-  }
-
+const getImage: ProviderGetImage<{ baseURL?: string }> = (src, { modifiers, baseURL }) => {
+  const resolvedBaseURL = baseURL || ''
   const operations = operationsGenerator(modifiers).replaceAll(/[/]/g, '&')
-  let url = joinURL(baseURL, src + (operations ? '?' + operations : ''))
+  let url = joinURL(resolvedBaseURL, src + (operations ? '?' + operations : ''))
 
   if (src.startsWith("/projects/") || src.startsWith("/posts/")) {
     const parts = src.split("/")
@@ -48,7 +41,9 @@ export const getImage: ProviderGetImage = (
     }
   }
 
-  return {
-    url: url,
-  }
+  return { url }
 }
+
+export default defineProvider({
+  getImage,
+})
