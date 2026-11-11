@@ -98,24 +98,35 @@
           </div>
         </div>
 
-        <div class="site-post-share-row">
+        <div class="site-post-actions-row">
           <PostShareActions :title="post.name" />
-        </div>
-
-        <div v-if="translations.length" class="site-post-end-meta">
-          <div class="site-post-language-switcher" :aria-label="$ts('common.language')">
-            <template v-for="version in allVersions" :key="version.language">
-              <NuxtLink
-                v-if="version.slug"
-                :to="localizedPath(`/posts/${version.slug}`, version.language)"
-                :aria-current="version.active ? 'page' : undefined"
-                :class="{ 'is-active': version.active }"
-              >
-                {{ version.label }}
-              </NuxtLink>
-              <span v-else class="is-active" aria-current="page">{{ version.label }}</span>
+          <NCombobox
+            v-if="allVersions.length > 1"
+            :items="allVersions"
+            by="language"
+            :model-value="selectedVersion"
+            :aria-label="$ts('common.language')"
+            :text-empty="$ts('common.noResults')"
+            size="xs"
+            class="site-post-language-combobox"
+            :una="{ combobox: 'w-auto min-w-0', comboboxList: 'w-44 site-post-language-menu' }"
+            :_combobox-trigger="{ ariaLabel: $ts('common.language'), trailing: '', una: { comboboxTrigger: 'site-post-language-trigger w-auto min-w-0', comboboxTriggerTrailing: 'hidden', btnTrailing: 'hidden' } }"
+            :_combobox-input="{ placeholder: $ts('common.searchPlaceholder'), 'aria-label': $ts('common.language'), class: 'border-none' }"
+            @update:model-value="onVersionChange"
+          >
+            <template #trigger="{ modelValue }">
+              <span class="site-post-language-trigger-content">
+                {{ modelValue?.label || $ts('common.language') }}
+                <NIcon name="i-ph-caret-down" aria-hidden="true" />
+              </span>
             </template>
-          </div>
+            <template #label="{ item }">
+              <span class="site-post-language-option">
+                {{ item.label }}
+                <NIcon v-if="item.active" name="i-ph-check" aria-hidden="true" />
+              </span>
+            </template>
+          </NCombobox>
         </div>
 
         <PostRelatedArticles :articles="relatedArticles" />
@@ -231,10 +242,12 @@ const languageLabels: Record<string, string> = {
   it: 'Italiano',
 }
 
-const allVersions = computed(() => {
+type PostVersion = { language: string; label: string; slug?: string; active: boolean }
+
+const allVersions = computed<PostVersion[]>(() => {
   const current = post.value
   if (!current) return []
-  const list: { language: string; label: string; slug?: string; active: boolean }[] = [
+  const list: PostVersion[] = [
     { language: current.language, label: languageLabels[current.language] || current.language, active: true },
   ]
   for (const t of (translations.value || [])) {
@@ -242,6 +255,13 @@ const allVersions = computed(() => {
   }
   return list
 })
+
+const selectedVersion = computed(() => allVersions.value.find(version => version.active) ?? null)
+
+function onVersionChange(version: PostVersion | null) {
+  if (!version?.slug || version.active) return
+  navigateTo(localizedPath(`/posts/${version.slug}`, version.language))
+}
 
 const relatedArticles = computed(() => {
   const current = post.value
@@ -597,25 +617,30 @@ useHead({
 .site-shell .site-post-author-heading { display: flex; width: fit-content; align-items: center; gap: 12px; color: var(--site-color-heading); font-size: 16px; font-weight: 550; }
 .site-shell .site-post-author-heading > img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
 .site-shell .site-post-author-bio { margin: 14px 0 0; color: var(--site-color-muted); font-size: 14px; line-height: 1.55; }
-.site-shell .site-post-share-row { width: min(700px, calc(100% - 32px)); margin: 20px auto 0; }
-.site-shell .site-post-end-meta { display: flex; width: min(700px, calc(100% - 32px)); align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin: 18px auto 0; color: var(--site-color-muted); font-size: 13px; }
-.site-shell .site-post-end-meta time { margin-left: auto; }
-.site-shell .site-post-language-switcher { display: flex; flex-wrap: wrap; gap: 6px; }
-.site-shell .site-post-language-switcher a,
-.site-shell .site-post-language-switcher span,
-.site-shell .site-post-edit-link { padding: 4px 9px; border: 1px solid var(--site-color-border); border-radius: 999px; color: var(--site-color-muted); font-size: 12px; text-decoration: none; }
+.site-shell .site-post-actions-row { display: flex; width: min(700px, calc(100% - 32px)); align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin: 20px auto 0; }
+.site-shell .site-post-language-trigger { display: inline-flex; min-height: 36px; align-items: center; padding: 6px 10px; border: 1px solid var(--site-color-social-border); border-radius: var(--site-radius-control); background: transparent; color: var(--site-color-muted); font-size: 13px; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease; }
+.site-shell .site-post-language-trigger:hover,
+.site-shell .site-post-language-trigger:focus-visible { border-color: var(--site-color-border); background: var(--site-color-hover-background); color: var(--site-color-heading); }
+.site-shell .site-post-language-trigger:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 3px; }
+.site-shell .site-post-language-trigger-content { display: inline-flex; align-items: center; gap: 8px; }
+.site-shell .site-post-language-trigger-content .i-ph-caret-down { width: 14px; height: 14px; }
+.site-shell .site-post-language-menu { overflow: hidden; border: 1px solid var(--site-color-border); border-radius: var(--site-radius-control); background: var(--site-color-background); color: var(--site-color-text); box-shadow: 0 10px 30px rgb(0 0 0 / 14%); }
+.site-shell .site-post-language-option { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; }
+.site-shell .site-post-language-option .i-ph-check { width: 14px; height: 14px; color: var(--site-color-accent); }
 .site-shell .site-post-edit-link { display: inline-flex; align-items: center; gap: 6px; }
-.site-shell .site-post-language-switcher .is-active { color: var(--site-color-heading); }
-.site-shell .site-post-language-switcher a:hover,
 .site-shell .site-post-edit-link:hover { background: var(--site-color-hover-background); color: var(--site-color-heading); }
 @media (max-width: 640px) {
   .site-shell .site-post-author-heading { gap: 10px; }
 }
 @media (max-width: 640px) {
-  .site-shell .site-post-share-row { margin-top: 16px; }
+  .site-shell .site-post-actions-row { gap: 8px; margin-top: 16px; }
+  .site-shell .site-post-actions-row .site-post-share-actions { gap: 4px; }
+  .site-shell .site-post-actions-row .site-post-share-actions > a,
+  .site-shell .site-post-actions-row .site-post-share-actions > button { width: 32px; height: 32px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .site-shell .site-preview-topic-nav > .site-post-nav-link { transition: none; }
+  .site-shell .site-post-language-trigger { transition: none; }
 }
 }
 </style>
