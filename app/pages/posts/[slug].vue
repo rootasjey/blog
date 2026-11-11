@@ -31,6 +31,7 @@
                   type="button"
                   class="site-post-extra-tags-trigger"
                   :aria-label="extraTagsLabel"
+                  :data-cursor-tooltip="extraTagsTooltipLabel"
                   aria-controls="site-post-extra-tags-menu"
                   :aria-expanded="isExtraTagsOpen"
                   :class="{ 'is-open': isExtraTagsOpen }"
@@ -249,9 +250,22 @@ const locale = computed(() => $getLocale())
 const primaryTag = computed(() => post.value?.tags?.[0])
 const extraTags = computed(() => post.value?.tags?.slice(1) ?? [])
 const extraTagsLabel = computed(() => locale.value === 'fr' ? `Afficher ${extraTags.value.length} autres tags` : `Show ${extraTags.value.length} more tags`)
+const extraTagsTooltipLabel = computed(() => formatExtraTagsTooltip(extraTags.value.length, locale.value))
 const extraTagsPopover = ref<HTMLElement | null>(null)
 const isExtraTagsOpen = ref(false)
 const tagPath = (name: string) => `${localizedPath('/posts', locale.value)}?tag=${encodeURIComponent(name)}`
+
+function formatExtraTagsTooltip(count: number, language: string) {
+  if (language === 'fr') {
+    let label = 'tags supplémentaires'
+    if (count === 1) label = 'tag supplémentaire'
+    return `${count} ${label}`
+  }
+
+  let label = 'additional tags'
+  if (count === 1) label = 'additional tag'
+  return `${count} ${label}`
+}
 
 const closeExtraTagsOnOutsideClick = (event: PointerEvent) => {
   const target = event.target
