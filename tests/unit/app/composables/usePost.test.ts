@@ -12,7 +12,12 @@ vi.mock('#app', async (importOriginal) => {
         return key
       },
       $getLocale: () => 'en',
-      $ts: (key: string) => key,
+      $ts: (key: string, params?: Record<string, unknown>) => {
+        if (key === 'components.postMeta.oneMinRead') return '1 min read'
+        if (key === 'components.postMeta.minRead') return `${params?.minutes} min read`
+        if (key === 'components.postMeta.postImageAlt') return 'Post image'
+        return key
+      },
       $i18nStrategy: 'prefix_except_default',
       $defaultLocale: 'en',
       $getLocales: () => [],
