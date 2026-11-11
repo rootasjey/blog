@@ -207,7 +207,7 @@ body {
   height: 28px;
   min-height: 28px;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   box-sizing: border-box;
   padding: 4px 9px;
   border: 1px solid color-mix(in srgb, var(--post-tag-color) 35%, transparent);
@@ -222,8 +222,8 @@ body {
 
 .site-shell .site-preview-topic-nav .site-preview-tag-mark {
   display: inline-grid;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   flex: none;
   place-items: center;
   border-radius: 4px;
@@ -235,7 +235,7 @@ body {
 }
 
 .site-shell .site-preview-topic-nav .site-preview-tag-mark .iconify {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .site-shell .site-preview-topic-nav .site-preview-tag:hover,
@@ -438,7 +438,7 @@ body {
 @layer components {
 .site-shell .site-preview-topic-nav .site-preview-tag {
   border-color: color-mix(in srgb, var(--post-tag-color) 22%, var(--site-color-background));
-  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, opacity 150ms ease, transform 300ms cubic-bezier(0.4, 0, 0.2, 2.4);
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, opacity 150ms ease, transform 220ms var(--site-ease-standard);
 }
 
 .site-shell .site-preview-topic-nav .site-preview-tag:hover,
