@@ -50,6 +50,13 @@
           >
             {{ $ts('nav.recommendations') }}
           </NuxtLink>
+          <NuxtLink
+            :to="localizedPath('/donate', $getLocale())"
+            class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
+            @click="closeMobileMenu"
+          >
+            {{ $ts('nav.donate') }}
+          </NuxtLink>
           <template v-if="!isLoggedIn">
             <NuxtLink
               :to="localizedPath('/signin', $getLocale())"
@@ -141,6 +148,9 @@
         </span>
         </NuxtLink>
         <div class="site-header-controls flex items-center gap-3">
+          <NDropdownMenu v-if="isContentEditMode" :items="pageEditMenuItems" :_dropdownMenuContent="{ class: 'site-header-edit-menu' }">
+            <NButton btn="ghost-gray" size="xs" class="site-header-edit-mode-trigger">{{ editModeLabel }}</NButton>
+          </NDropdownMenu>
           <NDropdownMenu
             v-if="isLoggedIn"
             :items="dropdownItems"
@@ -250,10 +260,11 @@
               >
                 {{ pagesLabel }}
               </button>
-              <nav class="site-header-pages-menu" :aria-label="pagesLabel">
+              <nav class="site-header-pages-menu" :aria-label="pagesLabel" @click="isPagesMenuOpen = false">
                 <NuxtLink :to="localizedPath('/about', $getLocale())">{{ $ts('nav.about') }}</NuxtLink>
                 <NuxtLink :to="localizedPath('/tags', $getLocale())">{{ $ts('nav.tags') }}</NuxtLink>
                 <NuxtLink :to="localizedPath('/recommendations', $getLocale())">{{ $ts('nav.recommendations') }}</NuxtLink>
+                <NuxtLink :to="localizedPath('/donate', $getLocale())">{{ $ts('nav.donate') }}</NuxtLink>
                 <NuxtLink :to="localizedPath('/authors', $getLocale())">{{ $ts('nav.authors') }}</NuxtLink>
                 <NuxtLink :to="localizedPath('/credits', $getLocale())">{{ $ts('footer.credits') }}</NuxtLink>
               </nav>
@@ -262,6 +273,9 @@
 
           <!-- Right: Auth + Search + Theme -->
           <div class="site-header-controls flex items-center gap-3 justify-self-end">
+            <NDropdownMenu v-if="isContentEditMode" :items="pageEditMenuItems" :_dropdownMenuContent="{ class: 'site-header-edit-menu' }">
+              <NButton btn="ghost-gray" size="xs" class="site-header-edit-mode-trigger">{{ editModeLabel }}</NButton>
+            </NDropdownMenu>
             <template v-if="!isLoggedIn">
               <NuxtLink :to="localizedPath('/signin', $getLocale())" class="site-interactive-hover text-sm font-600 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors">
                 {{ $ts('common.signin') }}
@@ -294,10 +308,6 @@
                 </NButton>
               </NDropdownMenu>
             </template>
-            <NuxtLink :to="localizedPath('/donate', $getLocale())" class="site-interactive-hover site-header-donate px-4 py-2 bg-black dark:bg-white text-white dark:text-black text-xs font-bold tracking-wide rounded-4 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
-              {{ $ts('nav.donate') }}
-            </NuxtLink>
-
             <NCombobox
               v-if="!isLoggedIn"
               :items="themeOptions"
@@ -352,13 +362,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, isRef, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, isRef, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHeaderScroll } from '../composables/useHeaderScroll'
 import useGlobalSearch from '~/composables/useGlobalSearch'
 import useSiteSettings from '~/composables/useSiteSettings'
 import { localizedPath } from '~/utils/presentationPosts'
 import { troncheAvatarUrl } from '~/utils/troncheAvatar'
+import { requestPublicPageEdit } from '~/utils/publicPageEditRequests'
 
 type ThemePreference = 'light' | 'dark' | 'system'
 type ThemeMenuScope = 'desktop' | 'mobile'
@@ -377,6 +388,11 @@ const currentAvatarUrl = computed(() => currentUser.value?.avatar || troncheAvat
 const currentAvatarProvider = computed(() => currentAvatarUrl.value.startsWith('/users/') ? 'hubblob' : undefined)
 watch(currentAvatarUrl, () => { generatedAvatarFailed.value = false })
 const isAdmin = computed(() => isLoggedIn.value && currentUser.value?.role === 'admin')
+const siteEditMode = usePublicPageEditMode()
+const isContentEditMode = computed(() => isAdmin.value && siteEditMode.value)
+watch(isAdmin, (admin) => {
+  if (!admin) siteEditMode.value = false
+}, { immediate: true })
 
 const isMobileMenuOpen = ref(false)
 const isPagesMenuOpen = ref(false)
@@ -415,6 +431,76 @@ async function handleLogout() {
 }
 
 const { $ts, $getLocale, $switchLocale, $switchLocalePath, $getLocales } = useI18n()
+const editModeLabel = computed(() => $getLocale() === 'fr' ? 'Mode édition' : 'Edit mode')
+const editModeMenuLabel = computed(() => $getLocale() === 'fr' ? 'Mode édition (E)' : 'Edit mode (E)')
+const pageEditMenuItems = computed(() => {
+  const locale = $getLocale()
+  const currentPath = router.currentRoute.value.path.replace(/\/+$/, '') || '/'
+  const homePath = localizedPath('/', locale).replace(/\/+$/, '') || '/'
+  const aboutPath = localizedPath('/about', locale).replace(/\/+$/, '') || '/'
+  const recommendationsPath = localizedPath('/recommendations', locale).replace(/\/+$/, '') || '/'
+
+  if (currentPath === homePath) {
+    return [
+      { label: 'Introduction', leading: 'i-ph-text-aa', onSelect: () => requestPublicPageEdit('home-intro') },
+      { label: $ts('nav.recommendations'), leading: 'i-ph-cards', onSelect: () => requestPublicPageEdit('recommendations') },
+    ]
+  }
+
+  if (currentPath === aboutPath) {
+    return [{ label: locale === 'fr' ? 'Page À propos' : 'About page', leading: 'i-ph-info', onSelect: () => requestPublicPageEdit('about') }]
+  }
+
+  if (currentPath === recommendationsPath) {
+    return [{ label: $ts('nav.recommendations'), leading: 'i-ph-cards', onSelect: () => requestPublicPageEdit('recommendations') }]
+  }
+
+  return [{ label: locale === 'fr' ? 'Aucune section éditable ici' : 'No editable sections here', disabled: true }]
+})
+
+function toggleContentEditMode() {
+  if (!isAdmin.value) return
+  siteEditMode.value = !siteEditMode.value
+}
+
+function isEditingField(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false
+  return target.isContentEditable || !!target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]')
+}
+
+function hasActiveOverlay() {
+  const overlays = document.querySelectorAll(
+    '[role="dialog"], [role="menu"], [role="listbox"], .site-header-pages-menu, aside.fixed.inset-0',
+  )
+
+  return [...overlays].some((overlay) => {
+    const style = window.getComputedStyle(overlay)
+    return style.display !== 'none' && style.visibility !== 'hidden' && overlay.getClientRects().length > 0
+  })
+}
+
+function onEditModeKeydown(event: KeyboardEvent) {
+  if (!isAdmin.value) return
+
+  if (event.key === 'Escape') {
+    if (!isContentEditMode.value || hasActiveOverlay()) return
+
+    event.preventDefault()
+    siteEditMode.value = false
+    return
+  }
+
+  if (event.key.toLowerCase() !== 'e' || event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+  if (isEditingField(event.target) || hasActiveOverlay()) return
+  if (event.target instanceof HTMLElement && event.target.closest('[role="menu"], [role="listbox"]')) return
+
+  event.preventDefault()
+  siteEditMode.value = !isContentEditMode.value
+}
+
+onMounted(() => window.addEventListener('keydown', onEditModeKeydown))
+onBeforeUnmount(() => window.removeEventListener('keydown', onEditModeKeydown))
+
 const pagesLabel = computed(() => {
   const translated = $ts('nav.pages')
   return (translated.toLocaleLowerCase() === 'nav.pages' ? 'pages' : translated).toLocaleLowerCase()
@@ -469,6 +555,14 @@ const dropdownItems = computed(() => [
   { class: 'site-header-user-menu-separator', _dropdownMenuSeparator: { class: 'site-header-user-menu-separator' } },
   ...(isAdmin.value
     ? [{ label: $ts('nav.siteSocials'), leading: 'i-ph-share-network', onSelect: () => { siteSettingsDrawerOpen.value = true } }]
+    : []),
+  ...(isAdmin.value
+    ? [{
+        label: editModeMenuLabel.value,
+        leading: 'i-ph-pencil-simple',
+        trailing: isContentEditMode.value ? 'i-ph-check' : undefined,
+        onSelect: toggleContentEditMode,
+      }]
     : []),
   { label: $ts('common.settings'), leading: 'i-ph-gear-six', onSelect: () => { router.push(localizedPath('/settings', $getLocale())) } },
   { label: $ts('common.profile'), leading: 'i-ph-user-circle', onSelect: () => { router.push(localizedPath('/profile', $getLocale())) } },

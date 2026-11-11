@@ -1,8 +1,4 @@
 <template>
-  <NButton v-if="isAdmin" btn="outline-gray" size="xs" leading="i-ph-pencil-simple" class="about-page-edit-trigger" aria-haspopup="dialog" :aria-expanded="open" @click="openEditor">
-    {{ labels.edit }}
-  </NButton>
-
   <Teleport to="body">
     <section v-if="open" class="about-page-editor" role="dialog" aria-modal="false" aria-labelledby="about-page-editor-title" :style="positionStyle">
       <header class="about-page-editor__header">
@@ -15,7 +11,7 @@
           <button v-for="language in languages" :key="language.code" type="button" :aria-pressed="activeLanguage === language.code" @click="activeLanguage = language.code">{{ language.label }}</button>
         </div>
 
-        <label><span>{{ labels.heading }}</span><input v-model="draft[activeLanguage].heading" maxlength="120"></label>
+        <label><span>{{ labels.heading }}</span><input ref="headingInput" v-model="draft[activeLanguage].heading" maxlength="120"></label>
         <label><span>{{ labels.mainTitle }}</span><textarea v-model="draft[activeLanguage].mainTitle" rows="2" maxlength="500" /></label>
         <label><span>{{ labels.intro }}</span><textarea v-model="draft[activeLanguage].intro" rows="4" maxlength="4000" /></label>
         <label><span>{{ labels.description }}</span><textarea v-model="draft[activeLanguage].description" rows="4" maxlength="4000" /></label>
@@ -54,22 +50,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { AboutPageContent, SupportedContentLocale } from '~~/shared/types/public-page-content'
+import { PUBLIC_PAGE_EDIT_REQUEST_EVENT } from '~/utils/publicPageEditRequests'
 
-const props = defineProps<{ content: AboutPageContent; isAdmin: boolean }>()
+const props = defineProps<{ content: AboutPageContent; isAdmin: boolean; isEditMode: boolean }>()
 const emit = defineEmits<{ saved: [content: AboutPageContent] }>()
 const { $getLocale } = useI18n()
 const locale = computed(() => $getLocale())
 const labels = computed(() => locale.value === 'fr' ? {
-  edit: 'Modifier À propos', title: 'Modifier À propos', close: 'Fermer', languages: 'Langue du contenu',
+  title: 'Modifier À propos', close: 'Fermer', languages: 'Langue du contenu',
   heading: 'Titre', mainTitle: 'Accroche', intro: 'Introduction', description: 'Description', openSourceHeading: 'Titre open source',
   openSourceText: 'Texte open source', faqHeading: 'Titre de la FAQ', faq: 'Questions fréquentes', addQuestion: 'Ajouter une question', untitled: 'Sans titre',
   question: 'Question', answer: 'Réponse', moveUp: 'Monter', moveDown: 'Descendre', removeQuestion: 'Supprimer la question',
   contactHeading: 'Titre du contact', contactText: 'Texte du contact', cancel: 'Annuler', save: 'Enregistrer', saving: 'Enregistrement…',
   saved: 'Modifications enregistrées', saveError: 'Enregistrement impossible',
 } : {
-  edit: 'Edit About page', title: 'Edit About page', close: 'Close', languages: 'Content language',
+  title: 'Edit About page', close: 'Close', languages: 'Content language',
   heading: 'Heading', mainTitle: 'Lead', intro: 'Introduction', description: 'Description', openSourceHeading: 'Open source heading',
   openSourceText: 'Open source text', faqHeading: 'FAQ heading', faq: 'Frequently asked questions', addQuestion: 'Add question', untitled: 'Untitled',
   question: 'Question', answer: 'Answer', moveUp: 'Move up', moveDown: 'Move down', removeQuestion: 'Remove question',
@@ -80,6 +77,7 @@ const languages: { code: SupportedContentLocale; label: string }[] = [{ code: 'f
 const activeLanguage = ref<SupportedContentLocale>('fr')
 const open = ref(false)
 const draft = ref<AboutPageContent>(structuredClone(props.content))
+const headingInput = ref<HTMLInputElement | null>(null)
 const saving = ref(false)
 const success = ref('')
 const error = ref('')
@@ -123,6 +121,12 @@ function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape' && open.value) close()
 }
 
+function onPublicPageEditRequest(event: Event) {
+  if (!props.isAdmin || !props.isEditMode) return
+  if ((event as CustomEvent).detail !== 'about') return
+  openEditor()
+}
+
 async function save() {
   saving.value = true
   success.value = ''
@@ -138,19 +142,30 @@ async function save() {
   }
 }
 
-watch(open, (isOpen) => {
+watch(open, async (isOpen) => {
   if (!isOpen || !import.meta.client) return
   x.value = Math.max(16, window.innerWidth - 392)
   y.value = 88
+  await nextTick()
+  headingInput.value?.focus()
 })
 
-onMounted(() => window.addEventListener('keydown', onKeydown))
-onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+watch(() => props.isEditMode, (isEnabled) => {
+  if (!isEnabled) close()
+})
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+  window.addEventListener(PUBLIC_PAGE_EDIT_REQUEST_EVENT, onPublicPageEditRequest)
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  window.removeEventListener(PUBLIC_PAGE_EDIT_REQUEST_EVENT, onPublicPageEditRequest)
+})
 </script>
 
 <style scoped>
 @layer components {
-.about-page-edit-trigger:focus-visible,
 .about-page-editor :deep(button:focus-visible),
 .about-page-editor input:focus-visible,
 .about-page-editor textarea:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 3px; }

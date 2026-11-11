@@ -7,16 +7,18 @@
         :is="mobileIndex"
         :identity="homeIdentity"
         :is-admin="isAdmin"
+        :is-edit-mode="isContentEditMode"
         @saved="saveIdentity"
       />
     </ClientOnly>
 
     <!-- Desktop / SSR experience -->
     <div v-if="!isMobile">
-      <section class="site-intro">
+      <section class="site-intro" :data-public-page-edit-target="isContentEditMode ? 'home-intro' : undefined">
         <HomeIntroEditor
           :identity="homeIdentity"
           :is-admin="isAdmin"
+          :is-edit-mode="isContentEditMode"
           @saved="saveIdentity"
         />
         <img class="site-intro-mark" :src="homeIdentity.avatar" :alt="localizedIdentity.name" width="100" height="100">
@@ -29,7 +31,7 @@
       <div class="animate-entrance"><RecentPostsGrid /></div>
       <div class="animate-entrance"><NewsletterSubscription /></div>
       <div class="animate-entrance"><ProjectsCarousel /></div>
-      <div class="animate-entrance"><HomeRecommendations editable :is-admin="isAdmin" /></div>
+      <div class="animate-entrance"><HomeRecommendations editable :is-admin="isAdmin" :is-edit-mode="isContentEditMode" /></div>
     </div>
   </div>
 </template>
@@ -58,6 +60,8 @@ const localizedIdentity = computed(() => homeIdentity.value[$getLocale() === 'en
 const homeIntroParagraphs = computed(() => localizedIdentity.value.description.split(/\n\s*\n/).filter(Boolean))
 const { user, loggedIn } = useUserSession()
 const isAdmin = computed(() => !!(loggedIn.value && user.value?.role === 'admin'))
+const siteEditMode = usePublicPageEditMode()
+const isContentEditMode = computed(() => isAdmin.value && siteEditMode.value)
 
 function saveIdentity(identity: HomeIdentity) {
   if (settingsData.value) settingsData.value.homeIdentity = identity

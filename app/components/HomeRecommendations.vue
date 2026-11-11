@@ -1,5 +1,5 @@
 <template>
-  <section class="site-home-recommendations">
+  <section class="site-home-recommendations" :data-public-page-edit-target="props.editable && props.isAdmin && props.isEditMode ? 'recommendations' : undefined">
     <div class="site-home-recommendations-inner">
       <div v-if="showHeading" class="site-home-recommendations-heading">
         <HomeSectionHeading
@@ -11,6 +11,7 @@
         v-if="editable"
         :content="recommendationsContent"
         :is-admin="isAdmin"
+        :is-edit-mode="isEditMode"
         @saved="saveRecommendations"
       />
       <div class="site-home-recommendations-grid">
@@ -48,7 +49,7 @@ import { localizedPath } from '~/utils/presentationPosts'
 import { DEFAULT_RECOMMENDATIONS_CONTENT, type RecommendationsContent } from '~~/shared/types/public-page-content'
 
 const { $getLocale, $ts } = useI18n()
-withDefaults(defineProps<{ showHeading?: boolean; editable?: boolean; isAdmin?: boolean }>(), { showHeading: true, editable: false, isAdmin: false })
+const props = withDefaults(defineProps<{ showHeading?: boolean; editable?: boolean; isAdmin?: boolean; isEditMode?: boolean }>(), { showHeading: true, editable: false, isAdmin: false, isEditMode: false })
 const { data: settingsData } = await useFetch<{ recommendationsContent?: RecommendationsContent }>('/api/site-settings')
 const recommendationsContent = computed(() => settingsData.value?.recommendationsContent || DEFAULT_RECOMMENDATIONS_CONTENT)
 const heading = computed(() => {

@@ -1,7 +1,7 @@
 <template>
   <div class="site-home min-h-screen">
-    <section class="site-intro">
-      <HomeIntroEditor :identity="identity" :is-admin="isAdmin" @saved="emit('saved', $event)" />
+    <section class="site-intro" :data-public-page-edit-target="isAdmin && isEditMode ? 'home-intro' : undefined">
+      <HomeIntroEditor :identity="identity" :is-admin="isAdmin" :is-edit-mode="isEditMode" @saved="emit('saved', $event)" />
       <img class="site-intro-mark" :src="identity.avatar" :alt="localizedIdentity.name" width="100" height="100">
       <h1>{{ localizedIdentity.name }}</h1>
       <p v-for="(paragraph, index) in paragraphs" :key="index">{{ paragraph }}</p>
@@ -29,7 +29,7 @@ import { localizedPath } from '~/utils/presentationPosts'
 import type { HomeIdentity } from '~~/shared/types/home-identity'
 
 const { $getLocale, $ts } = useI18n()
-const props = defineProps<{ identity: HomeIdentity; isAdmin: boolean }>()
+const props = defineProps<{ identity: HomeIdentity; isAdmin: boolean; isEditMode: boolean }>()
 const emit = defineEmits<{ saved: [identity: HomeIdentity] }>()
 const localizedIdentity = computed(() => props.identity[$getLocale() === 'en' ? 'en' : 'fr'])
 const paragraphs = computed(() => localizedIdentity.value.description.split(/\n\s*\n/).filter(Boolean))

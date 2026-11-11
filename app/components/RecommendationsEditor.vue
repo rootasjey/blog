@@ -1,27 +1,15 @@
 <template>
-  <NButton
-    v-if="isAdmin"
-    btn="outline-gray"
-    size="xs"
-    leading="i-ph-pencil-simple"
-    class="public-content-edit-trigger"
-    aria-haspopup="dialog"
-    :aria-expanded="open"
-    @click="openEditor"
-  >
-    {{ labels.edit }}
-  </NButton>
-
   <Teleport to="body">
     <section
       v-if="open"
       class="recommendations-editor"
+      ref="editorPanel"
       role="dialog"
       aria-modal="false"
       aria-labelledby="recommendations-editor-title"
       :style="positionStyle"
     >
-      <header class="recommendations-editor__header">
+      <header class="recommendations-editor__header" @pointerdown="startDrag">
         <h2 id="recommendations-editor-title">{{ labels.title }}</h2>
         <NButton btn="ghost-gray" size="xs" icon label="i-lucide-x" :aria-label="labels.close" @click="close" />
       </header>
@@ -35,7 +23,7 @@
 
         <label>
           <span>{{ labels.pageTitle }}</span>
-          <input v-model="draft[activeLanguage].title" maxlength="100">
+          <input ref="pageTitleInput" v-model="draft[activeLanguage].title" maxlength="100">
         </label>
         <label>
           <span>{{ labels.pageDescription }}</span>
@@ -88,18 +76,19 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { RecommendationsContent, SupportedContentLocale } from '~~/shared/types/public-page-content'
+import { PUBLIC_PAGE_EDIT_REQUEST_EVENT } from '~/utils/publicPageEditRequests'
 
-const props = defineProps<{ content: RecommendationsContent; isAdmin: boolean }>()
+const props = defineProps<{ content: RecommendationsContent; isAdmin: boolean; isEditMode: boolean }>()
 const emit = defineEmits<{ saved: [content: RecommendationsContent] }>()
 const { $getLocale } = useI18n()
 const locale = computed(() => $getLocale())
 const labels = computed(() => locale.value === 'fr' ? {
-  edit: 'Modifier les recommandations', title: 'Modifier les recommandations', close: 'Fermer', languages: 'Langue du contenu',
+  title: 'Modifier les recommandations', close: 'Fermer', languages: 'Langue du contenu',
   pageTitle: 'Titre de la page', pageDescription: 'Introduction', cards: 'Cartes', addCard: 'Ajouter une carte', untitled: 'Sans titre',
   name: 'Nom', description: 'Description', url: 'Lien', icon: 'Icône (URL d’image)', moveUp: 'Monter', moveDown: 'Descendre', removeCard: 'Supprimer la carte',
   cancel: 'Annuler', save: 'Enregistrer', saving: 'Enregistrement…', saved: 'Modifications enregistrées', saveError: 'Enregistrement impossible',
 } : {
-  edit: 'Edit recommendations', title: 'Edit recommendations', close: 'Close', languages: 'Content language',
+  title: 'Edit recommendations', close: 'Close', languages: 'Content language',
   pageTitle: 'Page title', pageDescription: 'Introduction', cards: 'Cards', addCard: 'Add card', untitled: 'Untitled',
   name: 'Name', description: 'Description', url: 'Link', icon: 'Icon (image URL)', moveUp: 'Move up', moveDown: 'Move down', removeCard: 'Remove card',
   cancel: 'Cancel', save: 'Save', saving: 'Saving…', saved: 'Changes saved', saveError: 'Could not save changes',
@@ -108,11 +97,15 @@ const languages: { code: SupportedContentLocale; label: string }[] = [{ code: 'f
 const activeLanguage = ref<SupportedContentLocale>('fr')
 const open = ref(false)
 const draft = ref<RecommendationsContent>(structuredClone(props.content))
+const editorPanel = ref<HTMLElement | null>(null)
+const pageTitleInput = ref<HTMLInputElement | null>(null)
 const saving = ref(false)
 const success = ref('')
 const error = ref('')
 const x = ref(0)
 const y = ref(0)
+let dragOffsetX = 0
+let dragOffsetY = 0
 const positionStyle = computed(() => ({ left: `${x.value}px`, top: `${y.value}px` }))
 
 function openEditor() {
@@ -125,6 +118,33 @@ function openEditor() {
 
 function close() {
   if (!saving.value) open.value = false
+}
+
+function startDrag(event: PointerEvent) {
+  if ((event.target as HTMLElement).closest('button')) return
+  event.preventDefault()
+  window.getSelection()?.removeAllRanges()
+  dragOffsetX = event.clientX - x.value
+  dragOffsetY = event.clientY - y.value
+  window.addEventListener('pointermove', drag)
+  window.addEventListener('pointerup', stopDrag, { once: true })
+  window.addEventListener('pointercancel', stopDrag, { once: true })
+}
+
+function drag(event: PointerEvent) {
+  const panel = editorPanel.value
+  if (!panel) return
+
+  const maxX = window.innerWidth - panel.offsetWidth - 8
+  const maxY = window.innerHeight - panel.offsetHeight - 8
+  x.value = Math.max(8, Math.min(maxX, event.clientX - dragOffsetX))
+  y.value = Math.max(8, Math.min(maxY, event.clientY - dragOffsetY))
+}
+
+function stopDrag() {
+  window.removeEventListener('pointermove', drag)
+  window.removeEventListener('pointerup', stopDrag)
+  window.removeEventListener('pointercancel', stopDrag)
 }
 
 function addItem() {
@@ -147,6 +167,12 @@ function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape' && open.value) close()
 }
 
+function onPublicPageEditRequest(event: Event) {
+  if (!props.isAdmin || !props.isEditMode) return
+  if ((event as CustomEvent).detail !== 'recommendations') return
+  openEditor()
+}
+
 async function save() {
   saving.value = true
   success.value = ''
@@ -167,15 +193,26 @@ watch(open, async (isOpen) => {
   x.value = Math.max(16, window.innerWidth - 392)
   y.value = 88
   await nextTick()
+  pageTitleInput.value?.focus()
 })
 
-onMounted(() => window.addEventListener('keydown', onKeydown))
-onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+watch(() => props.isEditMode, (isEnabled) => {
+  if (!isEnabled) close()
+})
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+  window.addEventListener(PUBLIC_PAGE_EDIT_REQUEST_EVENT, onPublicPageEditRequest)
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  window.removeEventListener(PUBLIC_PAGE_EDIT_REQUEST_EVENT, onPublicPageEditRequest)
+  stopDrag()
+})
 </script>
 
 <style scoped>
 @layer components {
-.public-content-edit-trigger:focus-visible,
 .recommendations-editor :deep(button:focus-visible),
 .recommendations-editor input:focus-visible,
 .recommendations-editor textarea:focus-visible {
@@ -207,7 +244,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .recommendations-editor__footer {
   padding: var(--site-space-4);
 }
-.recommendations-editor__header { border-bottom: 1px solid var(--site-color-border); }
+.recommendations-editor__header {
+  border-bottom: 1px solid var(--site-color-border);
+  cursor: move;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
 .recommendations-editor__footer { border-top: 1px solid var(--site-color-border); }
 .recommendations-editor__header h2,
 .recommendations-editor__list-heading h3 {

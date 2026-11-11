@@ -2,7 +2,7 @@
   <main class="site-page site-recommendations-page">
     <div class="site-recommendations-content">
       <CollectionIntro :title="copy.title" :description="copy.description" />
-      <HomeRecommendations :show-heading="false" editable :is-admin="isAdmin" />
+      <HomeRecommendations :show-heading="false" editable :is-admin="isAdmin" :is-edit-mode="isContentEditMode" />
     </div>
   </main>
 
@@ -23,6 +23,8 @@ const locale = computed(() => $getLocale() === 'fr' ? 'fr' : 'en')
 const copy = computed(() => settingsData.value?.recommendationsContent?.[locale.value] || DEFAULT_RECOMMENDATIONS_CONTENT[locale.value])
 const { user, loggedIn } = useUserSession()
 const isAdmin = computed(() => !!(loggedIn.value && user.value?.role === 'admin'))
+const siteEditMode = usePublicPageEditMode()
+const isContentEditMode = computed(() => isAdmin.value && siteEditMode.value)
 
 useSeoMeta({
   title: () => `${copy.value.title} - Corpinot`,

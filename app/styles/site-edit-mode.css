@@ -1,0 +1,65 @@
+@layer components {
+.site-shell.site-edit-mode-active {
+  background-color: transparent;
+  background-image:
+    radial-gradient(
+      ellipse at center,
+      color-mix(in srgb, var(--site-color-accent) 4%, transparent),
+      transparent 68%
+    ),
+    linear-gradient(to right, color-mix(in srgb, var(--site-color-accent) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--site-color-accent) 5%, transparent) 1px, transparent 1px);
+  background-size: 100vw 100vh, 48px 48px, 48px 48px;
+  background-attachment: fixed, fixed, fixed;
+  background-position:
+    50% 50%,
+    var(--site-edit-grid-x, 0px) 0,
+    0 var(--site-edit-grid-y, 0px);
+  transition: background-position 180ms ease-out;
+}
+
+.site-shell.site-edit-mode-active .site-page,
+.site-shell.site-edit-mode-active .site-post,
+.site-shell.site-edit-mode-active .site-post-header,
+.site-shell.site-edit-mode-active .site-home {
+  background: transparent;
+}
+
+.site-shell.site-edit-mode-active :is(
+  .home-featured-posts,
+  .home-trending-tags,
+  .home-recent-posts,
+  .home-projects,
+  .home-newsletter,
+  .home-pinned-posts
+) {
+  background-color: transparent;
+}
+
+.site-shell .site-header-controls .site-header-edit-mode-trigger {
+  min-height: 28px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--site-color-text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.site-shell .site-header-edit-mode-trigger:hover,
+.site-shell .site-header-edit-mode-trigger:focus-visible {
+  background: transparent;
+  color: var(--site-color-heading);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-shell.site-edit-mode-active {
+    transition: none;
+  }
+}
+}

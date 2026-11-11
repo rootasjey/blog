@@ -17,11 +17,23 @@ import useGlobalSearch from './composables/useGlobalSearch'
 
 const { open } = useGlobalSearch()
 const router = useRouter()
+const siteEditMode = usePublicPageEditMode()
+
+function hasActiveOverlay() {
+  const overlays = document.querySelectorAll(
+    '[role="dialog"], [role="menu"], [role="listbox"], .site-header-pages-menu, aside.fixed.inset-0',
+  )
+
+  return [...overlays].some((overlay) => {
+    const style = window.getComputedStyle(overlay)
+    return style.display !== 'none' && style.visibility !== 'hidden' && overlay.getClientRects().length > 0
+  })
+}
 
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') {
     const active = document.activeElement
-    if (isTextEntryOrMenu(active)) return
+    if (e.defaultPrevented || hasActiveOverlay() || isTextEntryOrMenu(active) || siteEditMode.value) return
 
     e.preventDefault()
     router.back()

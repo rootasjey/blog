@@ -1,17 +1,4 @@
 <template>
-  <NButton
-    v-if="isAdmin"
-    btn="outline-gray"
-    size="xs"
-    leading="i-ph-pencil-simple"
-    class="home-intro-edit-trigger"
-    aria-haspopup="dialog"
-    :aria-expanded="open"
-    @click="openEditor"
-  >
-    {{ labels.edit }}
-  </NButton>
-
   <Teleport to="body">
     <section
       v-if="open"
@@ -73,19 +60,20 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { HomeIdentity } from '~~/shared/types/home-identity'
+import { PUBLIC_PAGE_EDIT_REQUEST_EVENT } from '~/utils/publicPageEditRequests'
 
-const props = defineProps<{ identity: HomeIdentity; isAdmin: boolean }>()
+const props = defineProps<{ identity: HomeIdentity; isAdmin: boolean; isEditMode: boolean }>()
 const emit = defineEmits<{ saved: [identity: HomeIdentity] }>()
 
 const { $getLocale } = useI18n()
 const locale = computed(() => $getLocale() === 'en' ? 'en' : 'fr')
 const labels = computed(() => locale.value === 'en' ? {
-  edit: 'Edit introduction', title: 'Edit introduction', languages: 'Content language', close: 'Close',
+  title: 'Edit introduction', languages: 'Content language', close: 'Close',
   name: 'Name', description: 'Description', avatar: 'Profile image', chooseImage: 'Choose image', cancel: 'Cancel', save: 'Save',
   saving: 'Saving…', uploading: 'Uploading…', saved: 'Changes saved', uploadError: 'Image upload failed',
   saveError: 'Could not save changes',
 } : {
-  edit: 'Modifier l’introduction', title: 'Modifier l’introduction', languages: 'Langue du contenu', close: 'Fermer',
+  title: 'Modifier l’introduction', languages: 'Langue du contenu', close: 'Fermer',
   name: 'Nom', description: 'Description', avatar: 'Photo de profil', chooseImage: 'Choisir une image', cancel: 'Annuler', save: 'Enregistrer',
   saving: 'Enregistrement…', uploading: 'Envoi…', saved: 'Modifications enregistrées', uploadError: 'Envoi de la photo impossible',
   saveError: 'Enregistrement impossible',
@@ -122,12 +110,6 @@ function close() {
   open.value = false
 }
 
-function onContextMenu(event: Event) {
-  if (!props.isAdmin) return
-  event.preventDefault()
-  openEditor()
-}
-
 function startDrag(event: PointerEvent) {
   if ((event.target as HTMLElement).closest('button')) return
   dragOffsetX = event.clientX - x.value
@@ -147,6 +129,12 @@ function stopDrag() {
 
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape' && open.value) close()
+}
+
+function onPublicPageEditRequest(event: Event) {
+  if (!props.isAdmin || !props.isEditMode) return
+  if ((event as CustomEvent).detail !== 'home-intro') return
+  openEditor()
 }
 
 async function uploadAvatar(event: Event) {
@@ -195,24 +183,23 @@ watch(open, async (isOpen) => {
   nameInput.value?.focus()
 })
 
+watch(() => props.isEditMode, (isEnabled) => {
+  if (!isEnabled) close()
+})
+
 onMounted(() => {
   window.addEventListener('keydown', onKeydown)
-  document.querySelector('.site-intro')?.addEventListener('contextmenu', onContextMenu)
+  window.addEventListener(PUBLIC_PAGE_EDIT_REQUEST_EVENT, onPublicPageEditRequest)
 })
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeydown)
-  document.querySelector('.site-intro')?.removeEventListener('contextmenu', onContextMenu)
+  window.removeEventListener(PUBLIC_PAGE_EDIT_REQUEST_EVENT, onPublicPageEditRequest)
   stopDrag()
 })
 </script>
 
 <style scoped>
 @layer components {
-.home-intro-edit-trigger {
-  margin-block-end: var(--site-space-4);
-}
-
-.home-intro-edit-trigger:focus-visible,
 .home-intro-editor :deep(button:focus-visible),
 .home-intro-editor input:focus-visible,
 .home-intro-editor textarea:focus-visible {

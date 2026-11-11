@@ -1,7 +1,7 @@
 <template>
-  <main class="site-page site-about">
-    <AboutPageEditor :content="aboutPageContent" :is-admin="isAdmin" @saved="saveAboutPageContent" />
+  <main class="site-page site-about" :data-public-page-edit-target="isContentEditMode ? 'about' : undefined">
     <header class="site-about-header">
+      <AboutPageEditor :content="aboutPageContent" :is-admin="isAdmin" :is-edit-mode="isContentEditMode" @saved="saveAboutPageContent" />
       <h1>{{ displayedContent.heading }}</h1>
       <p>{{ displayedContent.mainTitle }}</p>
     </header>
@@ -83,6 +83,8 @@ const activeContentLocale = computed<SupportedContentLocale>(() => locale.value 
 const aboutPageContent = computed(() => settingsData.value?.aboutPageContent || DEFAULT_ABOUT_PAGE_CONTENT)
 const { user, loggedIn } = useUserSession()
 const isAdmin = computed(() => !!(loggedIn.value && user.value?.role === 'admin'))
+const siteEditMode = usePublicPageEditMode()
+const isContentEditMode = computed(() => isAdmin.value && siteEditMode.value)
 const legacyFaqKeys = [
   ['faqWhoLabel', 'faqWhoContent'],
   ['faqTopicsLabel', 'faqTopicsContent'],
