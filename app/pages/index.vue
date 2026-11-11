@@ -29,7 +29,7 @@
       <div class="animate-entrance"><RecentPostsGrid /></div>
       <div class="animate-entrance"><NewsletterSubscription /></div>
       <div class="animate-entrance"><ProjectsCarousel /></div>
-      <div class="animate-entrance"><HomeRecommendations /></div>
+      <div class="animate-entrance"><HomeRecommendations editable :is-admin="isAdmin" /></div>
     </div>
   </div>
 </template>

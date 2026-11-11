@@ -1,5 +1,14 @@
 import { eventHandler, readBody, createError } from 'h3'
-import { homeIdentitySchema, setHomeIdentity, socialsSchema, setSocials } from '~~/server/utils/siteSettings'
+import {
+  aboutPageContentSchema,
+  homeIdentitySchema,
+  recommendationsContentSchema,
+  setAboutPageContent,
+  setHomeIdentity,
+  setRecommendationsContent,
+  setSocials,
+  socialsSchema,
+} from '~~/server/utils/siteSettings'
 
 export default eventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -20,7 +29,19 @@ export default eventHandler(async (event) => {
     if (!parsed.success) throw createError({ statusCode: 400, statusMessage: 'Invalid home identity', data: parsed.error.flatten() })
     await setHomeIdentity(parsed.data)
   }
-  if (body?.socials === undefined && body?.homeIdentity === undefined) throw createError({ statusCode: 400, statusMessage: 'No supported setting provided' })
+  if (body?.recommendationsContent !== undefined) {
+    const parsed = recommendationsContentSchema.safeParse(body.recommendationsContent)
+    if (!parsed.success) throw createError({ statusCode: 400, statusMessage: 'Invalid recommendations content', data: parsed.error.flatten() })
+    await setRecommendationsContent(parsed.data)
+  }
+  if (body?.aboutPageContent !== undefined) {
+    const parsed = aboutPageContentSchema.safeParse(body.aboutPageContent)
+    if (!parsed.success) throw createError({ statusCode: 400, statusMessage: 'Invalid about page content', data: parsed.error.flatten() })
+    await setAboutPageContent(parsed.data)
+  }
+  if (body?.socials === undefined && body?.homeIdentity === undefined && body?.recommendationsContent === undefined && body?.aboutPageContent === undefined) {
+    throw createError({ statusCode: 400, statusMessage: 'No supported setting provided' })
+  }
 
   return { message: 'Site settings updated', ...(updatedSocials ? { socials: updatedSocials } : {}) }
 })

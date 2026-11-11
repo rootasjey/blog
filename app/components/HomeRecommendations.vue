@@ -7,10 +7,16 @@
           :title="heading"
         />
       </div>
+      <RecommendationsEditor
+        v-if="editable"
+        :content="recommendationsContent"
+        :is-admin="isAdmin"
+        @saved="saveRecommendations"
+      />
       <div class="site-home-recommendations-grid">
         <a
           v-for="item in recommendations"
-          :key="item.name"
+          :key="item.id"
           class="site-home-recommendation"
           :href="item.href"
           target="_blank"
@@ -18,7 +24,7 @@
         >
           <img
             :src="item.icon"
-            :class="{ 'site-home-recommendation-icon--github': item.name === 'GitHub' }"
+            :class="{ 'site-home-recommendation-icon--github': item.id === 'github' }"
             alt=""
             width="22"
             height="22"
@@ -39,37 +45,29 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { localizedPath } from '~/utils/presentationPosts'
+import { DEFAULT_RECOMMENDATIONS_CONTENT, type RecommendationsContent } from '~~/shared/types/public-page-content'
 
 const { $getLocale, $ts } = useI18n()
-withDefaults(defineProps<{ showHeading?: boolean }>(), { showHeading: true })
+withDefaults(defineProps<{ showHeading?: boolean; editable?: boolean; isAdmin?: boolean }>(), { showHeading: true, editable: false, isAdmin: false })
+const { data: settingsData } = await useFetch<{ recommendationsContent?: RecommendationsContent }>('/api/site-settings')
+const recommendationsContent = computed(() => settingsData.value?.recommendationsContent || DEFAULT_RECOMMENDATIONS_CONTENT)
 const heading = computed(() => {
   const translated = $ts('components.homeRecommendations.heading')
   if (translated.toLocaleLowerCase() !== 'components.homerecommendations.heading') return translated
   return $getLocale() === 'fr' ? 'Recommandations' : 'Recommendations'
 })
 const recommendations = computed(() => {
-  const french = $getLocale() !== 'en'
-  return [
-    {
-      name: 'GitHub',
-      description: french ? 'Dépôt de code' : 'Code Repository',
-      href: 'https://github.com/',
-      icon: 'https://github.githubassets.com/assets/pinned-octocat-093da3e6fa40.svg',
-    },
-    {
-      name: 'Prime Direction',
-      description: french ? 'Thèmes Ghost premium' : 'Premium Ghost Themes',
-      href: 'https://primedirection.org/',
-      icon: 'https://primedirection.org/favicon.png',
-    },
-    {
-      name: 'Figma',
-      description: french ? 'Outil de conception' : 'Design Tool',
-      href: 'https://figma.com/',
-      icon: 'https://static.figma.com/app/icon/2/touch-180.png',
-    },
-  ]
+  const locale = $getLocale() === 'en' ? 'en' : 'fr'
+  return recommendationsContent.value.items.map(item => ({
+    ...item,
+    name: item.name[locale],
+    description: item.description[locale],
+  }))
 })
+
+function saveRecommendations(content: RecommendationsContent) {
+  if (settingsData.value) settingsData.value.recommendationsContent = content
+}
 </script>
 
 <style>

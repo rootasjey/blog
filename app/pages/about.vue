@@ -1,8 +1,9 @@
 <template>
   <main class="site-page site-about">
+    <AboutPageEditor :content="aboutPageContent" :is-admin="isAdmin" @saved="saveAboutPageContent" />
     <header class="site-about-header">
-      <h1>{{ $ts('pages.about.heading') }}</h1>
-      <p>{{ $ts('pages.about.mainTitle') }}</p>
+      <h1>{{ displayedContent.heading }}</h1>
+      <p>{{ displayedContent.mainTitle }}</p>
     </header>
 
     <figure class="site-about-cover">
@@ -14,8 +15,8 @@
 
     <div class="site-about-content">
       <section class="site-about-introduction">
-        <p>{{ intro }}</p>
-        <p>{{ $ts('pages.about.description') }}</p>
+        <p>{{ displayedContent.intro }}</p>
+        <p>{{ displayedContent.description }}</p>
         <p class="site-about-links">
           <NuxtLink class="site-editorial-link" :to="localizedPath('/posts', $getLocale())">
             {{ $ts('pages.about.browsePosts') }}
@@ -33,12 +34,12 @@
       </section>
 
       <section class="site-about-section">
-        <h2>{{ $ts('pages.about.openSourceHeading') }}</h2>
-        <p>{{ openSourceText }}</p>
+        <h2>{{ displayedContent.openSourceHeading }}</h2>
+        <p>{{ displayedContent.openSourceText }}</p>
       </section>
 
       <section class="site-about-section site-about-faq">
-        <h2>{{ $ts('pages.about.faqHeading') }}</h2>
+        <h2>{{ displayedContent.faqHeading }}</h2>
 
         <NAccordion
           type="single"
@@ -46,65 +47,21 @@
           class="site-about-accordion"
         >
           <NAccordionItem
-            value="q1"
-            :label="$ts('pages.about.faqWhoLabel')"
+            v-for="item in displayedContent.faq"
+            :key="item.id"
+            :value="item.id"
+            :label="item.question"
             :una="accordionItemUna"
             :_accordion-trigger="accordionTriggerUna"
           >
-            <template #content>
-              <p>{{ $ts('pages.about.faqWhoContent') }}</p>
-            </template>
-          </NAccordionItem>
-
-          <NAccordionItem
-            value="q2"
-            :label="$ts('pages.about.faqTopicsLabel')"
-            :una="accordionItemUna"
-            :_accordion-trigger="accordionTriggerUna"
-          >
-            <template #content>
-              <p>{{ $ts('pages.about.faqTopicsContent') }}</p>
-            </template>
-          </NAccordionItem>
-
-          <NAccordionItem
-            value="q3"
-            :label="$ts('pages.about.faqOpenSourceLabel')"
-            :una="accordionItemUna"
-            :_accordion-trigger="accordionTriggerUna"
-          >
-            <template #content>
-              <p>{{ $ts('pages.about.faqOpenSourceContent') }}</p>
-            </template>
-          </NAccordionItem>
-
-          <NAccordionItem
-            value="q4"
-            :label="$ts('pages.about.faqContributeLabel')"
-            :una="accordionItemUna"
-            :_accordion-trigger="accordionTriggerUna"
-          >
-            <template #content>
-              <p>{{ $ts('pages.about.faqContributeContent') }}</p>
-            </template>
-          </NAccordionItem>
-
-          <NAccordionItem
-            value="q5"
-            :label="$ts('pages.about.faqNewsletterLabel')"
-            :una="accordionItemUna"
-            :_accordion-trigger="accordionTriggerUna"
-          >
-            <template #content>
-              <p>{{ $ts('pages.about.faqNewsletterContent') }}</p>
-            </template>
+            <template #content><p>{{ item.answer }}</p></template>
           </NAccordionItem>
         </NAccordion>
       </section>
 
       <section class="site-about-section site-about-contact">
-        <h2>{{ $ts('pages.about.contactHeading') }}</h2>
-        <p>{{ $ts('pages.about.contactText') }}</p>
+        <h2>{{ displayedContent.contactHeading }}</h2>
+        <p>{{ displayedContent.contactText }}</p>
       </section>
     </div>
 
@@ -114,11 +71,61 @@
 
 <script setup lang="ts">
 import { localizedPath } from '~/utils/presentationPosts'
+import { DEFAULT_ABOUT_PAGE_CONTENT, type AboutPageContent, type SupportedContentLocale } from '~~/shared/types/public-page-content'
 
 const { $ts, $getLocale } = useI18n()
 const config = useRuntimeConfig()
-const intro = computed(() => $ts('pages.about.intro').replaceAll('**', ''))
-const openSourceText = computed(() => $ts('pages.about.openSourceText').replaceAll('**', ''))
+const { data: settingsData } = await useFetch<{ aboutPageContent?: AboutPageContent }>('/api/site-settings', {
+  default: () => ({ aboutPageContent: DEFAULT_ABOUT_PAGE_CONTENT }),
+})
+const locale = computed(() => $getLocale())
+const activeContentLocale = computed<SupportedContentLocale>(() => locale.value === 'fr' ? 'fr' : 'en')
+const aboutPageContent = computed(() => settingsData.value?.aboutPageContent || DEFAULT_ABOUT_PAGE_CONTENT)
+const { user, loggedIn } = useUserSession()
+const isAdmin = computed(() => !!(loggedIn.value && user.value?.role === 'admin'))
+const legacyFaqKeys = [
+  ['faqWhoLabel', 'faqWhoContent'],
+  ['faqTopicsLabel', 'faqTopicsContent'],
+  ['faqOpenSourceLabel', 'faqOpenSourceContent'],
+  ['faqContributeLabel', 'faqContributeContent'],
+  ['faqNewsletterLabel', 'faqNewsletterContent'],
+] as const
+const displayedContent = computed(() => {
+  if (locale.value === 'fr' || locale.value === 'en') {
+    const content = aboutPageContent.value[activeContentLocale.value]
+    return {
+      ...content,
+      intro: content.intro.replaceAll('**', ''),
+      openSourceText: content.openSourceText.replaceAll('**', ''),
+      faq: content.faq.map(item => ({
+        id: item.id,
+        question: item.question[activeContentLocale.value],
+        answer: item.answer[activeContentLocale.value],
+      })),
+    }
+  }
+
+  return {
+    heading: $ts('pages.about.heading'),
+    mainTitle: $ts('pages.about.mainTitle'),
+    intro: $ts('pages.about.intro').replaceAll('**', ''),
+    description: $ts('pages.about.description'),
+    openSourceHeading: $ts('pages.about.openSourceHeading'),
+    openSourceText: $ts('pages.about.openSourceText').replaceAll('**', ''),
+    faqHeading: $ts('pages.about.faqHeading'),
+    faq: legacyFaqKeys.map(([questionKey, answerKey], index) => ({
+      id: `legacy-q${index + 1}`,
+      question: $ts(`pages.about.${questionKey}`),
+      answer: $ts(`pages.about.${answerKey}`),
+    })),
+    contactHeading: $ts('pages.about.contactHeading'),
+    contactText: $ts('pages.about.contactText'),
+  }
+})
+
+function saveAboutPageContent(content: AboutPageContent) {
+  if (settingsData.value) settingsData.value.aboutPageContent = content
+}
 const accordionItemUna = {
   accordionItem: 'border-[var(--site-color-border)]',
   accordionLeading: 'text-[var(--site-color-text)] hover:bg-[var(--site-color-hover-background)] hover:text-[var(--site-color-heading)]',

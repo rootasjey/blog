@@ -1,7 +1,9 @@
 import { eventHandler } from 'h3'
-import { getHomeIdentity, getSocials } from '~~/server/utils/siteSettings'
+import { getAboutPageContent, getHomeIdentity, getRecommendationsContent, getSocials } from '~~/server/utils/siteSettings'
 
 export default eventHandler(async () => {
-  const [socials, homeIdentity] = await Promise.all([getSocials(), getHomeIdentity()])
-  return { socials, homeIdentity }
+  const [socials, homeIdentity, recommendationsContent, aboutPageContent] = await Promise.all([
+    getSocials(), getHomeIdentity(), getRecommendationsContent(), getAboutPageContent(),
+  ])
+  return { socials, homeIdentity, recommendationsContent, aboutPageContent }
 })

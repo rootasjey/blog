@@ -2,7 +2,7 @@
   <main class="site-page site-recommendations-page">
     <div class="site-recommendations-content">
       <CollectionIntro :title="copy.title" :description="copy.description" />
-      <HomeRecommendations :show-heading="false" />
+      <HomeRecommendations :show-heading="false" editable :is-admin="isAdmin" />
     </div>
   </main>
 
@@ -13,17 +13,16 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { DEFAULT_RECOMMENDATIONS_CONTENT, type RecommendationsContent } from '~~/shared/types/public-page-content'
 
 const { $getLocale } = useI18n()
-const copy = computed(() => $getLocale() === 'fr'
-  ? {
-      title: 'Recommandations',
-      description: 'Une sélection personnelle de studios, de publications, d’outils et de personnes à qui je reviens souvent. Ces références nourrissent ma pratique et ouvrent de nouvelles perspectives.',
-    }
-  : {
-      title: 'Recommendations',
-      description: 'A personal selection of studios, publications, tools, and thinkers I return to often. These are the references that continue to inform my practice and point my attention forward.',
-    })
+const { data: settingsData } = await useFetch<{ recommendationsContent?: RecommendationsContent }>('/api/site-settings', {
+  default: () => ({ recommendationsContent: DEFAULT_RECOMMENDATIONS_CONTENT }),
+})
+const locale = computed(() => $getLocale() === 'fr' ? 'fr' : 'en')
+const copy = computed(() => settingsData.value?.recommendationsContent?.[locale.value] || DEFAULT_RECOMMENDATIONS_CONTENT[locale.value])
+const { user, loggedIn } = useUserSession()
+const isAdmin = computed(() => !!(loggedIn.value && user.value?.role === 'admin'))
 
 useSeoMeta({
   title: () => `${copy.value.title} - Corpinot`,

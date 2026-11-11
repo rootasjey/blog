@@ -1,4 +1,13 @@
-import { homeIdentitySchema, setHomeIdentity, socialsSchema, setSocials } from '~~/server/utils/siteSettings'
+import {
+  aboutPageContentSchema,
+  homeIdentitySchema,
+  recommendationsContentSchema,
+  setAboutPageContent,
+  setHomeIdentity,
+  setRecommendationsContent,
+  setSocials,
+  socialsSchema,
+} from '~~/server/utils/siteSettings'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -18,7 +27,19 @@ export default defineEventHandler(async (event) => {
       if (!parsed.success) return apiError(event, 400, 'VALIDATION_ERROR', 'Invalid home identity format')
       await setHomeIdentity(parsed.data)
     }
-    if (body?.socials === undefined && body?.homeIdentity === undefined) return apiError(event, 400, 'VALIDATION_ERROR', 'No supported setting provided')
+    if (body?.recommendationsContent !== undefined) {
+      const parsed = recommendationsContentSchema.safeParse(body.recommendationsContent)
+      if (!parsed.success) return apiError(event, 400, 'VALIDATION_ERROR', 'Invalid recommendations content format')
+      await setRecommendationsContent(parsed.data)
+    }
+    if (body?.aboutPageContent !== undefined) {
+      const parsed = aboutPageContentSchema.safeParse(body.aboutPageContent)
+      if (!parsed.success) return apiError(event, 400, 'VALIDATION_ERROR', 'Invalid about page content format')
+      await setAboutPageContent(parsed.data)
+    }
+    if (body?.socials === undefined && body?.homeIdentity === undefined && body?.recommendationsContent === undefined && body?.aboutPageContent === undefined) {
+      return apiError(event, 400, 'VALIDATION_ERROR', 'No supported setting provided')
+    }
 
     return apiSuccess(event, { message: 'Site settings updated', ...(updatedSocials ? { socials: updatedSocials } : {}) })
   } catch (err: any) {

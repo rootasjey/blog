@@ -1,0 +1,270 @@
+<template>
+  <NButton
+    v-if="isAdmin"
+    btn="outline-gray"
+    size="xs"
+    leading="i-ph-pencil-simple"
+    class="public-content-edit-trigger"
+    aria-haspopup="dialog"
+    :aria-expanded="open"
+    @click="openEditor"
+  >
+    {{ labels.edit }}
+  </NButton>
+
+  <Teleport to="body">
+    <section
+      v-if="open"
+      class="recommendations-editor"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="recommendations-editor-title"
+      :style="positionStyle"
+    >
+      <header class="recommendations-editor__header">
+        <h2 id="recommendations-editor-title">{{ labels.title }}</h2>
+        <NButton btn="ghost-gray" size="xs" icon label="i-lucide-x" :aria-label="labels.close" @click="close" />
+      </header>
+
+      <div class="recommendations-editor__body">
+        <div class="recommendations-editor__tabs" role="group" :aria-label="labels.languages">
+          <button v-for="language in languages" :key="language.code" type="button" :aria-pressed="activeLanguage === language.code" @click="activeLanguage = language.code">
+            {{ language.label }}
+          </button>
+        </div>
+
+        <label>
+          <span>{{ labels.pageTitle }}</span>
+          <input v-model="draft[activeLanguage].title" maxlength="100">
+        </label>
+        <label>
+          <span>{{ labels.pageDescription }}</span>
+          <textarea v-model="draft[activeLanguage].description" rows="4" maxlength="2000" />
+        </label>
+
+        <div class="recommendations-editor__list-heading">
+          <h3>{{ labels.cards }}</h3>
+          <NButton btn="outline-gray" size="xs" leading="i-ph-plus" :disabled="draft.items.length >= 12" @click="addItem">{{ labels.addCard }}</NButton>
+        </div>
+
+        <fieldset v-for="(item, index) in draft.items" :key="item.id" class="recommendations-editor__item">
+          <legend>{{ item.name[activeLanguage] || labels.untitled }}</legend>
+          <div class="recommendations-editor__item-actions">
+            <NButton btn="ghost-gray" size="xs" icon label="i-ph-arrow-up" :aria-label="labels.moveUp" :disabled="index === 0" @click="moveItem(index, -1)" />
+            <NButton btn="ghost-gray" size="xs" icon label="i-ph-arrow-down" :aria-label="labels.moveDown" :disabled="index === draft.items.length - 1" @click="moveItem(index, 1)" />
+            <NButton btn="ghost-gray" size="xs" icon label="i-ph-trash" :aria-label="labels.removeCard" @click="removeItem(index)" />
+          </div>
+          <label>
+            <span>{{ labels.name }}</span>
+            <input v-model="item.name[activeLanguage]" maxlength="100">
+          </label>
+          <label>
+            <span>{{ labels.description }}</span>
+            <input v-model="item.description[activeLanguage]" maxlength="300">
+          </label>
+          <label>
+            <span>{{ labels.url }}</span>
+            <input v-model="item.href" type="url" maxlength="500" placeholder="https://…">
+          </label>
+          <label>
+            <span>{{ labels.icon }}</span>
+            <input v-model="item.icon" maxlength="500" placeholder="https://… or /images/…">
+          </label>
+          <img v-if="item.icon" class="recommendations-editor__icon-preview" :src="item.icon" alt="" width="32" height="32" loading="lazy">
+        </fieldset>
+
+        <p v-if="error" class="recommendations-editor__message recommendations-editor__message--error" role="alert">{{ error }}</p>
+        <p v-if="success" class="recommendations-editor__message" role="status">{{ success }}</p>
+      </div>
+
+      <footer class="recommendations-editor__footer">
+        <NButton btn="ghost-gray" size="sm" :disabled="saving" @click="close">{{ labels.cancel }}</NButton>
+        <NButton btn="solid-black" size="sm" :loading="saving" :disabled="saving" @click="save">{{ saving ? labels.saving : labels.save }}</NButton>
+      </footer>
+    </section>
+  </Teleport>
+</template>
+
+<script setup lang="ts">
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import type { RecommendationsContent, SupportedContentLocale } from '~~/shared/types/public-page-content'
+
+const props = defineProps<{ content: RecommendationsContent; isAdmin: boolean }>()
+const emit = defineEmits<{ saved: [content: RecommendationsContent] }>()
+const { $getLocale } = useI18n()
+const locale = computed(() => $getLocale())
+const labels = computed(() => locale.value === 'fr' ? {
+  edit: 'Modifier les recommandations', title: 'Modifier les recommandations', close: 'Fermer', languages: 'Langue du contenu',
+  pageTitle: 'Titre de la page', pageDescription: 'Introduction', cards: 'Cartes', addCard: 'Ajouter une carte', untitled: 'Sans titre',
+  name: 'Nom', description: 'Description', url: 'Lien', icon: 'Icône (URL d’image)', moveUp: 'Monter', moveDown: 'Descendre', removeCard: 'Supprimer la carte',
+  cancel: 'Annuler', save: 'Enregistrer', saving: 'Enregistrement…', saved: 'Modifications enregistrées', saveError: 'Enregistrement impossible',
+} : {
+  edit: 'Edit recommendations', title: 'Edit recommendations', close: 'Close', languages: 'Content language',
+  pageTitle: 'Page title', pageDescription: 'Introduction', cards: 'Cards', addCard: 'Add card', untitled: 'Untitled',
+  name: 'Name', description: 'Description', url: 'Link', icon: 'Icon (image URL)', moveUp: 'Move up', moveDown: 'Move down', removeCard: 'Remove card',
+  cancel: 'Cancel', save: 'Save', saving: 'Saving…', saved: 'Changes saved', saveError: 'Could not save changes',
+})
+const languages: { code: SupportedContentLocale; label: string }[] = [{ code: 'fr', label: 'FR' }, { code: 'en', label: 'EN' }]
+const activeLanguage = ref<SupportedContentLocale>('fr')
+const open = ref(false)
+const draft = ref<RecommendationsContent>(structuredClone(props.content))
+const saving = ref(false)
+const success = ref('')
+const error = ref('')
+const x = ref(0)
+const y = ref(0)
+const positionStyle = computed(() => ({ left: `${x.value}px`, top: `${y.value}px` }))
+
+function openEditor() {
+  draft.value = structuredClone(props.content)
+  activeLanguage.value = locale.value === 'en' ? 'en' : 'fr'
+  success.value = ''
+  error.value = ''
+  open.value = true
+}
+
+function close() {
+  if (!saving.value) open.value = false
+}
+
+function addItem() {
+  const id = `recommendation-${Date.now().toString(36)}`
+  draft.value.items.push({ id, name: { fr: '', en: '' }, description: { fr: '', en: '' }, href: 'https://', icon: '' })
+}
+
+function removeItem(index: number) {
+  draft.value.items.splice(index, 1)
+}
+
+function moveItem(index: number, direction: -1 | 1) {
+  const target = index + direction
+  if (target < 0 || target >= draft.value.items.length) return
+  const [item] = draft.value.items.splice(index, 1)
+  if (item) draft.value.items.splice(target, 0, item)
+}
+
+function onKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape' && open.value) close()
+}
+
+async function save() {
+  saving.value = true
+  success.value = ''
+  error.value = ''
+  try {
+    await $fetch('/api/admin/site-settings', { method: 'PUT', body: { recommendationsContent: draft.value } })
+    emit('saved', structuredClone(draft.value))
+    success.value = labels.value.saved
+  } catch {
+    error.value = labels.value.saveError
+  } finally {
+    saving.value = false
+  }
+}
+
+watch(open, async (isOpen) => {
+  if (!isOpen || !import.meta.client) return
+  x.value = Math.max(16, window.innerWidth - 392)
+  y.value = 88
+  await nextTick()
+})
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+</script>
+
+<style scoped>
+@layer components {
+.public-content-edit-trigger:focus-visible,
+.recommendations-editor :deep(button:focus-visible),
+.recommendations-editor input:focus-visible,
+.recommendations-editor textarea:focus-visible {
+  outline: 2px solid var(--site-color-focus-ring);
+  outline-offset: 3px;
+}
+.recommendations-editor {
+  position: fixed;
+  z-index: 100;
+  display: flex;
+  width: min(24rem, calc(100vw - 2rem));
+  max-height: min(46rem, calc(100dvh - 7rem));
+  flex-direction: column;
+  border: 1px solid var(--site-color-border);
+  border-radius: var(--site-radius-card);
+  background: var(--site-color-surface);
+  color: var(--site-color-text);
+}
+.recommendations-editor__header,
+.recommendations-editor__footer,
+.recommendations-editor__list-heading,
+.recommendations-editor__item-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--site-space-2);
+}
+.recommendations-editor__header,
+.recommendations-editor__footer {
+  padding: var(--site-space-4);
+}
+.recommendations-editor__header { border-bottom: 1px solid var(--site-color-border); }
+.recommendations-editor__footer { border-top: 1px solid var(--site-color-border); }
+.recommendations-editor__header h2,
+.recommendations-editor__list-heading h3 {
+  margin: 0;
+  color: var(--site-color-heading);
+  font-size: 1rem;
+  font-weight: 550;
+}
+.recommendations-editor__body {
+  display: grid;
+  gap: var(--site-space-4);
+  padding: var(--site-space-4);
+  overflow-y: auto;
+}
+.recommendations-editor__body > label,
+.recommendations-editor__item > label {
+  display: grid;
+  gap: var(--site-space-1);
+  color: var(--site-color-text);
+  font-size: 0.875rem;
+}
+.recommendations-editor input,
+.recommendations-editor textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--site-color-border);
+  border-radius: 0.625rem;
+  background: var(--site-color-background);
+  color: var(--site-color-text);
+  font: inherit;
+}
+.recommendations-editor textarea { resize: vertical; }
+.recommendations-editor__tabs { display: flex; gap: var(--site-space-2); }
+.recommendations-editor__tabs button {
+  padding: 0.375rem 0.625rem;
+  border: 1px solid var(--site-color-border);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--site-color-text);
+  cursor: pointer;
+}
+.recommendations-editor__tabs button[aria-pressed="true"] {
+  border-color: var(--site-color-heading);
+  color: var(--site-color-heading);
+}
+.recommendations-editor__item {
+  display: grid;
+  gap: var(--site-space-3);
+  padding: var(--site-space-3);
+  border: 1px solid var(--site-color-border);
+  border-radius: 0.75rem;
+}
+.recommendations-editor__item legend { padding-inline: 0.25rem; color: var(--site-color-heading); font-size: 0.875rem; }
+.recommendations-editor__item-actions { justify-content: flex-end; }
+.recommendations-editor__icon-preview { width: 2rem; height: 2rem; border-radius: 0.375rem; object-fit: contain; }
+.recommendations-editor__message { margin: 0; color: var(--site-color-heading); font-size: 0.875rem; }
+.recommendations-editor__message--error { color: var(--site-color-danger); }
+}
+</style>
