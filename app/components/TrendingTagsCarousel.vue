@@ -12,6 +12,7 @@
           v-for="tag in tags"
           :key="tag.name"
           :to="`${localizedPath('/posts', $getLocale())}?tag=${encodeURIComponent(tag.name)}`"
+          :data-public-page-edit-target="isAdmin && isEditMode && tag.id != null ? `tag:${tag.id}` : undefined"
           :aria-label="`${tag.name}: ${tag.count}`"
           :style="{ '--tag-accent': postTagColor(tag.name, tag.color) }"
         >
@@ -35,6 +36,16 @@ import { EXCLUDED_TAGS } from '~/utils/tagConstants'
 import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
 import { postTagColor } from '~/utils/postTagColor'
 
+type TrendingTag = {
+  id?: number
+  name: string
+  count: number
+  icon: string | null
+  color: string | null
+}
+
+defineProps<{ isAdmin: boolean; isEditMode: boolean }>()
+
 const { $getLocale, $ts } = useI18n()
 const tagStore = useTagStore()
 
@@ -44,7 +55,7 @@ try {
   // Presentation tags keep the homepage navigable when the API is unavailable.
 }
 
-const tags = computed(() => {
+const tags = computed<TrendingTag[]>(() => {
   const locale = $getLocale() === 'fr' ? 'fr' : 'en'
   const posts = PRESENTATION_POSTS.filter(post => !post.isProject)
   const sampleCounts = new Map<string, number>()
@@ -61,6 +72,7 @@ const tags = computed(() => {
     .slice(0, 4)
   if (liveTags.length) {
     return liveTags.map(tag => ({
+      id: tag.id,
       name: tag.name,
       count: tag.count ?? 0,
       icon: tag.icon ?? null,

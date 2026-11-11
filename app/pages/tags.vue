@@ -5,6 +5,7 @@
         v-if="!tagsPending && !tagsError"
         :tags="directoryTags"
         :is-admin="isAdmin"
+        :is-edit-mode="isContentEditMode"
         @create="openNewTag"
         @edit="openEditTag"
         @delete="onDeleteFromDirectory"
@@ -77,13 +78,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import type { ApiTag } from '~~/shared/types/tags'
 import type { TagIconName } from '~~/shared/constants/tag-icons'
 import type { Post as ApiPost } from '~~/shared/types/post'
 import { EXCLUDED_TAGS } from '~/utils/tagConstants'
+import { getPublicTagEditId, PUBLIC_PAGE_EDIT_REQUEST_EVENT, type PublicPageEditTarget } from '~/utils/publicPageEditRequests'
 
 const { enhancePost } = usePost()
+const tagStore = useTagStore()
 const config = useRuntimeConfig()
 
 // Tags (use useFetch for SSR-safe hydration)
@@ -133,6 +136,10 @@ const publicTags = computed(() => {
 // Admin session + UI
 const { user, loggedIn } = useUserSession()
 const isAdmin = computed(() => loggedIn.value && user.value?.role === 'admin')
+const siteEditMode = usePublicPageEditMode()
+const isContentEditMode = computed(() => isAdmin.value && siteEditMode.value)
+const route = useRoute()
+const router = useRouter()
 // Tag CRUD UI state
 const tagDialogOpen = ref(false)
 const editingTag = ref<ApiTag | null>(null)
@@ -179,6 +186,36 @@ function openEditTag(tag: ApiTag) {
   tagDialogOpen.value = true
 }
 
+function onPublicPageEditRequest(event: Event) {
+  if (!isContentEditMode.value) return
+
+  const target = (event as CustomEvent<PublicPageEditTarget>).detail
+  const tagId = getPublicTagEditId(target)
+  if (tagId === null) return
+
+  const tag = tags.value.find(candidate => candidate.id === tagId)
+  if (tag) openEditTag(tag)
+}
+
+watch(
+  [() => route.query.editTag, tags, isContentEditMode],
+  ([queryTagId, currentTags, editModeEnabled]) => {
+    if (!import.meta.client || !editModeEnabled || typeof queryTagId !== 'string') return
+
+    const tagId = Number(queryTagId)
+    if (!Number.isSafeInteger(tagId)) return
+
+    const tag = currentTags.find(candidate => candidate.id === tagId)
+    if (!tag) return
+
+    openEditTag(tag)
+    const query = { ...route.query }
+    delete query.editTag
+    void router.replace({ query })
+  },
+  { immediate: true, flush: 'post' },
+)
+
 function onDeleteFromDirectory(tag: ApiTag) {
   tagPendingDelete.value = tag
   confirmDialogOpen.value = true
@@ -194,6 +231,7 @@ async function saveTag() {
     if (editingTag.value) {
       const updated = await $fetch<ApiTag>(`/api/tags/${editingTag.value.id}`, { method: 'PUT' as any, body: { name: tagName.value.trim(), category: tagCategory.value.trim() || 'general', description: tagDescription.value.trim(), icon: tagIcon.value, color: tagColor.value } })
       tags.value = tags.value.map(t => t.id === updated.id ? updated : t)
+      tagStore.tags = tagStore.tags.map(tag => tag.id === updated.id ? { ...tag, ...updated } : tag)
     } else {
       const created = await $fetch<ApiTag>('/api/tags', { method: 'POST' as any, body: { name: tagName.value.trim(), category: tagCategory.value.trim() || 'general', description: tagDescription.value.trim(), icon: tagIcon.value, color: tagColor.value } })
       tags.value = [...tags.value, created].sort((a, b) => a.name.localeCompare(b.name))
@@ -222,7 +260,10 @@ watch(tagDialogOpen, (open) => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleTagDialogKey)
+  window.removeEventListener(PUBLIC_PAGE_EDIT_REQUEST_EVENT, onPublicPageEditRequest)
 })
+
+onMounted(() => window.addEventListener(PUBLIC_PAGE_EDIT_REQUEST_EVENT, onPublicPageEditRequest))
 
 async function confirmDelete() {
   if (!tagPendingDelete.value) return

@@ -27,7 +27,7 @@
         <a class="site-interactive-hover site-outline-action site-intro-subscribe" href="#newsletter">{{ $ts('common.subscribe') }}</a>
       </section>
       <div class="animate-entrance"><FeaturedPostsGrid /></div>
-      <div class="animate-entrance"><TrendingTagsCarousel /></div>
+      <div class="animate-entrance"><TrendingTagsCarousel :is-admin="isAdmin" :is-edit-mode="isContentEditMode" /></div>
       <div class="animate-entrance"><RecentPostsGrid /></div>
       <div class="animate-entrance"><NewsletterSubscription /></div>
       <div class="animate-entrance"><ProjectsCarousel /></div>
@@ -37,8 +37,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent } from 'vue'
+import { computed, defineAsyncComponent, onMounted, onUnmounted } from 'vue'
 import { DEFAULT_HOME_IDENTITY, type HomeIdentity } from '~~/shared/types/home-identity'
+import { localizedPath } from '~/utils/presentationPosts'
+import { getPublicTagEditId, PUBLIC_PAGE_EDIT_REQUEST_EVENT, type PublicPageEditTarget } from '~/utils/publicPageEditRequests'
 
 const isMobile = useIsMobile()
 const config = useRuntimeConfig()
@@ -50,8 +52,7 @@ const mobileIndex = computed(() => {
 
 const ogImageUrl = `${config.public.siteUrl}/og/home/default.png`
 
-const { $ts } = useI18n()
-const { $getLocale } = useI18n()
+const { $ts, $getLocale } = useI18n()
 const { data: settingsData } = await useFetch<{ socials: unknown[]; homeIdentity?: HomeIdentity }>('/api/site-settings', {
   default: () => ({ socials: [], homeIdentity: DEFAULT_HOME_IDENTITY }),
 })
@@ -62,6 +63,23 @@ const { user, loggedIn } = useUserSession()
 const isAdmin = computed(() => !!(loggedIn.value && user.value?.role === 'admin'))
 const siteEditMode = usePublicPageEditMode()
 const isContentEditMode = computed(() => isAdmin.value && siteEditMode.value)
+const router = useRouter()
+
+function onPublicPageEditRequest(event: Event) {
+  if (!isContentEditMode.value) return
+
+  const target = (event as CustomEvent<PublicPageEditTarget>).detail
+  const tagId = getPublicTagEditId(target)
+  if (tagId === null) return
+
+  void router.push({
+    path: localizedPath('/tags', $getLocale()),
+    query: { editTag: String(tagId) },
+  })
+}
+
+onMounted(() => window.addEventListener(PUBLIC_PAGE_EDIT_REQUEST_EVENT, onPublicPageEditRequest))
+onUnmounted(() => window.removeEventListener(PUBLIC_PAGE_EDIT_REQUEST_EVENT, onPublicPageEditRequest))
 
 function saveIdentity(identity: HomeIdentity) {
   if (settingsData.value) settingsData.value.homeIdentity = identity
