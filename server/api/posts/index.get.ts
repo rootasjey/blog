@@ -75,14 +75,20 @@ export default defineEventHandler(async (event) => {
   let finalWhere = where
   if (a) {
     if (/^\d+$/.test(a)) {
-      // filter by user id
-      finalWhere = and(where, eq(schema.posts.user_id, Number(a)))
+      finalWhere = and(where, sql`EXISTS (
+        SELECT 1 FROM ${schema.post_authors}
+        WHERE ${schema.post_authors.post_id} = ${schema.posts.id}
+          AND ${schema.post_authors.user_id} = ${Number(a)}
+      )`)
     } else {
-      // join users table and filter by name (case-insensitive)
-      finalQuery = finalQuery.innerJoin(schema.users, eq(schema.users.id, schema.posts.user_id))
       finalWhere = and(
         where,
-        sql`(LOWER(${schema.users.slug}) = LOWER(${a}) OR LOWER(${schema.users.name}) = LOWER(${a}))`
+        sql`EXISTS (
+          SELECT 1 FROM ${schema.post_authors}
+          INNER JOIN ${schema.users} ON ${schema.users.id} = ${schema.post_authors.user_id}
+          WHERE ${schema.post_authors.post_id} = ${schema.posts.id}
+            AND (LOWER(${schema.users.slug}) = LOWER(${a}) OR LOWER(${schema.users.name}) = LOWER(${a}))
+        )`
       )
     }
   }

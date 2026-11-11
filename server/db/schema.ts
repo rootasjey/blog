@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
 export const users = sqliteTable('users', {
@@ -57,6 +57,12 @@ export const post_tags = sqliteTable('post_tags', {
   post_id: integer('post_id').notNull(),
   tag_id: integer('tag_id').notNull(),
 })
+
+export const post_authors = sqliteTable('post_authors', {
+  post_id: integer('post_id').notNull().references(() => posts.id, { onDelete: 'cascade' }),
+  user_id: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  position: integer('position').notNull().default(0),
+}, (table) => [primaryKey({ columns: [table.post_id, table.user_id] })])
 
 export const messages = sqliteTable('messages', {
   id: integer('id').primaryKey({ autoIncrement: true }),

@@ -34,6 +34,7 @@ export type Post = {
     views: number
   }
   name: string
+  authors?: PostAuthor[]
   publishedAt?: string
   slug: string
   status: PostStatus
@@ -46,6 +47,14 @@ export type Post = {
     name?: string
     slug?: string
   }
+}
+
+export type PostAuthor = {
+  id: number
+  avatar: string
+  biography: string
+  name: string
+  slug?: string | null
 }
 
 export type PostLink = {

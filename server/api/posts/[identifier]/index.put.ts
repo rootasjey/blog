@@ -1,6 +1,6 @@
 // PUT /api/posts/[identifier]/index.put.ts
 import { db, schema } from 'hub:db'
-import { and, eq, ne, sql } from 'drizzle-orm'
+import { and, asc, eq, inArray, ne, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import type { ApiPost } from '~~/shared/types/post'
 import { convertApiToPost } from '~~/server/utils/post'
@@ -24,6 +24,7 @@ const updatePostSchema = z.object({
     category: z.string().max(50).optional(),
     description: z.string().max(500).optional(),
   })).max(20).optional(),
+  authorIds: z.array(z.number().int().positive()).min(1).max(10).optional(),
   language: z.enum(['en', 'fr', 'es', 'de', 'it']).optional(),
   slug: z.string().min(1).max(255).optional(),
   status: z.enum(['draft', 'published', 'archived']).optional(),
@@ -92,7 +93,28 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  if (!Object.keys(updateData).length) {
+  const hasTagChanges = validatedBody.tags !== undefined
+  const authorIds = validatedBody.authorIds === undefined
+    ? undefined
+    : [...new Set(validatedBody.authorIds)]
+  const hasAuthorChanges = authorIds !== undefined
+
+  if (authorIds) {
+    if (!authorIds.includes(apiPost.user_id)) {
+      throw createError({ statusCode: 400, statusMessage: 'The post owner must remain an author' })
+    }
+
+    const authors = await database
+      .select({ id: schema.users.id })
+      .from(schema.users)
+      .where(inArray(schema.users.id, authorIds))
+
+    if (authors.length !== authorIds.length) {
+      throw createError({ statusCode: 400, statusMessage: 'One or more authors do not exist' })
+    }
+  }
+
+  if (!Object.keys(updateData).length && !hasTagChanges && !hasAuthorChanges) {
     return {
       success: true,
       message: 'No changes to update',
@@ -100,24 +122,38 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  updateData.updated_at = new Date().toISOString()
+  if (Object.keys(updateData).length) {
+    updateData.updated_at = new Date().toISOString()
 
-  const updateResult = await database.update(schema.posts)
-    .set(updateData)
-    .where(and(eq(schema.posts.id, apiPost.id), eq(schema.posts.user_id, userId)))
-    .run()
+    const updateResult = await database.update(schema.posts)
+      .set(updateData)
+      .where(and(eq(schema.posts.id, apiPost.id), eq(schema.posts.user_id, userId)))
+      .run()
 
-  const updatedRows = Number((updateResult as any)?.rowsAffected ?? (updateResult as any)?.meta?.changes ?? (updateResult as any)?.meta?.rows_written ?? 0)
-  if (!updatedRows) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to update post',
-    })
+    const updatedRows = Number((updateResult as any)?.rowsAffected ?? (updateResult as any)?.meta?.changes ?? (updateResult as any)?.meta?.rows_written ?? 0)
+    if (!updatedRows) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Failed to update post',
+      })
+    }
   }
 
   // --- TAGS: Process tags after post update ---
   if (validatedBody.tags !== undefined) {
     await upsertPostTags(database, apiPost.id, validatedBody.tags)
+  }
+
+  if (authorIds) {
+    await database.batch([
+      database.delete(schema.post_authors)
+        .where(eq(schema.post_authors.post_id, apiPost.id)),
+      database.insert(schema.post_authors).values(authorIds.map((authorId, position) => ({
+        post_id: apiPost.id,
+        user_id: authorId,
+        position,
+      }))),
+    ])
   }
 
   // Fetch ALL tags for the post (not just created ones)
@@ -136,8 +172,22 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, message: 'Failed to update post' })
   }
 
+  const authorRows = await database
+    .select({
+      id: schema.users.id,
+      avatar: schema.users.avatar,
+      biography: schema.users.biography,
+      name: schema.users.name,
+      slug: schema.users.slug,
+    })
+    .from(schema.post_authors)
+    .innerJoin(schema.users, eq(schema.users.id, schema.post_authors.user_id))
+    .where(eq(schema.post_authors.post_id, apiPost.id))
+    .orderBy(asc(schema.post_authors.position))
+
   const post = convertApiToPost(updatedPost as ApiPost, {
     tags: tagRows.map((row: any) => row.tag),
+    authors: authorRows,
     userName: session.user.name,
   })
 

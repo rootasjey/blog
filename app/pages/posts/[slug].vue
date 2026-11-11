@@ -14,18 +14,48 @@
               <span class="i-ph-arrow-left" aria-hidden="true" />
             </NuxtLink>
             <span v-else class="site-post-nav-spacer" aria-hidden="true" />
-            <NuxtLink
-              v-if="primaryTag"
-              class="site-preview-tag site-interactive-hover"
-              :to="`${localizedPath('/posts', locale)}?tag=${encodeURIComponent(primaryTag.name)}`"
-              :style="{ '--post-tag-color': postTagColor(primaryTag.name, primaryTag.color) }"
-            >
-              <span class="site-preview-tag-mark" aria-hidden="true">
-                <NIcon v-if="primaryTag.icon" :name="primaryTag.icon" />
-                <span v-else>{{ primaryTag.name.slice(0, 1).toUpperCase() }}</span>
-              </span>
-              {{ primaryTag.name }}
-            </NuxtLink>
+            <div v-if="primaryTag" class="site-post-tag-group">
+              <NuxtLink
+                class="site-preview-tag site-interactive-hover"
+                :to="tagPath(primaryTag.name)"
+                :style="{ '--post-tag-color': postTagColor(primaryTag.name, primaryTag.color) }"
+              >
+                <span class="site-preview-tag-mark" aria-hidden="true">
+                  <NIcon v-if="primaryTag.icon" :name="primaryTag.icon" class="site-preview-tag-icon" />
+                  <span v-else>{{ primaryTag.name.slice(0, 1).toUpperCase() }}</span>
+                </span>
+                {{ primaryTag.name }}
+              </NuxtLink>
+              <div v-if="extraTags.length" ref="extraTagsPopover" class="site-post-extra-tags">
+                <button
+                  type="button"
+                  class="site-post-extra-tags-trigger"
+                  :aria-label="extraTagsLabel"
+                  aria-controls="site-post-extra-tags-menu"
+                  :aria-expanded="isExtraTagsOpen"
+                  :class="{ 'is-open': isExtraTagsOpen }"
+                  @click="isExtraTagsOpen = !isExtraTagsOpen"
+                >
+                  +{{ extraTags.length }}
+                </button>
+                <Transition name="site-extra-tags">
+                  <div v-if="isExtraTagsOpen" id="site-post-extra-tags-menu" class="site-post-extra-tags-menu">
+                    <NuxtLink
+                      v-for="tag in extraTags"
+                      :key="tag.id"
+                      :to="tagPath(tag.name)"
+                      :style="{ '--post-tag-color': postTagColor(tag.name, tag.color) }"
+                    >
+                      <span class="site-preview-tag-mark" aria-hidden="true">
+                        <NIcon v-if="tag.icon" :name="tag.icon" class="site-preview-tag-icon" />
+                        <span v-else>{{ tag.name.slice(0, 1).toUpperCase() }}</span>
+                      </span>
+                      {{ tag.name }}
+                    </NuxtLink>
+                  </div>
+                </Transition>
+              </div>
+            </div>
             <span v-else class="site-post-nav-spacer" aria-hidden="true" />
             <NuxtLink
               v-if="nextPost"
@@ -69,25 +99,28 @@
       <div class="container">
         <div class="site-post-author-card site-post-public-byline">
           <NuxtLink
-            v-if="post.user"
+            v-if="singlePostAuthor"
             class="site-post-author-link"
-            :to="authorPath"
-            :aria-label="post.user.name || $ts('components.postEndMatter.authorName')"
+            :to="authorPath(singlePostAuthor)"
+            :aria-label="singlePostAuthor.name || $ts('components.postEndMatter.authorName')"
           >
             <div class="site-post-author-heading">
               <PostImage
-                v-if="post.user.avatar"
+                v-if="singlePostAuthor.avatar"
                 provider="hubblob"
-                :src="post.user.avatar"
-                :alt="post.user.name || $ts('pages.post.userAlt')"
+                :src="singlePostAuthor.avatar"
+                :alt="singlePostAuthor.name || $ts('pages.post.userAlt')"
                 width="32"
                 height="32"
                 loading="lazy"
               />
-              <span>{{ post.user.name || $ts('components.postEndMatter.authorName') }}</span>
+              <span>{{ singlePostAuthor.name || $ts('components.postEndMatter.authorName') }}</span>
             </div>
             <p class="site-post-author-bio">{{ authorProfile?.biography || $ts('components.postEndMatter.authorBio') }}</p>
           </NuxtLink>
+          <div v-else-if="postAuthors.length > 1" class="site-post-author-link site-post-author-link--multiple">
+            <PostAuthorAvatarStack :authors="postAuthors" :author-path="authorPath" />
+          </div>
 
           <div class="site-post-public-meta">
             <time :datetime="post.publishedAt || post.createdAt">{{ formatPostDate(post.publishedAt || post.createdAt) }}</time>
@@ -123,7 +156,6 @@
             <template #label="{ item }">
               <span class="site-post-language-option">
                 {{ item.label }}
-                <NIcon v-if="item.active" name="i-ph-check" aria-hidden="true" />
               </span>
             </template>
           </NCombobox>
@@ -160,7 +192,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Post } from '~~/shared/types/post'
+import type { Post, PostAuthor } from '~~/shared/types/post'
+import PostAuthorAvatarStack from '~/components/PostAuthorAvatarStack.vue'
 import { localizedPath } from '~/utils/presentationPosts'
 import { postTagColor } from '~/utils/postTagColor'
 
@@ -214,6 +247,25 @@ const { data: publishedPosts } = await useFetch<Post[]>('/api/posts', {
 const editPostUrl = computed(() => localizedPath(`/posts/edit/${post.value?.slug || post.value?.id}`, $getLocale()))
 const locale = computed(() => $getLocale())
 const primaryTag = computed(() => post.value?.tags?.[0])
+const extraTags = computed(() => post.value?.tags?.slice(1) ?? [])
+const extraTagsLabel = computed(() => locale.value === 'fr' ? `Afficher ${extraTags.value.length} autres tags` : `Show ${extraTags.value.length} more tags`)
+const extraTagsPopover = ref<HTMLElement | null>(null)
+const isExtraTagsOpen = ref(false)
+const tagPath = (name: string) => `${localizedPath('/posts', locale.value)}?tag=${encodeURIComponent(name)}`
+
+const closeExtraTagsOnOutsideClick = (event: PointerEvent) => {
+  const target = event.target
+  if (target instanceof Node && !extraTagsPopover.value?.contains(target)) isExtraTagsOpen.value = false
+}
+
+const postAuthors = computed<PostAuthor[]>(() => {
+  const authors = post.value?.authors ?? []
+  if (authors.length) return authors
+  const owner = post.value?.user
+  if (!owner?.id) return []
+  return [{ id: owner.id, name: owner.name ?? '', avatar: owner.avatar ?? '', biography: '', slug: owner.slug }]
+})
+const singlePostAuthor = computed(() => postAuthors.value.length === 1 ? postAuthors.value[0] : undefined)
 const currentPostIndex = computed(() => (publishedPosts.value ?? []).findIndex(item => item.slug === post.value?.slug))
 const previousPost = computed(() => {
   const index = currentPostIndex.value
@@ -223,10 +275,10 @@ const nextPost = computed(() => {
   const index = currentPostIndex.value
   return index > 0 ? publishedPosts.value?.[index - 1] : undefined
 })
-const authorPath = computed(() => {
-  const identifier = post.value?.user?.slug || post.value?.user?.id
+const authorPath = (author: PostAuthor) => {
+  const identifier = author.slug || author.id
   return localizedPath(identifier ? `/authors/${identifier}` : '/authors', locale.value)
-})
+}
 
 // Fetch translations
 const { data: translations } = await useFetch<any[]>('/api/posts/' + slug + '/translations', {
@@ -278,6 +330,7 @@ const relatedArticles = computed(() => {
     title: candidate.name,
     image: candidate.image?.src || '/images/presentation/esc.webp',
     tag: candidate.tags?.[0]?.name,
+    tagColor: candidate.tags?.[0]?.color,
     date: candidate.publishedAt || candidate.createdAt,
     dateLabel: formatPostDate(candidate.publishedAt || candidate.createdAt),
   }))
@@ -493,6 +546,7 @@ onBeforeUnmount(() => {
 
 if (import.meta.client) {
   useEventListener(document, 'keydown', handleEditShortcut)
+  useEventListener(document, 'pointerdown', closeExtraTagsOnOutsideClick)
 }
 
 const config = useRuntimeConfig()
@@ -608,6 +662,23 @@ useHead({
 
 /* Component and page styles moved from the global stylesheets. */
 .site-shell .site-preview-topic-nav .site-post-nav-spacer { display: block; width: 28px; height: 28px; flex: none; }
+.site-shell .site-post-tag-group { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.site-shell .site-post-extra-tags { position: relative; flex: none; }
+.site-shell .site-post-extra-tags-trigger { display: grid; min-width: 28px; height: 28px; padding-inline: 6px; place-items: center; border: 1px solid var(--site-color-social-border); border-radius: var(--site-radius-tag); background: transparent; color: var(--site-color-muted); cursor: pointer; font-size: 12px; font-weight: 600; line-height: 1; transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease; }
+.site-shell .site-post-extra-tags-trigger:hover,
+.site-shell .site-post-extra-tags-trigger:focus-visible,
+.site-shell .site-post-extra-tags-trigger.is-open { border-color: var(--site-color-border); background: var(--site-color-hover-background); color: var(--site-color-heading); }
+.site-shell .site-post-extra-tags-trigger:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 3px; }
+.site-shell .site-post-extra-tags-menu { position: absolute; z-index: 10; top: calc(100% + 8px); left: 50%; display: grid; min-width: max-content; gap: 6px; padding: 8px; translate: -50% 0; border: 1px solid var(--site-color-border); border-radius: var(--site-radius-card); background: var(--site-color-background); box-shadow: 0 10px 30px rgb(0 0 0 / 16%); transform-origin: top center; }
+.site-shell .site-extra-tags-enter-active,
+.site-shell .site-extra-tags-leave-active { transition: opacity 160ms ease, transform 160ms ease; }
+.site-shell .site-extra-tags-enter-from,
+.site-shell .site-extra-tags-leave-to { opacity: 0; transform: translateY(-5px) scale(.97); }
+.site-shell .site-post-extra-tags-menu > a { display: inline-flex; align-items: center; gap: 7px; padding: 5px 8px; border-radius: var(--site-radius-control); color: var(--post-tag-color); font-size: 13px; font-weight: 550; text-decoration: none; white-space: nowrap; transition: background-color 160ms ease, color 160ms ease; }
+.site-shell .site-post-extra-tags-menu > a:hover,
+.site-shell .site-post-extra-tags-menu > a:focus-visible { background: var(--site-color-hover-background); color: var(--site-color-heading); }
+.site-shell .site-post-extra-tags-menu .site-preview-tag-mark { display: inline-grid; width: 18px; height: 18px; flex: none; place-items: center; border-radius: 5px; background: color-mix(in srgb, var(--post-tag-color) 14%, var(--site-color-surface)); font-size: 10px; font-weight: 650; line-height: 1; }
+.site-shell .site-post-extra-tags-menu .site-preview-tag-icon { font-size: 11px; }
 .site-shell .site-preview-topic-nav > .site-post-nav-link { position: relative; display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid transparent; border-radius: var(--site-radius-control); color: var(--site-color-muted); transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease; }
 .site-shell .site-preview-topic-nav > .site-post-nav-link:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--site-color-text) 12%, transparent); background: color-mix(in srgb, var(--site-color-text) 5%, transparent); color: var(--site-color-heading); }
 .site-shell .site-post-nav-link:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 3px; }
@@ -624,11 +695,11 @@ useHead({
 .site-shell .site-post-language-trigger:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 3px; }
 .site-shell .site-post-language-trigger-content { display: inline-flex; align-items: center; gap: 8px; }
 .site-shell .site-post-language-trigger-content .i-ph-caret-down { width: 14px; height: 14px; }
-.site-shell .site-post-language-menu { overflow: hidden; border: 1px solid var(--site-color-border); border-radius: var(--site-radius-control); background: var(--site-color-background); color: var(--site-color-text); box-shadow: 0 10px 30px rgb(0 0 0 / 14%); }
+.site-post-language-menu { overflow: hidden; border: 1px solid var(--site-color-border); border-radius: var(--site-radius-control); background: var(--site-color-background); color: var(--site-color-text); box-shadow: 0 10px 30px rgb(0 0 0 / 14%); }
+.site-post-language-menu .combobox-viewport { padding: 8px; }
 .site-shell .site-post-language-option { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; }
-.site-shell .site-post-language-option .i-ph-check { width: 14px; height: 14px; color: var(--site-color-accent); }
-.site-shell .site-post-edit-link { display: inline-flex; align-items: center; gap: 6px; }
-.site-shell .site-post-edit-link:hover { background: var(--site-color-hover-background); color: var(--site-color-heading); }
+.site-shell .site-post-edit-link { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid transparent; border-radius: var(--site-radius-control); transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease; }
+.site-shell .site-post-edit-link:hover { border-color: var(--site-color-border); background: var(--site-color-hover-background); color: var(--site-color-heading); }
 @media (max-width: 640px) {
   .site-shell .site-post-author-heading { gap: 10px; }
 }
@@ -641,6 +712,10 @@ useHead({
 @media (prefers-reduced-motion: reduce) {
   .site-shell .site-preview-topic-nav > .site-post-nav-link { transition: none; }
   .site-shell .site-post-language-trigger { transition: none; }
+  .site-shell .site-post-extra-tags-trigger,
+  .site-shell .site-extra-tags-enter-active,
+  .site-shell .site-extra-tags-leave-active { transition: none; }
+  .site-shell .site-post-extra-tags-menu > a { transition: none; }
 }
 }
 </style>

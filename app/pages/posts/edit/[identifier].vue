@@ -46,6 +46,14 @@
       @update:tags="onTagsUpdated"
     />
 
+    <PostAuthorsEditor
+      v-if="post"
+      :post-identifier="post.slug"
+      :owner-id="post.user?.id || 0"
+      :model-value="post.authors ?? []"
+      @update:model-value="post.authors = $event"
+    />
+
     <!-- Featured Image (preview / placeholder) -->
     <div v-if="previewSrc || post.image?.src" class="site-preview-cover site-editor-cover group">
       <div class="post-cover site-preview-cover-trigger">
@@ -195,6 +203,7 @@ import { useTimeAgo } from '@vueuse/core'
 import type { AILength, AICommand } from '~/composables/useAIWriter'
 import PostContent from '~/components/PostContent.vue'
 import PostMetadataEditor from '~/components/PostMetadataEditor.vue'
+import PostAuthorsEditor from '~/components/PostAuthorsEditor.vue'
 import { usePost } from '~/composables/usePost'
 import { usePostsApi } from '~/composables/usePostsApi'
 import { usePostImages } from '~/composables/usePostImages'

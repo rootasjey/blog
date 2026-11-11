@@ -1,6 +1,6 @@
 import { sql, eq } from 'drizzle-orm'
 import { schema } from 'hub:db'
-import type { ApiPost, Post } from "~~/shared/types/post"
+import type { ApiPost, Post, PostAuthor } from "~~/shared/types/post"
 import type { ApiTag } from '~~/shared/types/tags'
 
 /**
@@ -148,6 +148,7 @@ export function convertApiToPost(
     article?: string
     userName?: string
     userAvatar?: string
+    authors?: PostAuthor[]
   }
 ): Post {
   return {
@@ -175,6 +176,7 @@ export function convertApiToPost(
     translationGroupId: apiPost.translation_group_id ?? undefined,
     tags: options?.tags ?? [],
     updatedAt: apiPost.updated_at,
+    authors: options?.authors ?? [],
     user: {
       id: apiPost.user_id,
       avatar: options?.userAvatar ?? "",

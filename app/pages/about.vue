@@ -17,11 +17,12 @@
         <p>{{ intro }}</p>
         <p>{{ $ts('pages.about.description') }}</p>
         <p class="site-about-links">
-          <NuxtLink :to="localizedPath('/posts', $getLocale())">
+          <NuxtLink class="site-editorial-link" :to="localizedPath('/posts', $getLocale())">
             {{ $ts('pages.about.browsePosts') }}
           </NuxtLink>
           <span aria-hidden="true">·</span>
           <a
+            class="site-editorial-link"
             href="https://github.com/rootasjey/corpinot"
             target="_blank"
             rel="noopener"
@@ -204,12 +205,6 @@ useHead({
     gap: 8px;
     align-items: center;
     margin-top: 28px;
-  }
-
-  .site-about-links a {
-    color: var(--site-color-accent);
-    text-decoration: underline;
-    text-underline-offset: var(--site-link-underline-offset);
   }
 
   .site-about-section {

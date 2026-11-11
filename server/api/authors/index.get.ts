@@ -1,8 +1,8 @@
 import { db, schema } from 'hub:db'
-import { sql } from 'drizzle-orm'
+import { count, eq } from 'drizzle-orm'
 
 export default defineEventHandler(async () => {
-  const rows = await db
+  const authorsQuery = db
     .select({
       id: schema.users.id,
       name: schema.users.name,
@@ -12,18 +12,26 @@ export default defineEventHandler(async () => {
       job: schema.users.job,
       location: schema.users.location,
       socials: schema.users.socials,
-      postCount: sql<number>`(
-        SELECT COUNT(*)
-        FROM ${schema.posts}
-        WHERE ${schema.posts.user_id} = ${schema.users.id}
-          AND ${schema.posts.status} = 'published'
-      )`,
     })
     .from(schema.users)
     .orderBy(schema.users.name)
+  const postCountsQuery = db
+    .select({
+      userId: schema.post_authors.user_id,
+      postCount: count(),
+    })
+    .from(schema.post_authors)
+    .innerJoin(schema.posts, eq(schema.posts.id, schema.post_authors.post_id))
+    .where(eq(schema.posts.status, 'published'))
+    .groupBy(schema.post_authors.user_id)
+
+  const [rows, postCounts] = await Promise.all([authorsQuery, postCountsQuery])
+
+  const postCountsByUserId = new Map(postCounts.map(row => [row.userId, row.postCount]))
 
   return rows.map((row) => ({
     ...row,
+    postCount: postCountsByUserId.get(row.id) ?? 0,
     socials: safeParseJson(row.socials),
   }))
 })

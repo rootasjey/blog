@@ -45,10 +45,24 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.post_tags.post_id, apiPost.id))
     .orderBy(sql`post_tags.rowid ASC`)
 
+  const authorRows = await db
+    .select({
+      id: schema.users.id,
+      avatar: schema.users.avatar,
+      biography: schema.users.biography,
+      name: schema.users.name,
+      slug: schema.users.slug,
+    })
+    .from(schema.post_authors)
+    .innerJoin(schema.users, eq(schema.users.id, schema.post_authors.user_id))
+    .where(eq(schema.post_authors.post_id, apiPost.id))
+    .orderBy(schema.post_authors.position)
+
   const articleBlob = await blobStorage.get(apiPost.blob_path as string)
   const article = await articleBlob?.text() ?? ''
   const post = convertApiToPost(apiPost, {
     tags: tagRows.map((row: any) => row.tag),
+    authors: authorRows,
     article,
     userAvatar: (apiPost as any).user_avatar,
     userName: (apiPost as any).user_name,

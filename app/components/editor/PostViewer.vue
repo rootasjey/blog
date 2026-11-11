@@ -146,42 +146,6 @@ watch(() => props.content, (newContent) => {
 .post-content .ProseMirror h4 { margin-block: 24px 12px; color: var(--site-color-heading); font-family: var(--site-font-heading); font-size: 18px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.45; }
 .post-content .ProseMirror p { margin: 0 0 24px; color: var(--site-color-text); font-family: var(--site-font-body); font-size: 16px; font-weight: 400; line-height: 1.75; }
 .post-content .ProseMirror ul[data-type="taskList"] p { @apply mb-0; line-height: 1rem; }
-.post-content .ProseMirror a:not(.auto-link-preview__link) {
-  color: color-mix(in srgb, var(--site-color-text) 78%, var(--site-color-accent));
-  text-decoration: none;
-  background-image: linear-gradient(currentColor, currentColor);
-  background-repeat: no-repeat;
-  background-position: left bottom;
-  background-size: 8px 1px;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-  transition: color 180ms ease, background-size 220ms ease;
-}
-.post-content .ProseMirror a:not(.auto-link-preview__link):hover,
-.post-content .ProseMirror a:not(.auto-link-preview__link):focus-visible {
-  color: var(--site-color-accent);
-  background-size: 100% 1px;
-}
-.post-content .ProseMirror a[target="_blank"]:not(.auto-link-preview__link)::after {
-  content: "";
-  display: inline-block;
-  width: 0.32em;
-  height: 0.32em;
-  margin-inline-start: 0.08em;
-  position: relative;
-  top: 0.35em;
-  border-top: 1px solid currentColor;
-  border-right: 1px solid currentColor;
-  opacity: 0;
-  transform: rotate(45deg) scale(0.7);
-  transition: opacity 140ms ease, transform 140ms ease;
-}
-.post-content .ProseMirror a[target="_blank"]:not(.auto-link-preview__link):hover::after,
-.post-content .ProseMirror a[target="_blank"]:not(.auto-link-preview__link):focus-visible::after {
-  opacity: 1;
-  transform: rotate(45deg) scale(1);
-  transition-delay: 150ms;
-}
 .post-content .ProseMirror strong { @apply font-800 text-foreground; }
 .post-content .ProseMirror em { @apply italic; }
 .post-content .ProseMirror blockquote {
