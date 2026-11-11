@@ -1,8 +1,19 @@
 import { db, schema } from 'hub:db'
+import { blob } from 'hub:blob'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
+import { DEFAULT_HOME_IDENTITY, type HomeIdentity } from '~~/shared/types/home-identity'
 
 export const SOCIALS_KEY = 'socials'
+export const HOME_IDENTITY_KEY = 'homeIdentity'
+
+export const homeIdentitySchema = z.object({
+  avatar: z.string().max(500).refine(value => value.startsWith('/') || /^https:\/\//i.test(value), 'Invalid avatar URL'),
+  fr: z.object({ name: z.string().trim().min(1).max(100), description: z.string().max(4000) }),
+  en: z.object({ name: z.string().trim().min(1).max(100), description: z.string().max(4000) }),
+}).strict()
+
+type ParsedHomeIdentity = z.infer<typeof homeIdentitySchema>
 
 export const socialLinkSchema = z.object({
   platform: z.string().min(1),
@@ -53,4 +64,24 @@ export async function getSocials(): Promise<SocialLink[]> {
 export async function setSocials(socials: SocialLink[]) {
   socialsSchema.parse(socials)
   await setSettingValue(SOCIALS_KEY, socials)
+}
+
+export async function getHomeIdentity(): Promise<HomeIdentity> {
+  const value = await getSettingValue<unknown>(HOME_IDENTITY_KEY, DEFAULT_HOME_IDENTITY)
+  const parsed = homeIdentitySchema.safeParse(value)
+  return parsed.success ? parsed.data : DEFAULT_HOME_IDENTITY
+}
+
+export async function setHomeIdentity(identity: ParsedHomeIdentity) {
+  const parsed = homeIdentitySchema.parse(identity)
+  const existing = await getHomeIdentity()
+  await setSettingValue(HOME_IDENTITY_KEY, parsed)
+  const previousPath = existing.avatar.replace(/^\/+/, '')
+  if (existing.avatar !== parsed.avatar && previousPath.startsWith('site/home/identity/')) {
+    try {
+      await blob.del(previousPath)
+    } catch (error) {
+      console.warn('Failed to remove replaced home avatar', error)
+    }
+  }
 }

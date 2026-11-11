@@ -5,14 +5,22 @@
       <component
         v-if="mobileIndex && isMobile"
         :is="mobileIndex"
+        :identity="homeIdentity"
+        :is-admin="isAdmin"
+        @saved="saveIdentity"
       />
     </ClientOnly>
 
     <!-- Desktop / SSR experience -->
     <div v-if="!isMobile">
       <section class="site-intro">
-        <img class="site-intro-mark" src="/images/presentation/jc-pp.jpg" alt="Jérémie Corpinot" width="100" height="100">
-        <h1>Jérémie Corpinot</h1>
+        <HomeIntroEditor
+          :identity="homeIdentity"
+          :is-admin="isAdmin"
+          @saved="saveIdentity"
+        />
+        <img class="site-intro-mark" :src="homeIdentity.avatar" :alt="localizedIdentity.name" width="100" height="100">
+        <h1>{{ localizedIdentity.name }}</h1>
         <p v-for="(paragraph, index) in homeIntroParagraphs" :key="index">{{ paragraph }}</p>
         <a class="site-interactive-hover site-outline-action site-intro-subscribe" href="#newsletter">{{ $ts('common.subscribe') }}</a>
       </section>
@@ -28,6 +36,7 @@
 
 <script setup lang="ts">
 import { computed, defineAsyncComponent } from 'vue'
+import { DEFAULT_HOME_IDENTITY, type HomeIdentity } from '~~/shared/types/home-identity'
 
 const isMobile = useIsMobile()
 const config = useRuntimeConfig()
@@ -40,7 +49,19 @@ const mobileIndex = computed(() => {
 const ogImageUrl = `${config.public.siteUrl}/og/home/default.png`
 
 const { $ts } = useI18n()
-const homeIntroParagraphs = computed(() => $ts('pages.home.intro').split(/\n\s*\n/).filter(Boolean))
+const { $getLocale } = useI18n()
+const { data: settingsData } = await useFetch<{ socials: unknown[]; homeIdentity?: HomeIdentity }>('/api/site-settings', {
+  default: () => ({ socials: [], homeIdentity: DEFAULT_HOME_IDENTITY }),
+})
+const homeIdentity = computed(() => settingsData.value?.homeIdentity || DEFAULT_HOME_IDENTITY)
+const localizedIdentity = computed(() => homeIdentity.value[$getLocale() === 'en' ? 'en' : 'fr'])
+const homeIntroParagraphs = computed(() => localizedIdentity.value.description.split(/\n\s*\n/).filter(Boolean))
+const { user, loggedIn } = useUserSession()
+const isAdmin = computed(() => !!(loggedIn.value && user.value?.role === 'admin'))
+
+function saveIdentity(identity: HomeIdentity) {
+  if (settingsData.value) settingsData.value.homeIdentity = identity
+}
 
 const { website } = useJsonld()
 
