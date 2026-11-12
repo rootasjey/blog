@@ -6,18 +6,24 @@
         <p>{{ $ts('pages.donate.description') }}</p>
       </header>
 
-      <p class="site-donate-status" role="status">
-        <span aria-hidden="true" />
-        {{ $ts('pages.donate.notAvailable') }}
-      </p>
+      <p class="site-donate-status" role="status">{{ $ts('pages.donate.notAvailable') }}</p>
 
       <section class="site-donate-reasons" :aria-labelledby="reasonsHeadingId">
         <h2 :id="reasonsHeadingId">{{ $ts('pages.donate.whyDonate') }}</h2>
-        <ul>
-          <li>{{ $ts('pages.donate.supportAuthors') }}</li>
-          <li>{{ $ts('pages.donate.fundImprovements') }}</li>
-          <li>{{ $ts('pages.donate.perks') }}</li>
-        </ul>
+        <ol>
+          <li>
+            <span aria-hidden="true">01</span>
+            <p>{{ $ts('pages.donate.supportAuthors') }}</p>
+          </li>
+          <li>
+            <span aria-hidden="true">02</span>
+            <p>{{ $ts('pages.donate.fundImprovements') }}</p>
+          </li>
+          <li>
+            <span aria-hidden="true">03</span>
+            <p>{{ $ts('pages.donate.perks') }}</p>
+          </li>
+        </ol>
       </section>
 
       <NuxtLink class="site-donate-home" :to="localizedPath('/', locale)">
@@ -71,23 +77,12 @@ const reasonsHeadingId = 'donation-reasons-heading'
 }
 
 .site-donate-status {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   margin: 32px 0 0;
   padding: 14px 0;
   border-top: 1px solid var(--site-color-border);
   border-bottom: 1px solid var(--site-color-border);
   color: var(--site-color-muted);
   font-size: 15px;
-}
-
-.site-donate-status > span {
-  width: 8px;
-  height: 8px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  background: var(--site-color-muted);
 }
 
 .site-donate-reasons {
@@ -102,19 +97,32 @@ const reasonsHeadingId = 'donation-reasons-heading'
   letter-spacing: -0.015em;
 }
 
-.site-donate-reasons ul {
+.site-donate-reasons ol {
   display: grid;
-  gap: 0;
+  gap: 18px;
   margin: 14px 0 0;
   padding: 0;
   list-style: none;
 }
 
 .site-donate-reasons li {
-  padding: 14px 0;
-  border-top: 1px solid var(--site-color-border);
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: 10px;
   color: var(--site-color-text);
   line-height: 1.55;
+}
+
+.site-donate-reasons li > span {
+  padding-top: 0.15em;
+  color: var(--site-color-muted);
+  font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.site-donate-reasons li > p {
+  margin: 0;
 }
 
 .site-donate-home {
@@ -147,9 +155,6 @@ const reasonsHeadingId = 'donation-reasons-heading'
     padding: 40px 20px 96px;
   }
 
-  .site-donate-status {
-    align-items: flex-start;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
