@@ -26,9 +26,9 @@
         <p v-for="(paragraph, index) in homeIntroParagraphs" :key="index">{{ paragraph }}</p>
         <a class="site-interactive-hover site-outline-action site-intro-subscribe" href="#newsletter">{{ $ts('common.subscribe') }}</a>
       </section>
-      <div class="animate-entrance"><FeaturedPostsGrid /></div>
+      <div class="animate-entrance"><FeaturedPostsGrid :is-admin="isAdmin" :is-edit-mode="isContentEditMode" /></div>
       <div class="animate-entrance"><TrendingTagsCarousel :is-admin="isAdmin" :is-edit-mode="isContentEditMode" /></div>
-      <div class="animate-entrance"><RecentPostsGrid /></div>
+      <div class="animate-entrance"><RecentPostsGrid :is-admin="isAdmin" :is-edit-mode="isContentEditMode" /></div>
       <div class="animate-entrance"><NewsletterSubscription /></div>
       <div class="animate-entrance"><ProjectsCarousel /></div>
       <div class="animate-entrance"><HomeRecommendations editable :is-admin="isAdmin" :is-edit-mode="isContentEditMode" /></div>

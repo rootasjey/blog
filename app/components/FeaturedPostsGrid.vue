@@ -1,5 +1,13 @@
 <template>
-  <section ref="section" class="home-featured-posts animate-entrance" :aria-label="$ts('components.featuredPosts.heading')">
+  <section ref="section" class="home-featured-posts animate-entrance" :aria-label="sectionConfig.title[$getLocale() === 'en' ? 'en' : 'fr']">
+    <div class="home-featured-heading">
+      <HomeSectionHeading
+        :to="localizedPath('/posts', $getLocale())"
+        :title="sectionConfig.title[$getLocale() === 'en' ? 'en' : 'fr']"
+        :edit-target="props.isAdmin && props.isEditMode ? 'home-section:featuredPosts' : undefined"
+      />
+      <HomePostSectionEditor section="featuredPosts" :content="sectionsContent" :is-admin="props.isAdmin" :is-edit-mode="props.isEditMode" @saved="saveSections" />
+    </div>
     <div ref="track" class="home-featured-track" @scroll.passive="updateActivePost">
       <article
         v-for="(post, index) in posts"
@@ -39,6 +47,10 @@
 import { useEventListener } from '@vueuse/core'
 import type { Post } from '~~/shared/types/post'
 import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
+import { DEFAULT_HOME_POST_SECTIONS, type HomePostSectionsContent } from '~~/shared/types/home-post-sections'
+import { filterHomePosts } from '~/utils/homePostSectionFilters'
+
+const props = withDefaults(defineProps<{ isAdmin?: boolean; isEditMode?: boolean }>(), { isAdmin: false, isEditMode: false })
 
 const { $ts, $getLocale } = useI18n()
 const { enhancePost } = usePost()
@@ -47,11 +59,14 @@ const track = ref<HTMLElement>()
 const activeIndex = ref(0)
 
 const { data } = await useFetch<Post[]>('/api/posts', {
-  query: { limit: 50, language: $getLocale(), exclude: ['top pinned', 'featured project', 'project'].join(',') },
+  query: { limit: 50, language: $getLocale() },
 })
+const { data: settingsData } = await useFetch<{ homePostSections?: HomePostSectionsContent }>('/api/site-settings')
+const sectionsContent = computed(() => settingsData.value?.homePostSections ?? DEFAULT_HOME_POST_SECTIONS)
+const sectionConfig = computed(() => sectionsContent.value.featuredPosts)
 
 const posts = computed(() => {
-  const published = (data.value ?? []).map(post => enhancePost(post))
+  const published = filterHomePosts((data.value ?? []).map(post => enhancePost(post)), sectionConfig.value)
   if (published.length) {
     const featured = published.filter(post => post.tags?.some(tag => tag.name.toLocaleLowerCase() === 'featured post'))
     const remaining = published.filter(post => !featured.includes(post))
@@ -80,6 +95,10 @@ const posts = computed(() => {
     author: $ts('nav.brand'),
   }))
 })
+
+function saveSections(content: HomePostSectionsContent) {
+  if (settingsData.value) settingsData.value.homePostSections = content
+}
 
 function scroll(direction: 'left' | 'right') {
   const container = track.value
@@ -183,6 +202,7 @@ if (import.meta.client) {
   letter-spacing: 0;
   text-transform: none;
 }
+.site-shell .home-featured-posts > .home-featured-heading { margin-bottom: 20px; overflow: visible; }
 .site-shell .home-featured-track {
   display: flex;
   width: 100%;

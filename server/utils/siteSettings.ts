@@ -3,6 +3,7 @@ import { blob } from 'hub:blob'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { DEFAULT_HOME_IDENTITY, type HomeIdentity } from '~~/shared/types/home-identity'
+import { DEFAULT_HOME_POST_SECTIONS, type HomePostSectionsContent } from '~~/shared/types/home-post-sections'
 import {
   DEFAULT_ABOUT_PAGE_CONTENT,
   DEFAULT_RECOMMENDATIONS_CONTENT,
@@ -12,6 +13,7 @@ import {
 
 export const SOCIALS_KEY = 'socials'
 export const HOME_IDENTITY_KEY = 'homeIdentity'
+export const HOME_POST_SECTIONS_KEY = 'homePostSections'
 export const RECOMMENDATIONS_CONTENT_KEY = 'recommendationsContent'
 export const ABOUT_PAGE_CONTENT_KEY = 'aboutPageContent'
 
@@ -19,6 +21,18 @@ export const homeIdentitySchema = z.object({
   avatar: z.string().max(500).refine(value => value.startsWith('/') || /^https:\/\//i.test(value), 'Invalid avatar URL'),
   fr: z.object({ name: z.string().trim().min(1).max(100), description: z.string().max(4000) }),
   en: z.object({ name: z.string().trim().min(1).max(100), description: z.string().max(4000) }),
+}).strict()
+
+const homePostSectionSchema = z.object({
+  title: z.object({ fr: z.string().trim().min(1).max(100), en: z.string().trim().min(1).max(100) }).strict(),
+  includeTags: z.array(z.string().trim().min(1).max(100)).max(20),
+  excludeTags: z.array(z.string().trim().min(1).max(100)).max(20),
+  tagMatch: z.enum(['any', 'all']),
+}).strict()
+
+export const homePostSectionsSchema = z.object({
+  featuredPosts: homePostSectionSchema,
+  recentPosts: homePostSectionSchema,
 }).strict()
 
 const localizedTextSchema = z.object({
@@ -150,6 +164,16 @@ export async function setHomeIdentity(identity: ParsedHomeIdentity) {
       console.warn('Failed to remove replaced home avatar', error)
     }
   }
+}
+
+export async function getHomePostSections(): Promise<HomePostSectionsContent> {
+  const value = await getSettingValue<unknown>(HOME_POST_SECTIONS_KEY, DEFAULT_HOME_POST_SECTIONS)
+  const parsed = homePostSectionsSchema.safeParse(value)
+  return parsed.success ? parsed.data : DEFAULT_HOME_POST_SECTIONS
+}
+
+export async function setHomePostSections(content: HomePostSectionsContent) {
+  await setSettingValue(HOME_POST_SECTIONS_KEY, homePostSectionsSchema.parse(content))
 }
 
 export async function getRecommendationsContent(): Promise<RecommendationsContent> {

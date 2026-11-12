@@ -1,6 +1,8 @@
 import {
   aboutPageContentSchema,
   homeIdentitySchema,
+  homePostSectionsSchema,
+  setHomePostSections,
   recommendationsContentSchema,
   setAboutPageContent,
   setHomeIdentity,
@@ -27,6 +29,11 @@ export default defineEventHandler(async (event) => {
       if (!parsed.success) return apiError(event, 400, 'VALIDATION_ERROR', 'Invalid home identity format')
       await setHomeIdentity(parsed.data)
     }
+    if (body?.homePostSections !== undefined) {
+      const parsed = homePostSectionsSchema.safeParse(body.homePostSections)
+      if (!parsed.success) return apiError(event, 400, 'VALIDATION_ERROR', 'Invalid home post sections format')
+      await setHomePostSections(parsed.data)
+    }
     if (body?.recommendationsContent !== undefined) {
       const parsed = recommendationsContentSchema.safeParse(body.recommendationsContent)
       if (!parsed.success) return apiError(event, 400, 'VALIDATION_ERROR', 'Invalid recommendations content format')
@@ -37,7 +44,7 @@ export default defineEventHandler(async (event) => {
       if (!parsed.success) return apiError(event, 400, 'VALIDATION_ERROR', 'Invalid about page content format')
       await setAboutPageContent(parsed.data)
     }
-    if (body?.socials === undefined && body?.homeIdentity === undefined && body?.recommendationsContent === undefined && body?.aboutPageContent === undefined) {
+    if (body?.socials === undefined && body?.homeIdentity === undefined && body?.homePostSections === undefined && body?.recommendationsContent === undefined && body?.aboutPageContent === undefined) {
       return apiError(event, 400, 'VALIDATION_ERROR', 'No supported setting provided')
     }
 

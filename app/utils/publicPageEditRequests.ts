@@ -1,4 +1,4 @@
-export type PublicPageEditTarget = 'home-intro' | 'recommendations' | 'about' | `tag:${number}` | `post:${string}`
+export type PublicPageEditTarget = 'home-intro' | 'recommendations' | 'about' | `tag:${number}` | `post:${string}` | 'home-section:featuredPosts' | 'home-section:recentPosts'
 
 export const PUBLIC_PAGE_EDIT_REQUEST_EVENT = 'public-page-edit-request'
 
@@ -24,4 +24,12 @@ export function getPublicPostEditIdentifier(target: PublicPageEditTarget) {
 
   const identifier = target.slice(prefix.length).trim()
   return identifier || null
+}
+
+export function getHomePostSectionEditKey(target: PublicPageEditTarget) {
+  const prefix = 'home-section:'
+  if (!target.startsWith(prefix)) return null
+
+  const key = target.slice(prefix.length)
+  return key === 'featuredPosts' || key === 'recentPosts' ? key : null
 }

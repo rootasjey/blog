@@ -1,5 +1,5 @@
 <template>
-  <NuxtLink class="site-home-section-heading" :to="to">
+  <NuxtLink class="site-home-section-heading" :to="to" :data-public-page-edit-target="editTarget">
     <h2>{{ title }}</h2>
     <span class="i-ph-arrow-right" aria-hidden="true" />
   </NuxtLink>
@@ -9,6 +9,7 @@
 defineProps<{
   title: string
   to: string
+  editTarget?: string
 }>()
 </script>
 

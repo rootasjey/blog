@@ -8,12 +8,12 @@
       <a class="site-interactive-hover site-outline-action site-intro-subscribe" href="#newsletter">{{ $ts('common.subscribe') }}</a>
     </section>
 
-    <FeaturedPostsGrid />
+    <FeaturedPostsGrid :is-admin="isAdmin" :is-edit-mode="isEditMode" />
 
     <!-- Stepped scroll content -->
     <section class="space-y-10 px-4 pb-16 animate-entrance">
       <MobileProjectsGrid />
-      <RecentPostsGrid />
+      <RecentPostsGrid :is-admin="isAdmin" :is-edit-mode="isEditMode" />
       <NewsletterSubscription />
 
       <div>

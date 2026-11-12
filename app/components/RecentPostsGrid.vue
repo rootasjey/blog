@@ -4,8 +4,10 @@
       <div class="site-recent-header flex items-center justify-between mb-6">
         <HomeSectionHeading
           :to="localizedPath('/posts', $getLocale())"
-          :title="$ts('components.recentPosts.heading')"
+          :title="sectionConfig.title[$getLocale() === 'en' ? 'en' : 'fr']"
+          :edit-target="props.isAdmin && props.isEditMode ? 'home-section:recentPosts' : undefined"
         />
+        <HomePostSectionEditor section="recentPosts" :content="sectionsContent" :is-admin="props.isAdmin" :is-edit-mode="props.isEditMode" @saved="saveSections" />
 
         <NuxtLink
           :to="localizedPath('/posts', $getLocale())"
@@ -85,22 +87,30 @@
 
 <script setup lang="ts">
 import type { Post } from '~~/shared/types/post'
-import { EXCLUDED_TAGS } from '~/utils/tagConstants'
 import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
 import { postTagColor } from '~/utils/postTagColor'
+import { DEFAULT_HOME_POST_SECTIONS, type HomePostSectionsContent } from '~~/shared/types/home-post-sections'
+import { filterHomePosts } from '~/utils/homePostSectionFilters'
 
+const props = withDefaults(defineProps<{ isAdmin?: boolean; isEditMode?: boolean }>(), { isAdmin: false, isEditMode: false })
 const { $ts, $getLocale } = useI18n()
 const { enhancePost } = usePost()
 
 const { data: items, pending, error } = await useFetch<Post[]>('/api/posts', {
-  query: { limit: 4, exclude: EXCLUDED_TAGS.join(',') },
+  query: { limit: 50 },
 })
+const { data: settingsData } = await useFetch<{ homePostSections?: HomePostSectionsContent }>('/api/site-settings')
+const sectionsContent = computed(() => settingsData.value?.homePostSections ?? DEFAULT_HOME_POST_SECTIONS)
+const sectionConfig = computed(() => sectionsContent.value.recentPosts)
 
 const enhancedPosts = computed(() => {
   const posts = (items.value ?? []).map(p => enhancePost(p))
-  const excludeSet = new Set(EXCLUDED_TAGS.map(t => t.toLowerCase()))
-  return posts.filter(post => !(post.tags?.some(tag => excludeSet.has(tag.name.toLowerCase()))))
+  return filterHomePosts(posts, sectionConfig.value).slice(0, 4)
 })
+
+function saveSections(content: HomePostSectionsContent) {
+  if (settingsData.value) settingsData.value.homePostSections = content
+}
 
 const demoPosts = computed(() => {
   const locale = $getLocale() === 'fr' ? 'fr' : 'en'
