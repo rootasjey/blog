@@ -4,6 +4,7 @@ import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import type { ApiPost } from '~~/shared/types/post'
 import { getPostByIdentifier } from '~~/server/utils/post'
+import { assertPostPermission } from '~~/server/utils/postPermissions'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -25,9 +26,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Post not found' })
   }
 
-  if (post.user_id !== userId) {
-    throw createError({ statusCode: 403, statusMessage: 'You are not authorized to modify tags on this post' })
-  }
+  await assertPostPermission({ id: session.user.id, role: session.user.role }, post, 'edit')
 
   await db.delete(schema.post_tags).where(eq(schema.post_tags.post_id, post.id)).run()
 

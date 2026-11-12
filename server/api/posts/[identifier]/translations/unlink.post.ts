@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import type { ApiPost } from '~~/shared/types/post'
 import { getPostByIdentifier } from '~~/server/utils/post'
+import { assertPostPermission } from '~~/server/utils/postPermissions'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -16,10 +17,7 @@ export default defineEventHandler(async (event) => {
   const apiPost: ApiPost | null = await getPostByIdentifier(db, identifier)
   if (!apiPost) throw createError({ statusCode: 404, message: 'Post not found' })
 
-  const currentUser = session.user
-  if (apiPost.user_id !== currentUser.id && currentUser.role !== 'admin') {
-    throw createError({ statusCode: 403, message: 'You are not authorized to modify this post' })
-  }
+  await assertPostPermission({ id: session.user.id, role: session.user.role }, apiPost, 'edit')
 
   await db.update(schema.posts).set({ translation_group_id: null }).where(eq(schema.posts.id, targetId)).run()
 

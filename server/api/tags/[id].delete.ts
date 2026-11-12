@@ -1,8 +1,10 @@
 // DELETE /api/tags/:id
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { requireAdminSession } from '~~/server/utils/api'
 
 export default defineEventHandler(async (event) => {
+  await requireAdminSession(event)
   const idParam = event.context.params?.id
   if (!idParam) {
     throw createError({ statusCode: 400, statusMessage: 'Tag id is required' })

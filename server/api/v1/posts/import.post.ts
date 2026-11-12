@@ -6,6 +6,9 @@ import { upsertPostTags } from '~~/server/utils/tags'
 export default defineEventHandler(async (event) => {
   try {
     const user = await requireWriteAccess(event)
+    if (user.authMethod === 'api_key' || (user.role !== 'writer' && user.role !== 'admin')) {
+      return apiError(event, 403, 'FORBIDDEN', 'Import requires an administrator or writer session')
+    }
     const body = await readBody(event)
 
     const postsInput = Array.isArray(body) ? body : (body?.posts || [body])
@@ -17,6 +20,9 @@ export default defineEventHandler(async (event) => {
       const p = raw.post || raw
       const name = String(p?.name || '').trim()
       if (!name) continue
+      if (p.status !== undefined && p.status !== 'draft' && p.status !== 'published') {
+        return apiError(event, 400, 'VALIDATION_ERROR', 'Imported posts must be draft or published')
+      }
 
       const postData = createPostData(p, user.id)
       postData.slug = await generateUniqueSlug(db, postData.slug)

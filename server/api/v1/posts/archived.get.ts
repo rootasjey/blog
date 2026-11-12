@@ -1,13 +1,25 @@
 import { db, schema } from 'hub:db'
-import { and, desc, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
     const user = await requireWriteAccess(event)
+    if (user.authMethod === 'api_key' && !user.apiKeyScopes?.includes('*') && !user.apiKeyPostIds?.length) {
+      return apiSuccess(event, [])
+    }
     const query = getQuery(event)
     const search = query.search as string
 
-    const conditions = [eq(schema.posts.user_id, user.id), eq(schema.posts.status, 'archived')]
+    const conditions = [eq(schema.posts.status, 'archived')]
+    if (user.authMethod === 'api_key') {
+      if (user.apiKeyScopes?.includes('*')) {
+        conditions.push(eq(schema.posts.user_id, user.id))
+      } else {
+        conditions.push(inArray(schema.posts.id, user.apiKeyPostIds ?? []))
+      }
+    } else {
+      conditions.push(eq(schema.posts.user_id, user.id))
+    }
     if (search?.trim()) {
       const pattern = `%${search.trim()}%`
       conditions.push(sql`(posts.name LIKE ${pattern} OR COALESCE(posts.description, '') LIKE ${pattern})`)

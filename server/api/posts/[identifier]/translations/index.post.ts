@@ -5,6 +5,7 @@ import { z } from 'zod'
 import type { ApiPost } from '~~/shared/types/post'
 import { convertApiToPost, getPostByIdentifier, sanitizeSlug } from '~~/server/utils/post'
 import { upsertPostTags } from '~~/server/utils/tags'
+import { assertPostPermission } from '~~/server/utils/postPermissions'
 
 function generateGroupId() {
   return crypto.randomUUID()
@@ -32,10 +33,7 @@ export default defineEventHandler(async (event) => {
   const source = await getPostByIdentifier(database, identifier) as ApiPost | null
   if (!source) throw createError({ statusCode: 404, message: 'Source post not found' })
 
-  const currentUser = session.user
-  if (source.user_id !== currentUser.id && currentUser.role !== 'admin') {
-    throw createError({ statusCode: 403, message: 'You are not authorized to translate this post' })
-  }
+  await assertPostPermission({ id: session.user.id, role: session.user.role }, source, 'edit')
 
   if (source.language === body.language) {
     throw createError({ statusCode: 400, message: `A translation in ${body.language} already exists for this post` })

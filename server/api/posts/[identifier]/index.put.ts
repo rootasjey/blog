@@ -5,6 +5,7 @@ import { z } from 'zod'
 import type { ApiPost } from '~~/shared/types/post'
 import { convertApiToPost } from '~~/server/utils/post'
 import { upsertPostTags } from '~~/server/utils/tags'
+import { assertPostPermission } from '~~/server/utils/postPermissions'
 
 // Local type to represent the API post merged with a few optional user fields
 type ApiPostWithUser = ApiPost & {
@@ -29,7 +30,6 @@ const updatePostSchema = z.object({
   slug: z.string().min(1).max(255).optional(),
   status: z.enum(['draft', 'published', 'archived']).optional(),
 })
-
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   const userId = session.user.id
@@ -45,8 +45,10 @@ export default defineEventHandler(async (event) => {
 
   const validatedBody = await readValidatedBody(event, updatePostSchema.parse)
   const apiPost: ApiPostWithUser | null = await getPostByIdentifier(database, identifier)
-
-  handlePostErrors(apiPost, userId)
+  if (!apiPost) throw createError({ statusCode: 404, statusMessage: 'Post not found' })
+  const actor = { id: userId, role: session.user.role, authMethod: 'session' as const }
+  await assertPostPermission(actor, apiPost, 'edit')
+  if (validatedBody.status === 'published') await assertPostPermission(actor, apiPost, 'publish')
 
   // Check for slug uniqueness if slug is being updated
   if (validatedBody.slug && validatedBody.slug !== apiPost.slug) {
@@ -197,19 +199,3 @@ export default defineEventHandler(async (event) => {
     success: true,
   }
 })
-
-function handlePostErrors(post: ApiPost | null, userId?: number): asserts post is ApiPost {
-  if (!post) {
-    throw createError({
-      statusCode: 404,
-      message: 'Post not found',
-    })
-  }
- 
-  if (post.user_id !== userId) {
-    throw createError({
-      statusCode: 403,
-      message: 'You are not authorized to update this post',
-    })
-  }
-}

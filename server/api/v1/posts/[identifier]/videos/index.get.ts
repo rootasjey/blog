@@ -1,4 +1,5 @@
 import { db, schema } from 'hub:db'
+import { hasPostPermission } from '~~/server/utils/postPermissions'
 import { desc, eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
@@ -9,7 +10,7 @@ export default defineEventHandler(async (event) => {
 
     const apiPost: any = await getPostByIdentifier(db, identifier)
     if (!apiPost) return apiError(event, 404, 'NOT_FOUND', 'Post not found')
-    if (apiPost.user_id !== user.id && user.role !== 'admin') return apiError(event, 403, 'FORBIDDEN', 'Not authorized')
+    if (!(await hasPostPermission(user, apiPost, 'read'))) return apiError(event, 403, 'FORBIDDEN', 'Not authorized')
 
     const rows = await db
       .select()

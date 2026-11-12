@@ -2,6 +2,7 @@
 import { db, schema } from 'hub:db'
 import { desc, eq } from 'drizzle-orm'
 import type { ApiPost } from '~~/shared/types/post'
+import { assertPostPermission } from '~~/server/utils/postPermissions'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -12,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
   const post: ApiPost | null = await getPostByIdentifier(db, identifier)
   if (!post) throw createError({ statusCode: 404, message: 'Post not found' })
-  if (post.user_id !== userId) throw createError({ statusCode: 403, message: 'You are not authorized to view this post images' })
+  await assertPostPermission({ id: session.user.id, role: session.user.role }, post, 'read')
 
   const rows = await db
     .select()

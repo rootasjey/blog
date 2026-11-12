@@ -4,6 +4,7 @@ import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import type { ApiPost } from '~~/shared/types/post'
 import { convertApiToPost } from '~~/server/utils/post'
+import { hasPostPermission } from '~~/server/utils/postPermissions'
 export default defineEventHandler(async (event) => {
   const identifier = decodeURIComponent(getRouterParam(event, 'identifier') ?? '')
   const blobStorage = blob
@@ -15,10 +16,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  let userId = null
+  let actor: { id: number; role: string; authMethod: 'session' } | null = null
   try {
     const session = await getUserSession(event) // (optional - for private projects)
-    if (session && session.user) { userId = session.user.id }
+    if (session && session.user) actor = { id: session.user.id, role: session.user.role, authMethod: 'session' }
   } catch (error) { /* No session, continue as anonymous user */ }
 
   const apiPost: ApiPost | null = await getPostByIdentifier(db, identifier)
@@ -30,7 +31,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (apiPost.status !== "published" && apiPost.user_id !== userId) {
+  const canRead = apiPost.status === 'published'
+    ? true
+    : actor ? await hasPostPermission(actor, apiPost, 'read') : false
+  if (!canRead) {
     throw createError({
       statusCode: 403,
       message: 'You are not authorized to view this post',
@@ -67,6 +71,7 @@ export default defineEventHandler(async (event) => {
     userAvatar: (apiPost as any).user_avatar,
     userName: (apiPost as any).user_name,
   })
+  post.canEdit = actor ? await hasPostPermission(actor, apiPost, 'edit') : false
 
   try {
     await db

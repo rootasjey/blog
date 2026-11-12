@@ -17,6 +17,8 @@ export type Post = {
   blobPath?: string
   /** True if the user is the author of the post. */
   canEdit?: boolean
+  /** Monotonic article content revision used for optimistic concurrency. */
+  contentRevision?: number
   createdAt: string
   description: string
   id: number
@@ -69,6 +71,7 @@ export type ApiPost = {
   id: number
   blob_path: string | null
   created_at: string
+  content_revision: number
   description: string | null
   image_alt: string | null
   image_ext: string | null

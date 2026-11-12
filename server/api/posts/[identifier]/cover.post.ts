@@ -3,6 +3,7 @@ import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import type { ApiPost } from '~~/shared/types/post'
+import { assertPostPermission } from '~~/server/utils/postPermissions'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -42,12 +43,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (post.user_id !== userId) {
-    throw createError({
-      statusCode: 403,
-      message: 'You are not authorized to update this post',
-    })
-  }
+  await assertPostPermission({ id: session.user.id, role: session.user.role }, post, 'edit')
 
   const extension = type.split('/')[1]
   const coverFolder = `posts/${post.id}/cover`

@@ -14,6 +14,9 @@ export type AuthenticatedUser = {
   email: string
   role: string
   slug?: string | null
+  authMethod?: 'session' | 'api_key'
+  apiKeyScopes?: string[]
+  apiKeyPostIds?: number[]
 }
 
 export function apiSuccess<T>(event: any, data: T, meta?: ApiMeta) {
@@ -93,8 +96,11 @@ export async function verifyApiKey(rawKey: string): Promise<{ valid: boolean; us
       id: row.users.id,
       name: row.users.name,
       email: row.users.email,
-      role: row.users.role,
+      role: row.users.access_role,
       slug: row.users.slug,
+      authMethod: 'api_key',
+      apiKeyScopes: parseStringList(row.api_keys.scopes),
+      apiKeyPostIds: parseNumberList(row.api_keys.post_ids),
     },
   }
 }
@@ -122,15 +128,76 @@ export async function requireApiKey(event: any): Promise<AuthenticatedUser> {
 
 export async function requireWriteAccess(event: any): Promise<AuthenticatedUser> {
   try {
-    const session = await requireUserSession(event)
+    const session = await requireCurrentUserSession(event)
     return {
       id: session.user.id,
       name: session.user.name,
       email: session.user.email,
       role: session.user.role,
       slug: session.user.slug,
+      authMethod: 'session',
     }
   } catch {
-    return requireApiKey(event)
+    const user = await requireApiKey(event)
+    const pathname = getRequestURL(event).pathname
+    const method = getMethod(event).toUpperCase()
+    let requiredScope = 'api:access'
+
+    if (pathname.includes('/posts/')) {
+      requiredScope = method === 'GET' || method === 'HEAD' ? 'posts:read' : 'posts:write'
+    } else if (pathname.includes('/ai/')) {
+      requiredScope = 'ai:run'
+    }
+
+    if (!user.apiKeyScopes?.includes('*') && !user.apiKeyScopes?.includes(requiredScope)) {
+      throw createError({ statusCode: 403, message: 'API key does not include the required scope' })
+    }
+
+    user.role = 'agent'
+    return user
+  }
+}
+
+export async function requireCurrentUserSession(event: any) {
+  const session = await requireUserSession(event)
+  const user = await db.query.users.findFirst({
+    where: eq(schema.users.id, session.user.id),
+    columns: { access_role: true },
+  })
+
+  if (!user) {
+    throw createError({ statusCode: 401, message: 'Session user no longer exists' })
+  }
+
+  const currentSession = { ...session, user: { ...session.user, role: user.access_role } }
+  if (session.user.role !== user.access_role) {
+    await setUserSession(event, currentSession)
+  }
+  return currentSession
+}
+
+export async function requireAdminSession(event: any) {
+  const session = await requireCurrentUserSession(event)
+  if (session.user.role !== 'admin') {
+    throw createError({ statusCode: 403, message: 'Admin access required' })
+  }
+  return session
+}
+
+function parseStringList(value: string): string[] {
+  try {
+    const parsed: unknown = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+function parseNumberList(value: string): number[] {
+  try {
+    const parsed: unknown = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed.filter((item): item is number => Number.isInteger(item) && item > 0) : []
+  } catch {
+    return []
   }
 }

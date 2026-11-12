@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { and, eq, ne, sql } from 'drizzle-orm'
 import { upsertPostTags } from '~~/server/utils/tags'
+import { assertPostPermission } from '~~/server/utils/postPermissions'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -11,7 +12,8 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     const apiPost: any = await getPostByIdentifier(db, identifier)
     if (!apiPost) return apiError(event, 404, 'NOT_FOUND', 'Post not found')
-    if (apiPost.user_id !== user.id && user.role !== 'admin') return apiError(event, 403, 'FORBIDDEN', 'Not authorized')
+    await assertPostPermission(user, apiPost, 'edit')
+    if (body.status === 'published') await assertPostPermission(user, apiPost, 'publish')
 
     if (body.slug && body.slug !== apiPost.slug) {
       const slugExists = await db.query.posts.findFirst({
@@ -38,7 +40,7 @@ export default defineEventHandler(async (event) => {
     if (!Object.keys(updateData).length) return apiSuccess(event, { message: 'No changes to update' })
 
     updateData.updated_at = new Date().toISOString()
-    await db.update(schema.posts).set(updateData).where(and(eq(schema.posts.id, apiPost.id), eq(schema.posts.user_id, user.id))).run()
+    await db.update(schema.posts).set(updateData).where(eq(schema.posts.id, apiPost.id)).run()
 
     if (body.tags !== undefined) {
       await upsertPostTags(db, apiPost.id, body.tags)

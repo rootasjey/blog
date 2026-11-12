@@ -8,6 +8,7 @@ export const users = sqliteTable('users', {
   created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
   email: text('email').notNull().unique(),
   email_verified: integer('email_verified', { mode: 'boolean' }).notNull().default(false),
+  access_role: text('access_role').notNull().default('reader'),
   job: text('job').notNull().default(''),
   language: text('language').notNull().default('en'),
   last_login_at: text('last_login_at'),
@@ -37,6 +38,7 @@ export const posts = sqliteTable('posts', {
   published_at: text('published_at'),
   slug: text('slug').notNull().unique(),
   status: text('status').notNull().default('draft'),
+  content_revision: integer('content_revision').notNull().default(0),
   translation_group_id: text('translation_group_id'),
   updated_at: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
   user_id: integer('user_id').notNull(),
@@ -76,6 +78,16 @@ export const messages = sqliteTable('messages', {
   subject: text('subject').notNull(),
   updated_at: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 })
+
+export const post_collaborators = sqliteTable('post_collaborators', {
+  post_id: integer('post_id').notNull().references(() => posts.id, { onDelete: 'cascade' }),
+  user_id: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  invited_by: integer('invited_by').notNull().references(() => users.id),
+  can_edit: integer('can_edit', { mode: 'boolean' }).notNull().default(true),
+  can_publish: integer('can_publish', { mode: 'boolean' }).notNull().default(false),
+  created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+  updated_at: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [primaryKey({ columns: [table.post_id, table.user_id] })])
 
 export const newsletter_subscribers = sqliteTable('newsletter_subscribers', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -131,8 +143,12 @@ export const ai_requests = sqliteTable('ai_requests', {
   post_id: integer('post_id'),
   action: text('action').notNull(),
   provider: text('provider').notNull().default('cloudflare'),
+  model: text('model'),
   tokens_input: integer('tokens_input'),
   tokens_output: integer('tokens_output'),
+  status: text('status').notNull().default('completed'),
+  duration_ms: integer('duration_ms'),
+  error_code: text('error_code'),
   created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 })
 
@@ -142,9 +158,23 @@ export const api_keys = sqliteTable('api_keys', {
   name: text('name').notNull(),
   hash: text('hash').notNull().unique(),
   prefix: text('prefix').notNull(),
+  scopes: text('scopes').notNull().default('["*"]'),
+  post_ids: text('post_ids').notNull().default('[]'),
   created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
   last_used_at: text('last_used_at'),
   revoked_at: text('revoked_at'),
+})
+
+export const post_revisions = sqliteTable('post_revisions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  post_id: integer('post_id').notNull().references(() => posts.id, { onDelete: 'cascade' }),
+  revision: integer('revision').notNull(),
+  blob_path: text('blob_path').notNull(),
+  content_hash: text('content_hash').notNull(),
+  media_paths: text('media_paths').notNull().default('[]'),
+  source: text('source').notNull().default('editor'),
+  created_by: integer('created_by').notNull().references(() => users.id),
+  created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 })
 
 export const site_settings = sqliteTable('site_settings', {

@@ -6,6 +6,7 @@ import type { ApiTag } from '~~/shared/types/tags'
 import type { ApiPost } from '~~/shared/types/post'
 import { convertApiToPost, createArticle, createPostData, generateUniqueSlug } from '~~/server/utils/post'
 import { upsertPostTags } from '~~/server/utils/tags'
+import { requireCurrentUserSession } from '~~/server/utils/api'
 import { unzipSync } from 'fflate'
 
 const importPostSchema = z.object({
@@ -15,7 +16,7 @@ const importPostSchema = z.object({
   image: z.object({ src: z.string().optional(), alt: z.string().optional() }).optional(),
   article: z.any().optional(),
   language: z.string().optional(),
-  status: z.enum(['draft','published','archived']).optional(),
+  status: z.enum(['draft', 'published']).optional(),
 })
 
 // Wrappers accepted during import
@@ -204,7 +205,10 @@ async function persistImportedPost(params: {
 }
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
+  const session = await requireCurrentUserSession(event)
+  if (session.user.role !== 'writer' && session.user.role !== 'admin') {
+    throw createError({ statusCode: 403, statusMessage: 'Writer or administrator access required' })
+  }
   const contentType = String(event.node.req.headers['content-type'] || '')
 
   let candidates: ImportCandidate[] = []

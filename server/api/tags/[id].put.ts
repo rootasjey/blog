@@ -3,8 +3,10 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { isTagIconName } from '~~/shared/constants/tag-icons'
 import { isTagColor } from '~~/shared/constants/tag-colors'
+import { requireAdminSession } from '~~/server/utils/api'
 
 export default defineEventHandler(async (event) => {
+  await requireAdminSession(event)
   const idParam = event.context.params?.id
   const body = await readBody(event)
   if (!idParam || !body?.name) {

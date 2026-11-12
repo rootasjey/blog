@@ -67,6 +67,7 @@ export default defineEventHandler(async (event) => {
       location: location || '',
       socials: socials || '[]',
       role: 'user',
+      access_role: 'reader',
       avatar: '',
       email_verified: false,
     }
@@ -104,7 +105,7 @@ export default defineEventHandler(async (event) => {
       location: newUser.location ?? '',
       name: newUser.name,
       slug: newUser.slug,
-      role: newUser.role,
+      role: newUser.access_role,
       socials: newUser.socials ?? '[]',
       updated_at: newUser.updated_at,
     }

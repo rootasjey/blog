@@ -86,9 +86,9 @@
         <div class="site-post-reading-column site-editor-canvas">
           <PostContent
             :content="articleContent"
-            :editable="true"
-            :ai-enabled="aiEnabled"
-            :ai-loading="aiLoading"
+            :editable="!isRestoringRevision"
+            :ai-enabled="aiEnabled && !isRestoringRevision"
+            :ai-loading="aiLoading || isRestoringRevision"
             :on-ai-command="startAI"
             :on-configure-models="openAiProviderDialog"
             @update:content="onEditorUpdate"
@@ -103,6 +103,13 @@
             </template>
             <span v-else-if="lastArticleSavedAt">{{ $ts('pages.postEditor.saved', { timeAgo }) }}</span>
           </div>
+          <PostRevisionHistory
+            :identifier="identifier"
+            :content-revision="post.contentRevision ?? 0"
+            :before-restore="prepareRevisionRestore"
+            @restore-state="isRestoringRevision = $event"
+            @restored="onRevisionRestored"
+          />
         </div>
       </div>
     </article>
@@ -232,6 +239,7 @@ const postTags = ref<ApiTag[]>([])
 const loading = ref(true)
 const saving = ref(false)
 const savingArticle = ref(false)
+const isRestoringRevision = ref(false)
 const savingMetadata = ref(false)
 const metadataReady = ref(false)
 const metadataDirty = ref(false)
@@ -282,7 +290,8 @@ async function persistArticle(content: object) {
   successMessage.value = ''
 
   try {
-    await updateArticle(identifier.value, content)
+    const result = await updateArticle(identifier.value, content, post.value.contentRevision ?? 0)
+    post.value.contentRevision = result.revision
     lastArticleSavedAt.value = Date.now()
     articleSaveFailed.value = false
     if (articleContent.value === content) articleDirty.value = false
@@ -333,6 +342,16 @@ async function flushArticleSave() {
   if (articleSavePromise) await articleSavePromise
   if (!articleDirty.value) return true
   return saveArticle(articleContent.value)
+}
+
+async function onRevisionRestored() {
+  await fetchPost()
+}
+
+async function prepareRevisionRestore() {
+  if (!post.value) return null
+  if (articleDirty.value && !(await flushArticleSave())) return null
+  return post.value.contentRevision ?? 0
 }
 
 const { fileInput, uploadingCover, uploadProgress, previewSrc, clearPreview, triggerFileInput, handleFileChange, deleteCoverImage } = usePostImages(
@@ -530,7 +549,7 @@ const fetchPost = async () => {
     const data = await fetchPostApi(identifier.value)
     post.value = data
 
-    if (data.user?.id !== user.value?.id) {
+    if (!data.canEdit) {
       error.value = 'You are not authorized to edit this post'
       router.push(localizedPath('/posts', $getLocale()))
       return

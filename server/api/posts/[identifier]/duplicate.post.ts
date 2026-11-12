@@ -6,9 +6,10 @@ import { z } from 'zod'
 import type { ApiPost } from '~~/shared/types/post'
 import { convertApiToPost, createArticle, createPostData, getPostByIdentifier } from '~~/server/utils/post'
 import { upsertPostTags } from '~~/server/utils/tags'
+import { requireCurrentUserSession } from '~~/server/utils/api'
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
+  const session = await requireCurrentUserSession(event)
   const database = db
 
   const identifier = decodeURIComponent(getRouterParam(event, 'identifier') ?? '')
@@ -21,7 +22,9 @@ export default defineEventHandler(async (event) => {
   if (!source) throw createError({ statusCode: 404, message: 'Source post not found' })
 
   const currentUser = session.user
-  if (source.user_id !== currentUser.id && currentUser.role !== 'admin') {
+  const canDuplicate = currentUser.role === 'admin'
+    || (currentUser.role === 'writer' && source.user_id === currentUser.id)
+  if (!canDuplicate) {
     throw createError({ statusCode: 403, message: 'You are not authorized to duplicate this post' })
   }
 

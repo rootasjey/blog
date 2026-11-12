@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
     language: userData.language ?? 'en',
     location: userData.location ?? '',
     name: userData.name,
-    role: userData.role,
+    role: userData.access_role,
     socials: userData.socials ?? '[]',
     updated_at: userData.updated_at,
   }

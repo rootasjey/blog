@@ -4,6 +4,8 @@ import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
 import type { ApiPost } from '~~/shared/types/post'
+import { assertPostPermission } from '~~/server/utils/postPermissions'
+import { isPostMediaReferencedInArticleHistory } from '~~/server/utils/postRevisions'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   const userId = session.user.id
@@ -15,7 +17,7 @@ export default defineEventHandler(async (event) => {
 
   const post: ApiPost | null = await getPostByIdentifier(database, identifier)
   if (!post) throw createError({ statusCode: 404, message: 'Post not found' })
-  if (post.user_id !== userId) throw createError({ statusCode: 403, message: 'You are not authorized to delete this post image' })
+  await assertPostPermission({ id: session.user.id, role: session.user.role }, post, 'edit')
 
   const query = getQuery(event)
   const id = query.id ? Number(query.id) : null
@@ -45,12 +47,14 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 403, message: 'Image belongs to a different post' })
     }
 
-    // Delete blob
-    try {
-      const pathname = record.pathname.replace(/^\/+/, '')
-      await hb.del(pathname)
-    } catch (err) {
-      console.warn('Failed to delete blob for inline image', err)
+    const pathname = record.pathname.replace(/^\/+/, '')
+    const referencedByArticle = await isPostMediaReferencedInArticleHistory(post.id, pathname, post.blob_path)
+    if (!referencedByArticle) {
+      try {
+        await hb.del(pathname)
+      } catch (err) {
+        console.warn('Failed to delete blob for inline image', err)
+      }
     }
 
     // Delete DB record

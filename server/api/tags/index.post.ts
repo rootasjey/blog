@@ -3,8 +3,10 @@ import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
 import { isTagIconName } from '~~/shared/constants/tag-icons'
 import { isTagColor } from '~~/shared/constants/tag-colors'
+import { requireAdminSession } from '~~/server/utils/api'
 
 export default defineEventHandler(async (event) => {
+  await requireAdminSession(event)
   const body = await readBody(event)
   if (!body?.name) {
     throw createError({ statusCode: 400, statusMessage: 'Tag name is required' })

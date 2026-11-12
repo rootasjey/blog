@@ -1,4 +1,5 @@
 import { eventHandler, readBody, createError } from 'h3'
+import { requireAdminSession } from '~~/server/utils/api'
 import {
   aboutPageContentSchema,
   homeIdentitySchema,
@@ -11,14 +12,13 @@ import {
   setRecommendationsContent,
   setSiteBrandName,
   setSocials,
+  getSettingValue,
+  setSettingValue,
   socialsSchema,
 } from '~~/server/utils/siteSettings'
 
 export default eventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (session.user.role !== 'admin') {
-    throw createError({ statusCode: 403, statusMessage: 'Forbidden' })
-  }
+  await requireAdminSession(event)
 
   const body = await readBody(event)
   let updatedSocials: unknown[] | undefined
@@ -53,9 +53,17 @@ export default eventHandler(async (event) => {
     if (!parsed.success) throw createError({ statusCode: 400, statusMessage: 'Invalid about page content', data: parsed.error.flatten() })
     await setAboutPageContent(parsed.data)
   }
-  if (body?.socials === undefined && body?.siteBrandName === undefined && body?.homeIdentity === undefined && body?.homePostSections === undefined && body?.recommendationsContent === undefined && body?.aboutPageContent === undefined) {
+  if (body?.editorsCanEditAllArticles !== undefined) {
+    if (typeof body.editorsCanEditAllArticles !== 'boolean') throw createError({ statusCode: 400, statusMessage: 'Invalid editor permission setting' })
+    await setSettingValue('editors_can_edit_all_articles', body.editorsCanEditAllArticles)
+  }
+  if (body?.socials === undefined && body?.siteBrandName === undefined && body?.homeIdentity === undefined && body?.homePostSections === undefined && body?.recommendationsContent === undefined && body?.aboutPageContent === undefined && body?.editorsCanEditAllArticles === undefined) {
     throw createError({ statusCode: 400, statusMessage: 'No supported setting provided' })
   }
 
-  return { message: 'Site settings updated', ...(updatedSocials ? { socials: updatedSocials } : {}) }
+  return {
+    message: 'Site settings updated',
+    ...(updatedSocials ? { socials: updatedSocials } : {}),
+    ...(body?.editorsCanEditAllArticles !== undefined ? { editorsCanEditAllArticles: await getSettingValue('editors_can_edit_all_articles', false) } : {}),
+  }
 })

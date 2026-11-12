@@ -1,4 +1,5 @@
 import { blob } from 'hub:blob'
+import { hasPostPermission } from '~~/server/utils/postPermissions'
 import { db, schema } from 'hub:db'
 
 export default defineEventHandler(async (event) => {
@@ -9,7 +10,7 @@ export default defineEventHandler(async (event) => {
 
     const apiPost: any = await getPostByIdentifier(db, identifier)
     if (!apiPost) return apiError(event, 404, 'NOT_FOUND', 'Post not found')
-    if (apiPost.user_id !== user.id && user.role !== 'admin') return apiError(event, 403, 'FORBIDDEN', 'Not authorized')
+    if (!(await hasPostPermission(user, apiPost, 'edit'))) return apiError(event, 403, 'FORBIDDEN', 'Not authorized')
 
     const allowedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
     const formData = await readMultipartFormData(event)

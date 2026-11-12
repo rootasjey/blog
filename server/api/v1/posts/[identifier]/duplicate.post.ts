@@ -6,6 +6,12 @@ import { upsertPostTags } from '~~/server/utils/tags'
 export default defineEventHandler(async (event) => {
   try {
     const user = await requireWriteAccess(event)
+    if (user.authMethod === 'api_key') {
+      return apiError(event, 403, 'FORBIDDEN', 'API keys cannot create posts by duplicating articles')
+    }
+    if (user.role !== 'writer' && user.role !== 'admin') {
+      return apiError(event, 403, 'FORBIDDEN', 'Writer or administrator access required')
+    }
     const database = db
 
     const identifier = decodeURIComponent(getRouterParam(event, 'identifier') ?? '')
@@ -16,7 +22,7 @@ export default defineEventHandler(async (event) => {
     const source = await getPostByIdentifier(database, identifier) as any
     if (!source) return apiError(event, 404, 'NOT_FOUND', 'Source post not found')
 
-    if (source.user_id !== user.id && user.role !== 'admin') {
+    if (user.role !== 'admin' && source.user_id !== user.id) {
       return apiError(event, 403, 'FORBIDDEN', 'You are not authorized to duplicate this post')
     }
 

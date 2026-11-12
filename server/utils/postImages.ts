@@ -93,6 +93,27 @@ export async function cleanupOrphanPostImages(database: Database, postId: number
   }
 
   try {
+    const revisions = await database
+      .select({ media_paths: schema.post_revisions.media_paths })
+      .from(schema.post_revisions)
+      .where(eq(schema.post_revisions.post_id, postIdNumber))
+
+    for (const revision of revisions) {
+      const paths = JSON.parse(revision.media_paths || '[]')
+      if (!Array.isArray(paths)) continue
+      for (const path of paths) {
+        if (typeof path !== 'string') continue
+        const normalizedPath = path.replace(/^\/+/, '')
+        referencedPaths.add(normalizedPath)
+        const filename = normalizedPath.split('/').pop()
+        if (filename) referencedFiles.add(filename)
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to load historical media references for post', postId, err)
+  }
+
+  try {
     await database
       .update(schema.post_images)
       .set({ in_use: false })

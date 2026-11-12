@@ -1,4 +1,5 @@
 import { blob } from 'hub:blob'
+import { requireAdminSession } from '~~/server/utils/api'
 
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -6,8 +7,7 @@ const HOME_AVATAR_FOLDER = 'site/home/identity'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
-    if (session.user.role !== 'admin') return apiError(event, 403, 'FORBIDDEN', 'Admin access required')
+    await requireAdminSession(event)
 
     const formData = await readMultipartFormData(event)
     const file = formData?.find(item => item.name === 'file')
@@ -24,6 +24,9 @@ export default defineEventHandler(async (event) => {
 
     return apiCreated(event, { src: `/${avatarPath}` })
   } catch (err: any) {
+    if (err?.statusCode === 401 || err?.statusCode === 403) {
+      return apiError(event, err.statusCode, 'FORBIDDEN', 'Admin access required')
+    }
     console.error('[API] POST /admin/site-settings/home-avatar error:', err?.message || err)
     return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to upload home avatar')
   }

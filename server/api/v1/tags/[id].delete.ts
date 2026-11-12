@@ -1,9 +1,10 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { requireAdminSession } from '~~/server/utils/api'
 
 export default defineEventHandler(async (event) => {
+  await requireAdminSession(event)
   try {
-    await requireWriteAccess(event)
     const id = Number(getRouterParam(event, 'id'))
     if (!Number.isFinite(id)) return apiError(event, 400, 'BAD_REQUEST', 'Invalid tag ID')
 

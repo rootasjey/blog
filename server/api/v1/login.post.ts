@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
       id: userData.id, job: userData.job ?? '',
       language: userData.language ?? 'en', location: userData.location ?? '',
       name: userData.name, slug: userData.slug ?? '',
-      role: userData.role, socials: userData.socials ?? '[]',
+      role: userData.access_role, socials: userData.socials ?? '[]',
       updated_at: userData.updated_at,
     }
 

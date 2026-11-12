@@ -25,10 +25,10 @@ export function usePostsApi() {
     })
   }
 
-  const updateArticle = (identifier: string | number, article: object) => {
-    return $fetch(`/api/posts/${encodeURIComponent(String(identifier))}/article`, {
+  const updateArticle = (identifier: string | number, article: object, expectedRevision: number) => {
+    return $fetch<{ revision: number }>(`/api/posts/${encodeURIComponent(String(identifier))}/article`, {
       method: 'PUT',
-      body: { article },
+      body: { article, expectedRevision, source: 'editor' },
     })
   }
 

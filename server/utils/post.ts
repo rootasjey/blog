@@ -154,6 +154,7 @@ export function convertApiToPost(
   return {
     article: JSON.parse(options?.article ?? JSON.stringify(createArticle())),
     blobPath: apiPost.blob_path ?? undefined,
+    contentRevision: apiPost.content_revision,
     createdAt: apiPost.created_at,
     description: apiPost.description ?? "",
     id: apiPost.id,

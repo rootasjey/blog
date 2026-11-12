@@ -1,6 +1,8 @@
 import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
+import { hasPostPermission } from '~~/server/utils/postPermissions'
+import { requireCurrentUserSession } from '~~/server/utils/api'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -9,15 +11,20 @@ export default defineEventHandler(async (event) => {
       return apiError(event, 400, 'BAD_REQUEST', 'Post identifier is required')
     }
 
-    const session = await getUserSession(event).catch(() => null)
-    const userId = session?.user?.id ?? null
+    let actor: { id: number; role: string; authMethod: 'session' } | null = null
+    try {
+      const session = await requireCurrentUserSession(event)
+      actor = { id: session.user.id, role: session.user.role, authMethod: 'session' }
+    } catch {
+      // Published posts stay public; private posts require a current session.
+    }
 
     const apiPost: any = await getPostByIdentifier(db, identifier)
     if (!apiPost) {
       return apiError(event, 404, 'NOT_FOUND', `Post "${identifier}" not found`)
     }
 
-    if (apiPost.status !== 'published' && apiPost.user_id !== userId) {
+    if (apiPost.status !== 'published' && (!actor || !(await hasPostPermission(actor, apiPost, 'read')))) {
       return apiError(event, 403, 'FORBIDDEN', 'You are not authorized to view this post')
     }
 

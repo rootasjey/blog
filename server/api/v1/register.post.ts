@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
       language: String(body?.language || 'en'),
       location: String(body?.location || ''),
       socials: String(body?.socials || '[]'),
-      role: 'user', avatar: '', email_verified: false,
+      role: 'user', access_role: 'reader', avatar: '', email_verified: false,
     }).run()
 
     const insertedId = Number((result as any)?.lastInsertRowid ?? 0)
@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
       id: newUser.id, job: newUser.job ?? '',
       language: newUser.language ?? 'en', location: newUser.location ?? '',
       name: newUser.name, slug: newUser.slug ?? '',
-      role: newUser.role, socials: newUser.socials ?? '[]',
+      role: newUser.access_role, socials: newUser.socials ?? '[]',
       updated_at: newUser.updated_at,
     }
     await setUserSession(event, { user: sessionUser })

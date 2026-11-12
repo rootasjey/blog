@@ -7,6 +7,7 @@ import type { ApiTag } from '~~/shared/types/tags'
 import type { ApiPost } from '~~/shared/types/post'
 import { convertApiToPost, createArticle, createPostData, generateUniqueSlug } from '~~/server/utils/post'
 import { upsertPostTags } from '~~/server/utils/tags'
+import { requireCurrentUserSession } from '~~/server/utils/api'
 
 const createPostSchema = z.object({
   name: z.string().min(1).max(255),
@@ -20,7 +21,10 @@ const createPostSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
+    const session = await requireCurrentUserSession(event)
+    if (session.user.role !== 'writer' && session.user.role !== 'admin') {
+      throw createError({ statusCode: 403, statusMessage: 'Writer or administrator access required' })
+    }
     const blobStorage = blob
     
     let body

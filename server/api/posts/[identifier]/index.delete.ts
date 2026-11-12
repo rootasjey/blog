@@ -4,8 +4,10 @@ import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
 import type { ApiPost } from '~~/shared/types/post'
 import { convertApiToPost } from '~~/server/utils/post'
+import { assertPostPermission } from '~~/server/utils/postPermissions'
+import { requireCurrentUserSession } from '~~/server/utils/api'
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
+  const session = await requireCurrentUserSession(event)
   const database = db
 
   const identifier = decodeURIComponent(getRouterParam(event, 'identifier') ?? '')
@@ -15,7 +17,8 @@ export default defineEventHandler(async (event) => {
   const apiPost: ApiPost | null = await getPostByIdentifier(database, identifier)
   
   if (!apiPost) { throw createError({ statusCode: 404, message: 'Post not found.' })}
-  if (apiPost.user_id !== userId) { throw createError({ statusCode: 403, message: "You are not authorized to delete this post" }) }
+  await assertPostPermission({ id: session.user.id, role: session.user.role }, apiPost, 'edit')
+  if (apiPost.user_id !== userId && session.user.role !== 'admin') { throw createError({ statusCode: 403, message: "You are not authorized to delete this post" }) }
 
   if (apiPost.blob_path) { await blob.del(apiPost.blob_path) }
 

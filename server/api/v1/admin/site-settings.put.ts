@@ -12,11 +12,11 @@ import {
   setSocials,
   socialsSchema,
 } from '~~/server/utils/siteSettings'
+import { requireAdminSession } from '~~/server/utils/api'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
-    if (session.user.role !== 'admin') return apiError(event, 403, 'FORBIDDEN', 'Admin access required')
+    await requireAdminSession(event)
 
     const body = await readBody(event)
     let updatedSocials: unknown[] | undefined
@@ -57,6 +57,9 @@ export default defineEventHandler(async (event) => {
 
     return apiSuccess(event, { message: 'Site settings updated', ...(updatedSocials ? { socials: updatedSocials } : {}) })
   } catch (err: any) {
+    if (err?.statusCode === 401 || err?.statusCode === 403) {
+      return apiError(event, err.statusCode, 'FORBIDDEN', 'Admin access required')
+    }
     console.error('[API v1] PUT /admin/site-settings error:', err?.message || err)
     return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to update site settings')
   }

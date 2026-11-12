@@ -1,25 +1,41 @@
 import { db, schema } from 'hub:db'
+import { z } from 'zod'
+import { requireAdminSession } from '~~/server/utils/api'
+
+const bodySchema = z.object({
+  name: z.string().trim().min(1).max(100),
+  scopes: z.array(z.enum(['posts:read', 'posts:write', 'ai:run', 'api:access'])).min(1).max(4).default(['posts:read', 'posts:write']),
+  postIds: z.array(z.number().int().positive()).max(100).default([]),
+}).strict()
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (session.user.role !== 'admin') {
-    return apiError(event, 403, 'FORBIDDEN', 'Admin access required')
-  }
+  const session = await requireAdminSession(event)
 
   try {
-    const body = await readBody(event)
-    const name = String(body?.name || '').trim()
-    if (!name || name.length > 100) {
-      return apiError(event, 400, 'VALIDATION_ERROR', 'Name is required (max 100 characters)')
+    const parsed = bodySchema.safeParse(await readBody(event))
+    if (!parsed.success) return apiError(event, 400, 'VALIDATION_ERROR', 'Invalid API key settings')
+    const { name, scopes, postIds } = parsed.data
+    const requiresPostScope = scopes.some(scope => scope.startsWith('posts:') || scope === 'ai:run')
+    if (requiresPostScope && postIds.length === 0) {
+      return apiError(event, 400, 'VALIDATION_ERROR', 'Write and AI keys must be limited to at least one post')
     }
 
     const { raw, hash, prefix } = await generateApiKey()
 
-    await db.insert(schema.api_keys).values({ user_id: session.user.id, name, hash, prefix }).run()
+    await db.insert(schema.api_keys).values({
+      user_id: session.user.id,
+      name,
+      hash,
+      prefix,
+      scopes: JSON.stringify(scopes),
+      post_ids: JSON.stringify([...new Set(postIds)]),
+    }).run()
 
     return apiCreated(event, {
       name,
       prefix,
+      scopes,
+      postIds: [...new Set(postIds)],
       key: raw,
       message: 'Save this key — it will not be shown again',
     })

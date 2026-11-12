@@ -1,11 +1,9 @@
 import { db, schema } from 'hub:db'
 import { eq, desc } from 'drizzle-orm'
+import { requireAdminSession } from '~~/server/utils/api'
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (session.user.role !== 'admin') {
-    return apiError(event, 403, 'FORBIDDEN', 'Admin access required')
-  }
+  await requireAdminSession(event)
 
   try {
     const rows = await db
@@ -13,6 +11,8 @@ export default defineEventHandler(async (event) => {
         id: schema.api_keys.id,
         name: schema.api_keys.name,
         prefix: schema.api_keys.prefix,
+        scopes: schema.api_keys.scopes,
+        post_ids: schema.api_keys.post_ids,
         created_at: schema.api_keys.created_at,
         last_used_at: schema.api_keys.last_used_at,
         revoked_at: schema.api_keys.revoked_at,

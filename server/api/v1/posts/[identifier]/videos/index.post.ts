@@ -1,4 +1,5 @@
 import { blob } from 'hub:blob'
+import { hasPostPermission } from '~~/server/utils/postPermissions'
 import { db, schema } from 'hub:db'
 
 const ALLOWED_VIDEO = ['video/mp4', 'video/webm', 'video/ogg']
@@ -12,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
     const apiPost: any = await getPostByIdentifier(db, identifier)
     if (!apiPost) return apiError(event, 404, 'NOT_FOUND', 'Post not found')
-    if (apiPost.user_id !== user.id && user.role !== 'admin') return apiError(event, 403, 'FORBIDDEN', 'Not authorized')
+    if (!(await hasPostPermission(user, apiPost, 'edit'))) return apiError(event, 403, 'FORBIDDEN', 'Not authorized')
 
     const formData = await readMultipartFormData(event)
     const filePart = formData?.find(i => i.name === 'file')

@@ -1,11 +1,9 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { requireAdminSession } from '~~/server/utils/api'
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (session.user.role !== 'admin') {
-    return apiError(event, 403, 'FORBIDDEN', 'Admin access required')
-  }
+  await requireAdminSession(event)
 
   try {
     const id = Number(getRouterParam(event, 'id'))

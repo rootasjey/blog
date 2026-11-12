@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
   const authors = await db
     .select({ slug: schema.users.slug, updated_at: schema.users.updated_at })
     .from(schema.users)
-    .where(eq(schema.users.role, 'admin'))
+    .where(eq(schema.users.access_role, 'admin'))
 
   const xml = ['<?xml version="1.0" encoding="UTF-8"?>']
   xml.push('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')

@@ -6,6 +6,9 @@ import { upsertPostTags } from '~~/server/utils/tags'
 export default defineEventHandler(async (event) => {
   try {
     const user = await requireWriteAccess(event)
+    if (user.role !== 'writer' && user.role !== 'admin') {
+      return apiError(event, 403, 'FORBIDDEN', 'Writer or administrator access required')
+    }
     const body = await readBody(event)
 
     const name = String(body?.name || '').trim()

@@ -3,6 +3,7 @@ import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import type { ApiPost } from '~~/shared/types/post'
+import { assertPostPermission } from '~~/server/utils/postPermissions'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -10,10 +11,10 @@ export default defineEventHandler(async (event) => {
   const database = db
   const identifier = decodeURIComponent(getRouterParam(event, 'identifier') ?? '')
 
-  let post: ApiPost | null = await getPostByIdentifier(database, identifier)
-
-  handleErrors({ post, userId })
-  post = post as ApiPost
+  const post: ApiPost | null = await getPostByIdentifier(database, identifier)
+  if (!post) throw createError({ statusCode: 404, message: 'Post not found' })
+  if (!post.image_src) throw createError({ statusCode: 400, message: 'Post does not have an image' })
+  await assertPostPermission({ id: session.user.id, role: session.user.role }, post, 'edit')
 
   try {
     // image_src now stores a full file path like "/posts/1/cover/original.jpeg"
@@ -70,31 +71,3 @@ export default defineEventHandler(async (event) => {
     }
   }
 })
-
-type HandleErrorsProps = {
-  post: ApiPost | null
-  userId: number
-}
-
-const handleErrors = ({ post, userId }: HandleErrorsProps) => {
-  if (!post) {
-    throw createError({
-      statusCode: 404,
-      message: 'Post not found',
-    })
-  }
-
-  if (post.user_id !== userId) {
-    throw createError({
-      statusCode: 403,
-      message: 'You are not authorized to update this post',
-    })
-  }
-
-  if (!post.image_src) {
-    throw createError({
-      statusCode: 400,
-      message: 'Post does not have an image',
-    })
-  }
-}

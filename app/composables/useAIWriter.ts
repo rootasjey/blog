@@ -67,6 +67,7 @@ export function useAIWriter() {
     let finished = false
     const queue: { chunk: string; text: string }[] = []
     let fullText = ''
+    let failure: Error | null = null
 
     const push = (chunk: string) => {
       fullText += chunk
@@ -98,7 +99,11 @@ export function useAIWriter() {
             }
             if (data) push(data)
             if (ev === 'end') { finished = true; break }
-            if (ev === 'error') { finished = true; break }
+            if (ev === 'error') {
+              failure = new Error(`AI stream failed: ${data || 'unknown error'}`)
+              finished = true
+              break
+            }
           }
         }
         // flush remainder
@@ -115,8 +120,10 @@ export function useAIWriter() {
           }
           if (data) push(data)
           if (ev === 'end') finished = true
+          if (ev === 'error') failure = new Error(`AI stream failed: ${data || 'unknown error'}`)
         }
       } catch (err) {
+        failure = err instanceof Error ? err : new Error('AI stream failed')
         finished = true
       } finally {
         try { reader.releaseLock?.() } catch {}
@@ -129,6 +136,7 @@ export function useAIWriter() {
         if (item) yield item
         else await new Promise(r => setTimeout(r, 20))
       }
+      if (failure) throw failure
       return fullText
     }
 

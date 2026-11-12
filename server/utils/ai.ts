@@ -5,14 +5,14 @@ import { createWorkersAI } from 'workers-ai-provider'
 
 export const aiRequestSchema = z.object({
   action: z.enum(['fix', 'shorten', 'continue', 'translate', 'summarize', 'ask']),
-  content: z.string().min(1),
+  content: z.string().trim().min(1).max(30_000),
   language: z.string().optional(),
   length: z.enum(['short', 'medium', 'long']).optional(),
-  postIdentifier: z.string().optional(),
+  postIdentifier: z.string().max(255).optional(),
   targetLanguage: z.string().optional(),
   sourceLanguage: z.string().optional(),
   provider: z.enum(['cloudflare', 'openrouter']).optional(),
-  model: z.string().min(1).optional(),
+  model: z.string().trim().min(1).max(160).regex(/^[\w./:-]+$/).optional(),
 }).superRefine((val, ctx) => {
   if (val.action === 'translate' && !val.targetLanguage) {
     ctx.addIssue({
