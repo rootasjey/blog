@@ -57,6 +57,7 @@
           v-for="(post, i) in enhancedPosts"
           :key="post.slug"
           class="group flex flex-col animate-entrance-item"
+          :data-public-page-edit-target="`post:${post.slug}`"
           :style="{ animationDelay: `${i * 40}ms` }"
         >
           <NuxtLink :to="localizedPath(`/posts/${post.slug}`, $getLocale())" class="home-recent-link">

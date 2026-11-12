@@ -4,6 +4,7 @@
       'site-post-card group relative inline-block w-full mb-6 break-inside-avoid transition-all duration-500 ease-out will-change-transform',
       { 'opacity-0 translate-y-3': !entered, 'opacity-100 translate-y-0': entered }
     ]"
+    :data-public-page-edit-target="`post:${post.slug}`"
     :style="{ transitionDelay: `${idx * 35}ms` }"
     @pointerdown="() => $emit('long-press-start', post.slug)"
     @pointerup="$emit('long-press-cancel')"

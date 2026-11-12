@@ -2,7 +2,7 @@
   <section v-if="articles.length" class="site-post-related" :aria-labelledby="headingId">
     <h2 :id="headingId">{{ $ts('components.relatedPosts.heading') }}</h2>
     <div class="site-post-related-grid">
-      <article v-for="article in articles" :key="article.to" class="site-post-related-card">
+      <article v-for="article in articles" :key="article.to" class="site-post-related-card" :data-public-page-edit-target="article.editTarget">
         <NuxtLink class="site-post-related-image-link" :to="article.to" :aria-label="article.title">
           <PostImage :src="article.image" :alt="article.title" loading="lazy" decoding="async" />
         </NuxtLink>
@@ -32,6 +32,7 @@ import { postTagColor } from '~/utils/postTagColor'
 defineProps<{
   articles: Array<{
     to: string
+    editTarget?: string
     title: string
     image: string
     tag?: string

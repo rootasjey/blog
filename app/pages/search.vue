@@ -75,7 +75,11 @@
         </p>
 
         <ul v-else class="site-search-result-list">
-          <li v-for="item in results" :key="`${item.type}-${item.id}`">
+          <li
+            v-for="item in results"
+            :key="`${item.type}-${item.id}`"
+            :data-public-page-edit-target="item.type === 'post' && item.slug ? `post:${item.slug}` : undefined"
+          >
             <NuxtLink :to="resultPath(item)" class="site-search-result">
               <span class="site-search-result-copy">
                 <span class="site-search-result-meta">

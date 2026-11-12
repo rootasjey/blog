@@ -5,6 +5,7 @@
         v-for="(post, index) in posts"
         :key="post.slug"
         class="home-featured-card"
+        :data-public-page-edit-target="post.editTarget"
         :class="{ 'is-active': index === activeIndex }"
       >
         <NuxtLink :to="post.to">
@@ -57,6 +58,7 @@ const posts = computed(() => {
 
     return [...featured, ...remaining].slice(0, 3).map(post => ({
       slug: post.slug,
+      editTarget: `post:${post.slug}`,
       to: localizedPath(`/posts/${post.slug}`, $getLocale()),
       title: post.name,
       description: post.description,
@@ -69,6 +71,7 @@ const posts = computed(() => {
   const locale = $getLocale() === 'fr' ? 'fr' : 'en'
   return PRESENTATION_POSTS.filter(post => !post.isProject).slice(0, 3).map(post => ({
     slug: post.slug,
+    editTarget: undefined,
     to: localizedPath(`/preview/${post.slug}`, $getLocale()),
     title: post.title[locale],
     description: post.description[locale],

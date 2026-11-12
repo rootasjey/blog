@@ -5,6 +5,7 @@
         v-for="post in visiblePosts"
         :key="post.slug"
         class="site-public-post"
+        :data-public-page-edit-target="`post:${post.slug}`"
       >
         <NuxtLink
           :to="localizedPath(`/posts/${post.slug}`, $getLocale())"

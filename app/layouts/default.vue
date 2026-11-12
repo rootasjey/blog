@@ -18,12 +18,31 @@
 </template>
 
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted } from 'vue'
+import { localizedPath } from '~/utils/presentationPosts'
+import { getPublicPostEditIdentifier, PUBLIC_PAGE_EDIT_REQUEST_EVENT, type PublicPageEditTarget } from '~/utils/publicPageEditRequests'
+
 const { user, loggedIn } = useUserSession()
 const siteEditMode = usePublicPageEditMode()
 const isAdmin = computed(() => !!(loggedIn.value && user.value?.role === 'admin'))
 const isContentEditMode = computed(() => !!(loggedIn.value && user.value?.role === 'admin' && siteEditMode.value))
 const { isScrolled, isScrollingDown } = useHeaderScroll()
+const { $getLocale } = useI18n()
+const router = useRouter()
 useEditModeGridCursor(isContentEditMode)
+
+function onPublicPageEditRequest(event: Event) {
+  if (!isContentEditMode.value) return
+
+  const target = (event as CustomEvent<PublicPageEditTarget>).detail
+  const identifier = getPublicPostEditIdentifier(target)
+  if (!identifier) return
+
+  void router.push(localizedPath(`/posts/edit/${identifier}`, $getLocale()))
+}
+
+onMounted(() => window.addEventListener(PUBLIC_PAGE_EDIT_REQUEST_EVENT, onPublicPageEditRequest))
+onBeforeUnmount(() => window.removeEventListener(PUBLIC_PAGE_EDIT_REQUEST_EVENT, onPublicPageEditRequest))
 </script>
 
 <style>

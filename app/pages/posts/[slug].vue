@@ -341,6 +341,7 @@ const relatedArticles = computed(() => {
 
   return selected.map(candidate => ({
     to: localizedPath(`/posts/${candidate.slug}`, $getLocale()),
+    editTarget: `post:${candidate.slug}`,
     title: candidate.name,
     image: candidate.image?.src || '/images/presentation/esc.webp',
     tag: candidate.tags?.[0]?.name,

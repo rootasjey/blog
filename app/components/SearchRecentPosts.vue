@@ -5,7 +5,7 @@
       <div v-for="index in 4" :key="index" />
     </div>
     <ul v-else class="site-search-recent-list">
-      <li v-for="post in posts" :key="post.slug">
+      <li v-for="post in posts" :key="post.slug" :data-public-page-edit-target="`post:${post.slug}`">
         <PostImage
           v-if="post.image?.src"
           :src="post.image.src"
