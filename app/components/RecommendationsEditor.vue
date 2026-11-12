@@ -73,6 +73,12 @@
         <NButton btn="ghost-gray" size="sm" :disabled="saving" @click="close">{{ labels.cancel }}</NButton>
         <NButton btn="solid-black" size="sm" :loading="saving" :disabled="saving" @click="save">{{ saving ? labels.saving : labels.save }}</NButton>
       </footer>
+      <EditorPanelResizeHandle
+        v-if="!isMaximized"
+        :label="labels.resize"
+        @start="startResize"
+        @keydown="resizeWithKeyboard"
+      />
     </section>
   </Teleport>
 </template>
@@ -88,12 +94,12 @@ const emit = defineEmits<{ saved: [content: RecommendationsContent] }>()
 const { $getLocale } = useI18n()
 const locale = computed(() => $getLocale())
 const labels = computed(() => locale.value === 'fr' ? {
-  title: 'Modifier les recommandations', close: 'Fermer', maximize: 'Agrandir', restore: 'Restaurer', languages: 'Langue du contenu',
+  title: 'Modifier les recommandations', close: 'Fermer', maximize: 'Agrandir', restore: 'Restaurer', resize: 'Redimensionner le panneau. Utilise les flèches ou fais glisser.', languages: 'Langue du contenu',
   pageTitle: 'Titre de la page', pageDescription: 'Introduction', cards: 'Cartes', addCard: 'Ajouter une carte', untitled: 'Sans titre',
   name: 'Nom', description: 'Description', url: 'Lien', icon: 'Icône (URL d’image)', moveUp: 'Monter', moveDown: 'Descendre', removeCard: 'Supprimer la carte',
   cancel: 'Annuler', save: 'Enregistrer', saving: 'Enregistrement…', saved: 'Modifications enregistrées', saveError: 'Enregistrement impossible',
 } : {
-  title: 'Edit recommendations', close: 'Close', maximize: 'Maximize', restore: 'Restore', languages: 'Content language',
+  title: 'Edit recommendations', close: 'Close', maximize: 'Maximize', restore: 'Restore', resize: 'Resize editor panel. Use arrow keys or drag to resize.', languages: 'Content language',
   pageTitle: 'Page title', pageDescription: 'Introduction', cards: 'Cards', addCard: 'Add card', untitled: 'Untitled',
   name: 'Name', description: 'Description', url: 'Link', icon: 'Icon (image URL)', moveUp: 'Move up', moveDown: 'Move down', removeCard: 'Remove card',
   cancel: 'Cancel', save: 'Save', saving: 'Saving…', saved: 'Changes saved', saveError: 'Could not save changes',
@@ -111,7 +117,7 @@ const x = ref(0)
 const y = ref(0)
 let dragOffsetX = 0
 let dragOffsetY = 0
-const { isMaximized, panelStyle: positionStyle, panelClasses, prepareForOpen, captureNormalHeight, toggleMaximize } = useEditorPanelMaximize(editorPanel, x, y, open)
+const { isMaximized, panelStyle: positionStyle, panelClasses, prepareForOpen, captureNormalHeight, toggleMaximize, startResize, resizeWithKeyboard } = useEditorPanelMaximize(editorPanel, x, y, open)
 
 function openEditor() {
   prepareForOpen()
@@ -242,6 +248,7 @@ onUnmounted(() => {
 .recommendations-editor.editor-panel--transition-ready {
   transition: left 520ms cubic-bezier(.2, .75, .25, 1), top 520ms cubic-bezier(.2, .75, .25, 1), width 520ms cubic-bezier(.2, .75, .25, 1), height 520ms cubic-bezier(.2, .75, .25, 1), max-height 520ms cubic-bezier(.2, .75, .25, 1), border-radius 300ms ease;
 }
+.recommendations-editor.editor-panel--resizing { transition: none !important; }
 .recommendations-editor.editor-panel--spring-expanding { animation: editor-panel-spring-expand 620ms cubic-bezier(.2, .75, .25, 1) both; }
 .recommendations-editor.editor-panel--spring-restoring { animation: editor-panel-spring-restore 620ms cubic-bezier(.2, .75, .25, 1) both; }
 @keyframes editor-panel-spring-expand {
@@ -288,7 +295,7 @@ onUnmounted(() => {
   align-items: center;
   gap: var(--site-space-1);
 }
-.recommendations-editor__footer { border-top: 1px solid var(--site-color-border); }
+.recommendations-editor__footer { padding-right: 42px; border-top: 1px solid var(--site-color-border); }
 @media (prefers-reduced-motion: reduce) {
   .recommendations-editor.editor-panel--transition-ready { transition-duration: 0.01ms; }
   .recommendations-editor.editor-panel--spring-expanding,

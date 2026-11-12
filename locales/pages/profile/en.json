@@ -2,6 +2,12 @@
   "pages": {
     "profile": {
       "heading": "Profile",
+      "settingsTitle": "Profile settings",
+      "settingsDescription": "Manage the information shown on your public profile.",
+      "publicIdentity": "Public identity",
+      "contactHeading": "Contact",
+      "preferencesHeading": "Preferences",
+      "socialsDescription": "Manage links to your social profiles.",
       "editAvatar": "Edit avatar",
       "useTroncheAvatar": "Use Tronche avatar",
       "uploadAvatar": "Upload an image",

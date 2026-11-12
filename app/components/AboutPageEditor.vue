@@ -48,6 +48,12 @@
         <NButton btn="ghost-gray" size="sm" :disabled="saving" @click="close">{{ labels.cancel }}</NButton>
         <NButton btn="solid-black" size="sm" :loading="saving" :disabled="saving" @click="save">{{ saving ? labels.saving : labels.save }}</NButton>
       </footer>
+      <EditorPanelResizeHandle
+        v-if="!isMaximized"
+        :label="labels.resize"
+        @start="startResize"
+        @keydown="resizeWithKeyboard"
+      />
     </section>
   </Teleport>
 </template>
@@ -63,14 +69,14 @@ const emit = defineEmits<{ saved: [content: AboutPageContent] }>()
 const { $getLocale } = useI18n()
 const locale = computed(() => $getLocale())
 const labels = computed(() => locale.value === 'fr' ? {
-  title: 'Modifier À propos', close: 'Fermer', maximize: 'Agrandir', restore: 'Restaurer', languages: 'Langue du contenu',
+  title: 'Modifier À propos', close: 'Fermer', maximize: 'Agrandir', restore: 'Restaurer', resize: 'Redimensionner le panneau. Utilise les flèches ou fais glisser.', languages: 'Langue du contenu',
   heading: 'Titre', mainTitle: 'Accroche', intro: 'Introduction', description: 'Description', openSourceHeading: 'Titre open source',
   openSourceText: 'Texte open source', faqHeading: 'Titre de la FAQ', faq: 'Questions fréquentes', addQuestion: 'Ajouter une question', untitled: 'Sans titre',
   question: 'Question', answer: 'Réponse', moveUp: 'Monter', moveDown: 'Descendre', removeQuestion: 'Supprimer la question',
   contactHeading: 'Titre du contact', contactText: 'Texte du contact', cancel: 'Annuler', save: 'Enregistrer', saving: 'Enregistrement…',
   saved: 'Modifications enregistrées', saveError: 'Enregistrement impossible',
 } : {
-  title: 'Edit About page', close: 'Close', maximize: 'Maximize', restore: 'Restore', languages: 'Content language',
+  title: 'Edit About page', close: 'Close', maximize: 'Maximize', restore: 'Restore', resize: 'Resize editor panel. Use arrow keys or drag to resize.', languages: 'Content language',
   heading: 'Heading', mainTitle: 'Lead', intro: 'Introduction', description: 'Description', openSourceHeading: 'Open source heading',
   openSourceText: 'Open source text', faqHeading: 'FAQ heading', faq: 'Frequently asked questions', addQuestion: 'Add question', untitled: 'Untitled',
   question: 'Question', answer: 'Answer', moveUp: 'Move up', moveDown: 'Move down', removeQuestion: 'Remove question',
@@ -90,7 +96,7 @@ const x = ref(0)
 const y = ref(0)
 let dragOffsetX = 0
 let dragOffsetY = 0
-const { isMaximized, panelStyle: positionStyle, panelClasses, prepareForOpen, captureNormalHeight, toggleMaximize } = useEditorPanelMaximize(panel, x, y, open)
+const { isMaximized, panelStyle: positionStyle, panelClasses, prepareForOpen, captureNormalHeight, toggleMaximize, startResize, resizeWithKeyboard } = useEditorPanelMaximize(panel, x, y, open)
 
 function openEditor() {
   prepareForOpen()
@@ -227,6 +233,7 @@ onUnmounted(() => {
 .about-page-editor.editor-panel--transition-ready {
   transition: left 520ms cubic-bezier(.2, .75, .25, 1), top 520ms cubic-bezier(.2, .75, .25, 1), width 520ms cubic-bezier(.2, .75, .25, 1), height 520ms cubic-bezier(.2, .75, .25, 1), max-height 520ms cubic-bezier(.2, .75, .25, 1), border-radius 300ms ease;
 }
+.about-page-editor.editor-panel--resizing { transition: none !important; }
 .about-page-editor.editor-panel--spring-expanding { animation: editor-panel-spring-expand 620ms cubic-bezier(.2, .75, .25, 1) both; }
 .about-page-editor.editor-panel--spring-restoring { animation: editor-panel-spring-restore 620ms cubic-bezier(.2, .75, .25, 1) both; }
 @keyframes editor-panel-spring-expand {
@@ -251,7 +258,7 @@ onUnmounted(() => {
 .about-page-editor__footer { padding: var(--site-space-4); }
 .about-page-editor__header-actions { display: flex; align-items: center; gap: var(--site-space-1); }
 .about-page-editor__header { border-bottom: 1px solid var(--site-color-border); cursor: move; touch-action: none; user-select: none; -webkit-user-select: none; }
-.about-page-editor__footer { border-top: 1px solid var(--site-color-border); }
+.about-page-editor__footer { padding-right: 42px; border-top: 1px solid var(--site-color-border); }
 .about-page-editor__header h2,
 .about-page-editor__list-heading h3 { margin: 0; color: var(--site-color-heading); font-size: 1rem; font-weight: 550; }
 .about-page-editor__body { display: grid; gap: var(--site-space-4); padding: var(--site-space-4); overflow-y: auto; }

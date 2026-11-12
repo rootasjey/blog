@@ -1,223 +1,331 @@
 /* Private profile editor, composed around the public author identity. */
 
 @layer components {
-.site-shell .site-profile {
-  background: var(--site-color-background);
-  color: var(--site-color-text);
-}
-
-.site-shell .site-profile .site-profile-toolbar {
-  background: var(--site-color-background);
-}
-
-.site-shell .site-profile-mobile-actions {
-  border-top: 1px solid var(--site-color-border);
-  background: color-mix(in srgb, var(--site-color-background) 95%, transparent);
-}
-
-.site-shell .site-profile-mobile-actions > .container {
-  width: 100%;
-  max-width: none;
-  padding-inline: 0;
-}
-
-.site-shell .site-profile-mobile-actions .site-profile-save {
-  min-width: 0;
-}
-
-.site-shell .site-profile .site-profile-toolbar > .container,
-.site-shell .site-profile > .container {
-  box-sizing: border-box;
-  width: min(700px, calc(100% - 32px));
-  max-width: 700px;
-  padding-inline: 0;
-}
-
-.site-shell .site-profile-visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  clip-path: inset(50%);
-}
-
-.site-shell .site-profile-identity {
-  display: grid;
-  width: 100%;
-  gap: 0;
-  margin: 32px auto 64px;
-  text-align: left;
-}
-
-.site-shell .site-profile-identity-header {
-  display: grid;
-  min-width: 0;
-  justify-items: start;
-}
-
-.site-shell .site-profile-avatar-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.site-shell .site-profile-avatar-hint {
-  color: var(--site-color-muted);
-  font-size: 12px;
-  line-height: 1.3;
-  text-align: center;
-}
-
-.site-shell .site-profile-avatar {
-  width: 96px;
-  height: 96px;
-  flex: 0 0 96px;
-  border: 1px solid var(--site-color-border);
-  border-radius: var(--site-radius-pill);
-  background: var(--site-color-hover-background);
-  color: var(--site-color-accent);
-}
-
-.site-shell .site-profile-avatar:focus-visible {
-  outline: 2px solid var(--site-color-border);
-  outline-offset: 3px;
-}
-
-.site-shell .site-profile-avatar--dragging {
-  border-color: var(--site-color-accent);
-}
-
-.site-shell .site-profile-avatar-fallback {
-  color: var(--site-color-accent);
-  font-size: 40px;
-}
-
-.site-shell .site-profile-progress {
-  background: var(--site-color-accent);
-}
-
-.site-shell .site-profile-identity-copy {
-  display: grid;
-  width: 100%;
-  min-width: 0;
-  justify-items: start;
-  gap: 6px;
-  margin: 24px 0 0;
-}
-
-.site-shell .site-profile-identity-copy :is(input, textarea) {
-  text-align: left;
-}
-
-.site-shell .site-profile-name {
-  color: var(--site-color-heading);
-  font-family: var(--site-font-body);
-  font-size: 24px;
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  line-height: 1.3;
-  text-transform: none;
-}
-
-.site-shell .site-profile-name::placeholder {
-  color: var(--site-color-muted);
-}
-
-.site-shell .site-profile-job {
-  width: min(520px, 100%);
-}
-
-.site-shell .site-profile-job {
-  padding-inline: 0;
-  color: var(--site-color-muted);
-  font-family: var(--site-font-body);
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.site-shell .site-profile-biography {
-  width: 100%;
-  max-width: 660px;
-  margin: 20px 0 0;
-}
-
-.site-shell .site-profile-biography textarea {
-  min-height: 72px;
-  color: var(--site-color-text);
-  font-family: var(--site-font-body);
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-.site-shell .site-profile-socials-action {
-  display: flex;
-  width: fit-content;
-  margin: 10px 0 0;
-  color: var(--site-color-muted);
-}
-
-.site-shell .site-profile-form-wrap {
-  width: 100%;
-  margin: 0 auto;
-}
-
-.site-shell .site-profile .site-profile-fields {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px 32px;
-}
-
-.site-shell .site-profile .site-profile-field {
-  display: grid;
-  min-width: 0;
-  align-content: start;
-  gap: 8px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-.site-shell .site-profile-field-label {
-  color: var(--site-color-muted);
-  font-size: 14px;
-  font-weight: 500;
-  text-transform: none;
-}
-
-.site-shell .site-profile-field > :nth-child(2) {
-  min-width: 0;
-}
-
-.site-shell .site-profile-field :is(input, textarea) {
-  border-radius: var(--site-radius-control);
-}
-
-@media (max-width: 767px) {
-  .site-shell .site-profile-identity {
-    margin: 20px auto 56px;
+  .site-shell .site-profile {
+    background: var(--site-color-background);
+    color: var(--site-color-text);
   }
 
-  .site-shell .site-profile-identity-copy {
-    margin-top: 20px;
+  .site-shell .site-profile > .container {
+    box-sizing: border-box;
+    width: min(860px, calc(100% - 32px));
+    max-width: 860px;
+    padding-inline: 0;
+  }
+
+  .site-shell .site-profile-page-header {
+    margin: 0 auto var(--site-space-8);
+  }
+
+  .site-shell .site-profile-back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--site-space-2);
+    margin-bottom: var(--site-space-5);
+    color: var(--site-color-muted);
+    font-size: 14px;
+    text-decoration: none;
+    transition: color var(--site-motion-fast) var(--site-ease-standard);
+  }
+
+  .site-shell .site-profile-back:hover {
+    color: var(--site-color-text);
+  }
+
+  .site-shell .site-profile-title-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--site-space-6);
+  }
+
+  .site-shell .site-profile-title-copy h1 {
+    margin: 0;
+    color: var(--site-color-heading);
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.12;
+  }
+
+  .site-shell .site-profile-title-copy p {
+    max-width: 60ch;
+    margin: var(--site-space-2) 0 0;
+    color: var(--site-color-muted);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .site-shell .site-profile-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--site-space-2);
+  }
+
+  .site-shell .site-profile-status {
+    width: fit-content;
+    margin: var(--site-space-4) 0 0;
+    padding: 7px 11px;
+    border-radius: var(--site-radius-control);
+    font-size: 13px;
+  }
+
+  .site-shell .site-profile-status--success {
+    background: color-mix(in srgb, var(--site-color-tag-green) 10%, transparent);
+    color: var(--site-color-tag-green);
+  }
+
+  .site-shell .site-profile-status--error {
+    background: color-mix(in srgb, var(--site-color-danger) 10%, transparent);
+    color: var(--site-color-danger);
+  }
+
+  .site-shell .site-profile-form {
+    display: grid;
+    gap: var(--site-space-5);
+  }
+
+  .site-shell .site-profile-panel {
+    min-width: 0;
+    border: 1px solid var(--site-color-border);
+    border-radius: var(--site-radius-card);
+    background: var(--site-color-surface);
+  }
+
+  .site-shell .site-profile-identity {
+    display: grid;
+    gap: var(--site-space-5);
+    margin: 0;
+    padding: var(--site-space-6);
+    text-align: left;
+  }
+
+  .site-shell .site-profile-section-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+  }
+
+  .site-shell .site-profile-identity-header {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    align-items: center;
+    gap: var(--site-space-5);
+  }
+
+  .site-shell .site-profile-avatar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--site-space-2);
+  }
+
+  .site-shell .site-profile-avatar-hint {
+    color: var(--site-color-muted);
+    font-size: 12px;
+    line-height: 1.3;
+    text-align: center;
   }
 
   .site-shell .site-profile-avatar {
-    width: 80px;
-    height: 80px;
-    flex-basis: 80px;
+    width: 96px;
+    height: 96px;
+    flex: 0 0 96px;
+    border: 1px solid var(--site-color-border);
+    border-radius: var(--site-radius-pill);
+    background: var(--site-color-hover-background);
+    color: var(--site-color-accent);
   }
 
-  .site-shell .site-profile-biography {
-    margin-top: 16px;
+  .site-shell .site-profile-avatar:focus-visible {
+    outline: 2px solid var(--site-color-border);
+    outline-offset: 3px;
   }
 
-  .site-shell .site-profile .site-profile-fields {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 20px;
+  .site-shell .site-profile-avatar--dragging {
+    border-color: var(--site-color-accent);
   }
-}
+
+  .site-shell .site-profile-avatar-fallback {
+    color: var(--site-color-accent);
+    font-size: 40px;
+  }
+
+  .site-shell .site-profile-progress {
+    background: var(--site-color-accent);
+  }
+
+  .site-shell .site-profile-identity-copy {
+    display: grid;
+    min-width: 0;
+    justify-items: start;
+    gap: var(--site-space-2);
+  }
+
+  .site-shell .site-profile-field-label {
+    color: var(--site-color-muted);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .site-shell .site-profile-name {
+    width: 100%;
+    min-height: 36px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--site-color-heading);
+    font-family: var(--site-font-body);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.3;
+  }
+
+  .site-shell .site-profile-name::placeholder {
+    color: var(--site-color-muted);
+  }
+
+  .site-shell .site-profile-name:focus-visible {
+    outline: 2px solid var(--site-color-focus-ring);
+    outline-offset: 4px;
+  }
+
+  .site-shell .site-profile-job {
+    width: min(520px, 100%);
+    padding-inline: 0;
+    color: var(--site-color-text);
+    font-family: var(--site-font-body);
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  .site-shell .site-profile-biography textarea {
+    min-height: 112px;
+    color: var(--site-color-text);
+    font-family: var(--site-font-body);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .site-shell .site-profile-groups {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: var(--site-space-5);
+  }
+
+  .site-shell .site-profile-group {
+    display: grid;
+    min-height: 100%;
+    align-content: start;
+    gap: var(--site-space-5);
+    padding: var(--site-space-6);
+  }
+
+  .site-shell .site-profile-group h2,
+  .site-shell .site-profile-socials h2 {
+    margin: 0;
+    color: var(--site-color-heading);
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .site-shell .site-profile-group-fields {
+    display: grid;
+    gap: var(--site-space-5);
+  }
+
+  .site-shell .site-profile-field {
+    display: grid;
+    min-width: 0;
+    align-content: start;
+    gap: var(--site-space-2);
+  }
+
+  .site-shell .site-profile-field > :nth-child(2) {
+    min-width: 0;
+  }
+
+  .site-shell .site-profile-field :is(input, textarea) {
+    border-radius: var(--site-radius-control);
+  }
+
+  .site-shell .site-profile-socials {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--site-space-6);
+    margin-top: var(--site-space-8);
+    padding: var(--site-space-5) 0;
+    border-top: 1px solid var(--site-color-border);
+  }
+
+  .site-shell .site-profile-socials p {
+    margin: var(--site-space-1) 0 0;
+    color: var(--site-color-muted);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .site-shell .site-profile-socials-action {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+  }
+
+  @media (max-width: 760px) {
+    .site-shell .site-profile-groups {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 560px) {
+    .site-shell .site-profile > .container {
+      width: calc(100% - 32px);
+    }
+
+    .site-shell .site-profile-title-row {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: var(--site-space-4);
+    }
+
+    .site-shell .site-profile-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+
+    .site-shell .site-profile-identity,
+    .site-shell .site-profile-group {
+      padding: var(--site-space-4);
+    }
+
+    .site-shell .site-profile-identity-header {
+      grid-template-columns: 84px minmax(0, 1fr);
+      gap: var(--site-space-3);
+    }
+
+    .site-shell .site-profile-avatar {
+      width: 76px;
+      height: 76px;
+      flex-basis: 76px;
+    }
+
+    .site-shell .site-profile-name {
+      font-size: 19px;
+    }
+
+    .site-shell .site-profile-socials {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: var(--site-space-4);
+      margin-top: var(--site-space-6);
+    }
+  }
 }

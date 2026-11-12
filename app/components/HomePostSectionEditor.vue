@@ -113,6 +113,12 @@
         <NButton btn="ghost-gray" size="sm" :disabled="saving" @click="close">{{ labels.cancel }}</NButton>
         <NButton btn="solid-black" size="sm" :loading="saving" :disabled="saving" @click="save">{{ saving ? labels.saving : labels.save }}</NButton>
       </footer>
+      <EditorPanelResizeHandle
+        v-if="!isMaximized"
+        :label="labels.resize"
+        @start="startResize"
+        @keydown="resizeWithKeyboard"
+      />
     </section>
   </Teleport>
 </template>
@@ -135,7 +141,7 @@ const { $getLocale } = useI18n()
 const locale = computed(() => $getLocale() === 'en' ? 'en' : 'fr')
 const labels = computed(() => locale.value === 'fr' ? {
   section: props.section === 'featuredPosts' ? 'Articles à la une' : 'Le journal',
-  title: 'Modifier la section', close: 'Fermer', maximize: 'Agrandir', restore: 'Restaurer', languages: 'Langue du contenu', sectionTitle: 'Titre',
+  title: 'Modifier la section', close: 'Fermer', maximize: 'Agrandir', restore: 'Restaurer', resize: 'Redimensionner le panneau. Utilise les flèches ou fais glisser.', languages: 'Langue du contenu', sectionTitle: 'Titre',
   includeTags: 'Inclure les tags', excludeTags: 'Exclure les tags', includeHint: 'Laisser vide pour afficher tous les articles admissibles.',
   searchTags: 'Rechercher et ajouter un tag…', searchIncludedTags: 'Rechercher un tag à inclure', searchExcludedTags: 'Rechercher un tag à exclure',
   noMatchingTag: 'Aucun tag correspondant', removeIncludedTag: (tag: string) => `Retirer le tag inclus ${tag}`, removeExcludedTag: (tag: string) => `Retirer le tag exclu ${tag}`,
@@ -143,7 +149,7 @@ const labels = computed(() => locale.value === 'fr' ? {
   cancel: 'Annuler', save: 'Enregistrer', saving: 'Enregistrement…', saved: 'Modifications enregistrées', saveError: 'Enregistrement impossible',
 } : {
   section: props.section === 'featuredPosts' ? 'Featured posts' : 'The Journal',
-  title: 'Edit section', close: 'Close', maximize: 'Maximize', restore: 'Restore', languages: 'Content language', sectionTitle: 'Title',
+  title: 'Edit section', close: 'Close', maximize: 'Maximize', restore: 'Restore', resize: 'Resize editor panel. Use arrow keys or drag to resize.', languages: 'Content language', sectionTitle: 'Title',
   includeTags: 'Include tags', excludeTags: 'Exclude tags', includeHint: 'Leave empty to show all otherwise eligible posts.',
   searchTags: 'Search and add a tag…', searchIncludedTags: 'Search tags to include', searchExcludedTags: 'Search tags to exclude',
   noMatchingTag: 'No matching tags', removeIncludedTag: (tag: string) => `Remove included tag ${tag}`, removeExcludedTag: (tag: string) => `Remove excluded tag ${tag}`,
@@ -182,7 +188,7 @@ const x = ref(0)
 const y = ref(0)
 let dragOffsetX = 0
 let dragOffsetY = 0
-const { isMaximized, panelStyle: positionStyle, panelClasses, prepareForOpen, captureNormalHeight, toggleMaximize } = useEditorPanelMaximize(panel, x, y, open)
+const { isMaximized, panelStyle: positionStyle, panelClasses, prepareForOpen, captureNormalHeight, toggleMaximize, startResize, resizeWithKeyboard } = useEditorPanelMaximize(panel, x, y, open)
 
 function openEditor() {
   prepareForOpen()
@@ -376,6 +382,7 @@ onUnmounted(() => {
 .home-post-section-editor.editor-panel--transition-ready {
   transition: left 520ms cubic-bezier(.2, .75, .25, 1), top 520ms cubic-bezier(.2, .75, .25, 1), width 520ms cubic-bezier(.2, .75, .25, 1), height 520ms cubic-bezier(.2, .75, .25, 1), max-height 520ms cubic-bezier(.2, .75, .25, 1), border-radius 300ms ease;
 }
+.home-post-section-editor.editor-panel--resizing { transition: none !important; }
 .home-post-section-editor.editor-panel--spring-expanding { animation: editor-panel-spring-expand 620ms cubic-bezier(.2, .75, .25, 1) both; }
 .home-post-section-editor.editor-panel--spring-restoring { animation: editor-panel-spring-restore 620ms cubic-bezier(.2, .75, .25, 1) both; }
 @keyframes editor-panel-spring-expand {
@@ -484,7 +491,7 @@ onUnmounted(() => {
 .home-post-section-editor__match label { display: inline-flex; align-items: center; gap: 5px; color: var(--site-color-text); font-size: 12px; }
 .home-post-section-editor__message { margin: 0; color: var(--site-color-muted); font-size: 12px; }
 .home-post-section-editor__message--error { color: var(--site-color-danger); }
-.home-post-section-editor__footer { border-top: 1px solid var(--site-color-border); }
+.home-post-section-editor__footer { padding-right: 42px; border-top: 1px solid var(--site-color-border); }
 @media (max-width: 540px) {
   .home-post-section-editor:not(.editor-panel--maximized) { left: 8px !important; width: calc(100vw - 16px); max-height: calc(100vh - 16px); }
 }

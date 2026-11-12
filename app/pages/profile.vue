@@ -1,58 +1,36 @@
 <template>
   <section class="site-page site-profile min-h-screen">
-    <!-- Sticky toolbar -->
-    <div class="sticky top-0 z-30 site-profile-toolbar">
-      <div class="container mx-auto px-4 md:px-8 py-3 sm:py-4">
-        <div class="flex items-center justify-between gap-3">
-          <!-- Mobile: compact layout with title in center -->
-          <NButton link :to="localizedPath('/', $getLocale())" btn="ghost-gray" size="sm" icon label="i-lucide-arrow-left" class="md:hidden" />
-          <NButton link :to="localizedPath('/', $getLocale())" btn="ghost-gray" size="sm" class="hidden md:flex">
-            <NIcon name="i-lucide-arrow-left" />
-            <span class="ml-2">{{ $ts('common.back') }}</span>
-          </NButton>
-          
-          <div class="flex-1 text-center">
-            <div class="text-base font-semibold text-gray-900 dark:text-gray-100 lowercase">{{ $ts('pages.profile.heading') }}</div>
+    <div class="container mx-auto px-4 sm:px-6 max-w-7xl py-8 sm:py-10 md:py-14">
+      <header class="site-profile-page-header animate-entrance">
+        <NuxtLink :to="localizedPath('/', $getLocale())" class="site-profile-back">
+          <NIcon name="i-lucide-arrow-left" aria-hidden="true" />
+          <span>{{ $ts('common.back') }}</span>
+        </NuxtLink>
+
+        <div class="site-profile-title-row">
+          <div class="site-profile-title-copy">
+            <h1>{{ $ts('pages.profile.settingsTitle') }}</h1>
+            <p>{{ $ts('pages.profile.settingsDescription') }}</p>
           </div>
-          
-          <div class="flex items-center gap-2">
-            <NButton
-              v-if="hasChanges"
-              @click="resetForm"
-              btn="ghost-gray"
-              size="sm"
-              class="hidden md:flex"
-              :disabled="isSaving"
-            >{{ $ts('pages.profile.resetChanges') }}</NButton>
-            <NButton 
-              :disabled="!hasChanges || isSaving" 
-              @click="onSubmit" 
-              btn="solid-black"
-              class="site-profile-save hidden md:flex"
-              size="sm"
-            >
+          <div v-if="hasChanges" class="site-profile-actions">
+            <NButton @click="resetForm" btn="ghost-gray" size="sm" :disabled="isSaving">
+              {{ $ts('pages.profile.resetChanges') }}
+            </NButton>
+            <NButton @click="onSubmit" btn="solid-black" size="sm" class="site-profile-save" :disabled="isSaving">
               <NIcon :name="isSaving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': isSaving }" />
-              <span class="ml-2">{{ isSaving ? $ts('common.saving') : $ts('common.save') }}</span>
+              <span class="ml-2">{{ isSaving ? $ts('common.saving') : $ts('pages.profile.saveChanges') }}</span>
             </NButton>
           </div>
         </div>
-        
-        <!-- Status messages below toolbar on mobile -->
-        <div v-if="successMessage || errorMessage" class="mt-3 md:mt-0 md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
-          <div v-if="successMessage" class="text-xs sm:text-sm text-center text-green-600 dark:text-green-400 px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-900/20">
-            {{ successMessage }}
-          </div>
-          <div v-else-if="errorMessage" class="text-xs sm:text-sm text-center text-red-600 dark:text-red-400 px-3 py-1.5 rounded-full bg-red-50 dark:bg-red-900/20">
-            {{ errorMessage }}
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="container mx-auto px-4 sm:px-6 max-w-7xl py-4 sm:py-6 md:py-10 pb-24 md:pb-10">
-      <h1 class="site-profile-visually-hidden">{{ $ts('pages.profile.heading') }}</h1>
-      <section class="site-profile-identity animate-entrance" :aria-label="$ts('pages.profile.heading')" style="animation-delay:80ms;">
-        <div class="site-profile-identity-header">
+
+        <p v-if="successMessage" class="site-profile-status site-profile-status--success" role="status">{{ successMessage }}</p>
+        <p v-else-if="errorMessage" class="site-profile-status site-profile-status--error" role="alert">{{ errorMessage }}</p>
+      </header>
+
+      <form id="profile-form" class="site-profile-form" @submit.prevent="onSubmit">
+        <section class="site-profile-panel site-profile-identity" aria-labelledby="profile-identity-heading">
+          <h2 id="profile-identity-heading" class="site-profile-section-heading">{{ $ts('pages.profile.publicIdentity') }}</h2>
+          <div class="site-profile-identity-header">
           <ProfileAvatarEditor
             v-model:avatar="form.avatar"
             :name="form.name"
@@ -61,8 +39,10 @@
           />
 
           <div class="site-profile-identity-copy">
+            <label for="profile-name" class="site-profile-field-label">{{ $ts('pages.profile.namePlaceholder') }}</label>
             <textarea
               ref="nameTextarea"
+              id="profile-name"
               v-model="form.name"
               rows="1"
               class="site-profile-name w-full resize-none overflow-hidden leading-tight bg-transparent outline-none focus:outline-none"
@@ -70,7 +50,9 @@
               :aria-label="$ts('pages.profile.namePlaceholder')"
               @input="autoResizeName"
             />
+            <label for="profile-job" class="site-profile-field-label">{{ $ts('pages.profile.job') }}</label>
             <NInput
+              id="profile-job"
               v-model="form.job"
               :placeholder="$ts('pages.profile.jobTitlePlaceholder')"
               :aria-label="$ts('pages.profile.job')"
@@ -80,96 +62,56 @@
           </div>
         </div>
 
-        <NInput
-          v-model="form.biography"
-          type="textarea"
-          :rows="2"
-          input="~"
-          class="site-profile-biography"
-          :aria-label="$ts('pages.profile.biography')"
-          :placeholder="$ts('pages.profile.bioPlaceholder')"
-        />
-        <NButton @click="openSocialsDialog" btn="ghost-gray" size="sm" class="site-profile-socials-action">
-          <NIcon name="i-lucide-link" />
+          <label for="profile-biography" class="site-profile-field-label">{{ $ts('pages.profile.biography') }}</label>
+          <NInput
+            id="profile-biography"
+            v-model="form.biography"
+            type="textarea"
+            :rows="4"
+            input="outline"
+            class="site-profile-biography"
+            :placeholder="$ts('pages.profile.bioPlaceholder')"
+          />
+        </section>
+
+        <div class="site-profile-groups">
+          <section class="site-profile-panel site-profile-group" aria-labelledby="profile-contact-heading">
+            <h2 id="profile-contact-heading">{{ $ts('pages.profile.contactHeading') }}</h2>
+            <div class="site-profile-group-fields">
+              <div class="site-profile-field">
+                <label for="profile-email" class="site-profile-field-label">{{ $ts('pages.profile.email') }}</label>
+                <NInput id="profile-email" v-model="form.email" :placeholder="$ts('pages.profile.emailPlaceholder')" input="outline" type="email" class="w-full" size="md" />
+              </div>
+              <div class="site-profile-field">
+                <label for="profile-location" class="site-profile-field-label">{{ $ts('pages.profile.location') }}</label>
+                <NInput id="profile-location" v-model="form.location" :placeholder="$ts('pages.profile.locationPlaceholder')" input="outline" class="w-full" size="md" />
+              </div>
+            </div>
+          </section>
+
+          <section class="site-profile-panel site-profile-group" aria-labelledby="profile-preferences-heading">
+            <h2 id="profile-preferences-heading">{{ $ts('pages.profile.preferencesHeading') }}</h2>
+            <div class="site-profile-group-fields">
+              <div class="site-profile-field">
+                <label for="profile-language" class="site-profile-field-label">{{ $ts('pages.profile.language') }}</label>
+                <NSelect id="profile-language" v-model="selectedLanguage" :items="languageOptions" :placeholder="$ts('pages.profile.languagePlaceholder')" :aria-label="$ts('pages.profile.language')" class="w-full" />
+              </div>
+            </div>
+          </section>
+        </div>
+      </form>
+
+      <section class="site-profile-socials" aria-labelledby="profile-socials-heading">
+        <div>
+          <h2 id="profile-socials-heading">{{ $ts('pages.profile.socials') }}</h2>
+          <p>{{ $ts('pages.profile.socialsDescription') }}</p>
+        </div>
+        <NButton @click="openSocialsDialog" btn="outline-gray" size="sm" class="site-profile-socials-action">
+          <NIcon name="i-lucide-link" aria-hidden="true" />
           <span class="ml-2">{{ $ts('pages.profile.editSocials') }}</span>
+          <NIcon name="i-lucide-arrow-right" class="ml-2" aria-hidden="true" />
         </NButton>
       </section>
-
-      <div class="site-profile-form-wrap">
-        <form @submit.prevent="onSubmit">
-          <div class="site-profile-fields">
-            <!-- Email -->
-            <div class="site-profile-field">
-              <label for="profile-email" class="site-profile-field-label">{{ $ts('pages.profile.email') }}</label>
-              <NInput
-                id="profile-email"
-                v-model="form.email"
-                :placeholder="$ts('pages.profile.emailPlaceholder')"
-                input="outline"
-                type="email"
-                class="w-full"
-                size="md"
-              />
-            </div>
-
-            <!-- Location -->
-            <div class="site-profile-field">
-              <label for="profile-location" class="site-profile-field-label">{{ $ts('pages.profile.location') }}</label>
-              <NInput
-                id="profile-location"
-                v-model="form.location"
-                :placeholder="$ts('pages.profile.locationPlaceholder')"
-                input="outline"
-                class="w-full"
-                size="md"
-              />
-            </div>
-
-            <!-- Language -->
-            <div class="site-profile-field">
-              <label for="profile-language" class="site-profile-field-label">{{ $ts('pages.profile.language') }}</label>
-              <NSelect
-                id="profile-language"
-                v-model="selectedLanguage"
-                :items="languageOptions"
-                :placeholder="$ts('pages.profile.languagePlaceholder')"
-                :aria-label="$ts('pages.profile.language')"
-                class="w-full"
-              />
-            </div>
-
-          </div>
-        </form>
-      </div>
-
-      <!-- Mobile sticky bottom action bar (outside form for proper fixed positioning) -->
-      <div class="site-profile-mobile-actions fixed bottom-0 left-0 right-0 z-2 p-4 backdrop-blur-lg md:hidden">
-        <div class="container mx-auto max-w-7xl">
-          <div class="flex gap-2">
-            <NTooltip :content="$ts('pages.profile.resetChanges')">
-              <NButton 
-                @click="resetForm" 
-                btn="soft-gray" 
-                size="md"
-                icon
-                label="i-ph-arrow-arc-left"
-                :disabled="isSaving || !hasChanges"
-              />
-            </NTooltip>
-            <NButton 
-              :disabled="isSaving || !hasChanges" 
-              @click="onSubmit" 
-              btn="solid-black"
-              size="md"
-              class="site-profile-save flex-1"
-              :aria-label="isSaving ? $ts('common.saving') : $ts('pages.profile.saveChanges')"
-            >
-              <NIcon :name="isSaving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': isSaving }" />
-              <span class="ml-2">{{ isSaving ? $ts('common.saving') : $ts('common.save') }}</span>
-            </NButton>
-          </div>
-        </div>
-      </div>
 
       <ProfileSocialsDialog
         v-model:open="socialsDialogOpen"
@@ -190,7 +132,7 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const { $ts, $getLocale } = useI18n()
-useHead({ title: `${$ts('pages.profile.heading')} - ${$ts('seo.siteName')}` })
+useHead({ title: `${$ts('pages.profile.settingsTitle')} - ${$ts('seo.siteName')}` })
 const { user, loggedIn, fetch: refreshSession } = useUserSession()
 
 // Redirect unauthenticated users on client-side
@@ -229,14 +171,15 @@ const form = reactive({
   language: '',
   socials: '' as string | null,
 })
-const languageOptions = [
+const languages = [
   { label: 'English', value: 'en' },
   { label: 'Français', value: 'fr' },
 ]
+const languageOptions = languages.map(language => language.label)
 const selectedLanguage = computed({
-  get: () => languageOptions.find(option => option.value === form.language) ?? null,
-  set: (option: typeof languageOptions[number] | null) => {
-    form.language = option?.value ?? ''
+  get: () => languages.find(language => language.value === form.language)?.label ?? '',
+  set: (language: string) => {
+    form.language = languages.find(option => option.label === language)?.value ?? ''
   },
 })
 

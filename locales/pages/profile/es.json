@@ -1,6 +1,12 @@
 {
   "pages": {
     "profile": {
+      "settingsTitle": "Ajustes del perfil",
+      "settingsDescription": "Gestiona la información que aparece en tu perfil público.",
+      "publicIdentity": "Identidad pública",
+      "contactHeading": "Contacto",
+      "preferencesHeading": "Preferencias",
+      "socialsDescription": "Gestiona los enlaces a tus perfiles sociales.",
       "avatarUpdated": "Avatar actualizado",
       "avatarRemoved": "Avatar eliminado",
       "avatarUploadFailed": "No se pudo subir el avatar",

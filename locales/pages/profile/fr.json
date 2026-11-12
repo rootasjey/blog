@@ -2,6 +2,12 @@
   "pages": {
     "profile": {
       "heading": "Profil",
+      "settingsTitle": "Paramètres du profil",
+      "settingsDescription": "Gérez les informations affichées sur votre profil public.",
+      "publicIdentity": "Identité publique",
+      "contactHeading": "Coordonnées",
+      "preferencesHeading": "Préférences",
+      "socialsDescription": "Gérez les liens vers vos profils sociaux.",
       "editAvatar": "Modifier l'avatar",
       "useTroncheAvatar": "Utiliser un avatar Tronche",
       "uploadAvatar": "Importer une image",

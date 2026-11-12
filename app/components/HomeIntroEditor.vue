@@ -88,6 +88,12 @@
           {{ saving ? labels.saving : uploading ? labels.uploading : labels.save }}
         </NButton>
       </footer>
+      <EditorPanelResizeHandle
+        v-if="!isMaximized"
+        :label="labels.resize"
+        @start="startResize"
+        @keydown="resizeWithKeyboard"
+      />
     </section>
   </Teleport>
 </template>
@@ -107,12 +113,14 @@ const { $getLocale } = useI18n()
 const locale = computed(() => $getLocale() === 'en' ? 'en' : 'fr')
 const labels = computed(() => locale.value === 'en' ? {
   title: 'Edit introduction', languages: 'Content language', close: 'Close', maximize: 'Maximize', restore: 'Restore',
+  resize: 'Resize editor panel. Use arrow keys or drag to resize.',
   name: 'Name', description: 'Description', avatar: 'Profile image', currentImage: 'Current profile photo', changeImage: 'Change image', replaceImage: 'Replace image', cancel: 'Cancel', save: 'Save',
   saving: 'Saving…', uploading: 'Uploading…', saved: 'Changes saved', uploadError: 'Image upload failed',
   dropImage: 'Drop an image to replace the current photo', invalidImageType: 'Choose a JPEG, PNG, or WebP image.', imageTooLarge: 'Image must be 8 MB or smaller.',
   saveError: 'Could not save changes',
 } : {
   title: 'Modifier l’introduction', languages: 'Langue du contenu', close: 'Fermer', maximize: 'Agrandir', restore: 'Restaurer',
+  resize: 'Redimensionner le panneau. Utilise les flèches ou fais glisser.',
   name: 'Nom', description: 'Description', avatar: 'Photo de profil', currentImage: 'Photo actuelle', changeImage: 'Changer l’image', replaceImage: 'Remplacer l’image', cancel: 'Annuler', save: 'Enregistrer',
   saving: 'Enregistrement…', uploading: 'Envoi…', saved: 'Modifications enregistrées', uploadError: 'Envoi de la photo impossible',
   dropImage: 'Dépose l’image pour remplacer la photo actuelle', invalidImageType: 'Choisis une image JPEG, PNG ou WebP.', imageTooLarge: 'L’image doit faire 8 Mo ou moins.',
@@ -137,7 +145,7 @@ const y = ref(0)
 let dragOffsetX = 0
 let dragOffsetY = 0
 
-const { isMaximized, panelStyle: positionStyle, panelClasses, prepareForOpen, captureNormalHeight, toggleMaximize } = useEditorPanelMaximize(panel, x, y, open)
+const { isMaximized, panelStyle: positionStyle, panelClasses, prepareForOpen, captureNormalHeight, toggleMaximize, startResize, resizeWithKeyboard } = useEditorPanelMaximize(panel, x, y, open)
 const avatarPreview = computed(() => localAvatarPreview.value || draft.value.avatar)
 
 function openEditor() {
@@ -340,6 +348,7 @@ onUnmounted(() => {
 .home-intro-editor.editor-panel--transition-ready {
   transition: left 520ms cubic-bezier(.2, .75, .25, 1), top 520ms cubic-bezier(.2, .75, .25, 1), width 520ms cubic-bezier(.2, .75, .25, 1), height 520ms cubic-bezier(.2, .75, .25, 1), max-height 520ms cubic-bezier(.2, .75, .25, 1), border-radius 300ms ease;
 }
+.home-intro-editor.editor-panel--resizing { transition: none !important; }
 
 .home-intro-editor.editor-panel--spring-expanding { animation: editor-panel-spring-expand 620ms cubic-bezier(.2, .75, .25, 1) both; }
 .home-intro-editor.editor-panel--spring-restoring { animation: editor-panel-spring-restore 620ms cubic-bezier(.2, .75, .25, 1) both; }
@@ -545,6 +554,7 @@ onUnmounted(() => {
   justify-content: flex-end;
   gap: var(--site-space-2);
   padding: var(--site-space-3) var(--site-space-4);
+  padding-right: 42px;
   border-top: 1px solid var(--site-color-border);
 }
 
