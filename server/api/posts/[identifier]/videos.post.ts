@@ -4,6 +4,7 @@ import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import type { ApiPost } from '~~/shared/types/post'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
+import { cleanUpFailedPostUpload } from '~~/server/utils/postMediaGc'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   const userId = session.user.id
@@ -19,6 +20,8 @@ export default defineEventHandler(async (event) => {
 
   const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg']
   const allowedPosterTypes = ['image/png', 'image/jpeg', 'image/webp']
+  const uploadedPaths: string[] = []
+  let metadataPersisted = false
 
   try {
     const formData = await readMultipartFormData(event)
@@ -49,6 +52,7 @@ export default defineEventHandler(async (event) => {
     const stored = await hb.put(`${videosFolder}/${pathnameFile}`, blobFile, { addRandomSuffix: true })
 
     const storedPath = stored.pathname.replace(/^\/+/, '')
+    uploadedPaths.push(storedPath)
     const parts = storedPath.split('/')
     const filename = parts.at(-1)
     if (!filename) throw createError({ statusCode: 500, message: 'Video filename could not be resolved' })
@@ -70,6 +74,7 @@ export default defineEventHandler(async (event) => {
         const posterBlobFile = new Blob([new Uint8Array(posterBuffer as any)], { type: pType })
         const storedPoster = await hb.put(`${videosFolder}/${posterPathnameFile}`, posterBlobFile, { addRandomSuffix: true })
         posterStoredPath = storedPoster.pathname.replace(/^\/+/, '')
+        uploadedPaths.push(posterStoredPath)
         const posterParts = posterStoredPath.split('/')
         posterFilename = posterParts.at(-1) ?? null
         if (posterFilename) {
@@ -79,35 +84,22 @@ export default defineEventHandler(async (event) => {
     }
 
     // Persist metadata about this inline video so we can list and clean up later
-    let videoRowId: number | null = null
-    try {
-      const size = (buffer as any)?.byteLength ?? null
-      const insertResult: any = await database.insert(schema.post_videos).values({
-        post_id: post.id,
-        pathname: `/${storedPath}`,
-        filename,
-        content_type: type,
-        size,
-        poster_path: posterStoredPath,
-        poster_filename: posterFilename,
-        in_use: false,
-      }).run()
+    const size = (buffer as any)?.byteLength ?? null
+    const insertResult: any = await database.insert(schema.post_videos).values({
+      post_id: post.id,
+      pathname: `/${storedPath}`,
+      filename,
+      content_type: type,
+      size,
+      poster_path: posterStoredPath,
+      poster_filename: posterFilename,
+      in_use: false,
+    }).run()
+    metadataPersisted = true
 
-      // The DB client may return numeric IDs as BigInt; ensure we return a JSON-serializable value
-      const rawId = insertResult?.lastInsertRowid ?? insertResult?.meta?.last_row_id ?? null
-      if (rawId != null) {
-        // Convert BigInt to number safely (row ids are small) or coerce other numeric-like values
-        if (typeof rawId === 'bigint') {
-          videoRowId = Number(rawId)
-        } else {
-          videoRowId = Number(rawId)
-        }
-      } else {
-        videoRowId = null
-      }
-    } catch (err) {
-      console.warn('Failed to persist post_videos metadata:', err)
-    }
+    // The DB client may return numeric IDs as BigInt; ensure the response is JSON-serializable.
+    const rawId = insertResult?.lastInsertRowid ?? insertResult?.meta?.last_row_id ?? null
+    const videoRowId = rawId !== null ? Number(rawId) : null
 
     return {
       success: true,
@@ -120,6 +112,13 @@ export default defineEventHandler(async (event) => {
       },
     }
   } catch (error) {
+    if (uploadedPaths.length && !metadataPersisted) {
+      try {
+        await cleanUpFailedPostUpload(post.id, uploadedPaths)
+      } catch (cleanupError) {
+        console.error('Failed to queue post video cleanup after upload failure', cleanupError)
+      }
+    }
     console.error('Failed to upload post video', error)
     throw createError({ statusCode: 500, message: 'Failed to upload video' })
   }

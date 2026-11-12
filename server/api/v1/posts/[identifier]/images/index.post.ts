@@ -1,8 +1,12 @@
 import { blob } from 'hub:blob'
 import { hasPostPermission } from '~~/server/utils/postPermissions'
 import { db, schema } from 'hub:db'
+import { cleanUpFailedPostUpload } from '~~/server/utils/postMediaGc'
 
 export default defineEventHandler(async (event) => {
+  const uploadedPaths: string[] = []
+  let postIdForCleanup: number | null = null
+  let metadataPersisted = false
   try {
     const user = await requireWriteAccess(event)
     const identifier = decodeURIComponent(getRouterParam(event, 'identifier') ?? '')
@@ -11,6 +15,7 @@ export default defineEventHandler(async (event) => {
     const apiPost: any = await getPostByIdentifier(db, identifier)
     if (!apiPost) return apiError(event, 404, 'NOT_FOUND', 'Post not found')
     if (!(await hasPostPermission(user, apiPost, 'edit'))) return apiError(event, 403, 'FORBIDDEN', 'Not authorized')
+    postIdForCleanup = apiPost.id
 
     const allowedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
     const formData = await readMultipartFormData(event)
@@ -27,6 +32,7 @@ export default defineEventHandler(async (event) => {
     const blobFile = new Blob([new Uint8Array(filePart.data as any)], { type })
     const stored = await blob.put(`${imagesFolder}/${timestamp}-${safeName}`, blobFile, { addRandomSuffix: true })
     const storedPath = stored.pathname.replace(/^\/+/, '')
+    uploadedPaths.push(storedPath)
     const filename = storedPath.split('/').pop()!
     const servingUrl = `/images/${encodeURIComponent(filename)}?relatedTo=posts&slug=${encodeURIComponent(`${apiPost.id}/images`)}`
 
@@ -34,10 +40,18 @@ export default defineEventHandler(async (event) => {
     await db.insert(schema.post_images).values({
       post_id: apiPost.id, pathname: `/${storedPath}`, filename,
       content_type: type, size, in_use: false,
-    }).run().catch(() => {})
+    }).run()
+    metadataPersisted = true
 
     return apiCreated(event, { alt: filePart.filename.toString(), src: servingUrl, storedPath: `/${storedPath}` })
   } catch (err: any) {
+    if (postIdForCleanup !== null && uploadedPaths.length && !metadataPersisted) {
+      try {
+        await cleanUpFailedPostUpload(postIdForCleanup, uploadedPaths)
+      } catch (cleanupError) {
+        console.error('[API v1] Failed to queue image cleanup after upload failure:', cleanupError)
+      }
+    }
     console.error('[API v1] POST /posts/:id/images error:', err?.message || err)
     return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to upload image')
   }

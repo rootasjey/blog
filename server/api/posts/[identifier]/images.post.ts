@@ -4,6 +4,7 @@ import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import type { ApiPost } from '~~/shared/types/post'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
+import { cleanUpFailedPostUpload } from '~~/server/utils/postMediaGc'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   const userId = session.user.id
@@ -18,6 +19,8 @@ export default defineEventHandler(async (event) => {
   await assertPostPermission({ id: session.user.id, role: session.user.role }, post, 'edit')
 
   const allowedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+  const uploadedPaths: string[] = []
+  let metadataPersisted = false
 
   try {
     const formData = await readMultipartFormData(event)
@@ -48,6 +51,7 @@ export default defineEventHandler(async (event) => {
 
     // stored.pathname should be like 'posts/<id>/images/<filename>'
     const storedPath = stored.pathname.replace(/^\/+/, '')
+    uploadedPaths.push(storedPath)
     const parts = storedPath.split('/')
     const filename = parts.at(-1)
     if (!filename) throw createError({ statusCode: 500, message: 'Image filename could not be resolved' })
@@ -57,22 +61,17 @@ export default defineEventHandler(async (event) => {
     const servingUrl = `/images/${encodeURIComponent(filename)}?relatedTo=posts&slug=${encodeURIComponent(`${post.id}/images`)}`
 
     // Persist metadata about this inline image so we can list and clean up later
-    let imageRowId: number | null = null
-    try {
-      const size = (buffer as any)?.byteLength ?? null
-      const insertResult: any = await database.insert(schema.post_images).values({
-        post_id: post.id,
-        pathname: `/${storedPath}`,
-        filename,
-        content_type: type,
-        size,
-        in_use: false,
-      }).run()
-      imageRowId = insertResult?.lastInsertRowid ?? insertResult?.meta?.last_row_id ?? null
-    } catch (err) {
-      // Non-fatal — we still consider the upload successful even if metadata insert fails
-      console.warn('Failed to persist post_images metadata:', err)
-    }
+    const size = (buffer as any)?.byteLength ?? null
+    const insertResult: any = await database.insert(schema.post_images).values({
+      post_id: post.id,
+      pathname: `/${storedPath}`,
+      filename,
+      content_type: type,
+      size,
+      in_use: false,
+    }).run()
+    metadataPersisted = true
+    const imageRowId = insertResult?.lastInsertRowid ?? insertResult?.meta?.last_row_id ?? null
 
     return {
       success: true,
@@ -85,6 +84,13 @@ export default defineEventHandler(async (event) => {
       },
     }
   } catch (error) {
+    if (uploadedPaths.length && !metadataPersisted) {
+      try {
+        await cleanUpFailedPostUpload(post.id, uploadedPaths)
+      } catch (cleanupError) {
+        console.error('Failed to queue post image cleanup after upload failure', cleanupError)
+      }
+    }
     console.error('Failed to upload post image', error)
     throw createError({ statusCode: 500, message: 'Failed to upload image' })
   }

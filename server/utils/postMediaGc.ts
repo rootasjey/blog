@@ -61,6 +61,80 @@ export function postMediaGcJobExists(postId: number, pathname: string) {
     )))
 }
 
+export async function scheduleFailedPostUploadCleanup(postId: number, values: string | string[]) {
+  const pathnames = [...new Set((Array.isArray(values) ? values : [values]).map(value => value.replace(/^\/+/, '')))]
+  if (!pathnames.length || pathnames.some(pathname => !pathname.startsWith(`posts/${postId}/`))) {
+    throw createError({ statusCode: 400, statusMessage: 'Upload cleanup path does not belong to this post' })
+  }
+
+  const now = new Date()
+  const nowIso = now.toISOString()
+  const deleteAfter = new Date(now.getTime() + DELETE_GRACE_MS).toISOString()
+  await db.insert(schema.post_media_gc).values(pathnames.map(pathname => ({
+    post_id: postId,
+    pathname,
+    status: 'pending',
+    delete_after: deleteAfter,
+    created_at: nowIso,
+    updated_at: nowIso,
+  }))).onConflictDoNothing().run()
+}
+
+export async function cleanUpFailedPostUpload(postId: number, values: string | string[]) {
+  const pathnames = [...new Set((Array.isArray(values) ? values : [values]).map(value => value.replace(/^\/+/, '')))]
+  try {
+    await scheduleFailedPostUploadCleanup(postId, pathnames)
+    return
+  } catch (queueError) {
+    console.error('[postMediaGc] Could not enqueue failed upload cleanup; checking safe direct cleanup', {
+      postId,
+      error: queueError instanceof Error ? queueError.message : String(queueError),
+    })
+  }
+
+  for (const pathname of pathnames) {
+    let hasMetadata: boolean
+    try {
+      hasMetadata = await hasPostMediaMetadata(postId, pathname)
+    } catch (error) {
+      console.error('[postMediaGc] Could not verify failed upload metadata; preserving blob', {
+        pathname,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      continue
+    }
+
+    if (hasMetadata) {
+      try {
+        await scheduleFailedPostUploadCleanup(postId, pathname)
+      } catch (error) {
+        console.error('[postMediaGc] Could not enqueue cleanup for persisted upload metadata', {
+          pathname,
+          error: error instanceof Error ? error.message : String(error),
+        })
+      }
+      continue
+    }
+
+    try {
+      await blob.del(pathname)
+    } catch (error) {
+      console.error('[postMediaGc] Could not directly remove failed upload; retrying through GC', {
+        pathname,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      try {
+        await scheduleFailedPostUploadCleanup(postId, pathname)
+      } catch (queueRetryError) {
+        console.error('[postMediaGc] Failed upload remains unqueued after R2 cleanup failure', {
+          pathname,
+          error: queueRetryError instanceof Error ? queueRetryError.message : String(queueRetryError),
+        })
+      }
+    }
+  }
+}
+
 export async function schedulePostBlobPurge(
   postId: number,
   slug: string,
@@ -321,6 +395,12 @@ export async function collectScheduledPostMediaDeletions(now = new Date()) {
         deferred += 1
         continue
       }
+
+      if (await hasPostMediaMetadata(post.id, job.pathname)) {
+        await deferMediaDeletion(job.id, now, REFERENCED_RETRY_MS)
+        deferred += 1
+        continue
+      }
     } catch (error) {
       console.warn('[postMediaGc] Could not inspect current article; postponing media deletion', {
         postId: post.id,
@@ -373,6 +453,30 @@ export async function collectScheduledPostMediaDeletions(now = new Date()) {
   }
 
   return { scanned: jobs.length, deleted, deferred, failed }
+}
+
+async function hasPostMediaMetadata(postId: number, pathname: string) {
+  const storedPath = `/${pathname}`
+  const [image, audio, video, videoPoster] = await Promise.all([
+    db.query.post_images.findFirst({
+      where: and(eq(schema.post_images.post_id, postId), eq(schema.post_images.pathname, storedPath)),
+      columns: { id: true },
+    }),
+    db.query.post_audios.findFirst({
+      where: and(eq(schema.post_audios.post_id, postId), eq(schema.post_audios.pathname, storedPath)),
+      columns: { id: true },
+    }),
+    db.query.post_videos.findFirst({
+      where: and(eq(schema.post_videos.post_id, postId), eq(schema.post_videos.pathname, storedPath)),
+      columns: { id: true },
+    }),
+    db.query.post_videos.findFirst({
+      where: and(eq(schema.post_videos.post_id, postId), eq(schema.post_videos.poster_path, storedPath)),
+      columns: { id: true },
+    }),
+  ])
+
+  return Boolean(image || audio || video || videoPoster)
 }
 
 async function readCurrentArticle(blobPath: string | null) {

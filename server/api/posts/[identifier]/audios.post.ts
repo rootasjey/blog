@@ -4,6 +4,7 @@ import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import type { ApiPost } from '~~/shared/types/post'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
+import { cleanUpFailedPostUpload } from '~~/server/utils/postMediaGc'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -19,6 +20,8 @@ export default defineEventHandler(async (event) => {
   await assertPostPermission({ id: session.user.id, role: session.user.role }, post, 'edit')
 
   const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/webm', 'audio/ogg', 'audio/wav', 'audio/flac', 'audio/x-flac', 'audio/aac', 'audio/mp4', 'audio/m4a']
+  const uploadedPaths: string[] = []
+  let metadataPersisted = false
 
   try {
     const formData = await readMultipartFormData(event)
@@ -48,6 +51,7 @@ export default defineEventHandler(async (event) => {
     const stored = await hb.put(`${audiosFolder}/${pathnameFile}`, blobFile, { addRandomSuffix: true })
 
     const storedPath = stored.pathname.replace(/^\/+/, '')
+    uploadedPaths.push(storedPath)
     const parts = storedPath.split('/')
     const filename = parts.at(-1)
     if (!filename) throw createError({ statusCode: 500, message: 'Audio filename could not be resolved' })
@@ -55,23 +59,18 @@ export default defineEventHandler(async (event) => {
     const servingUrl = `/images/${encodeURIComponent(filename)}?relatedTo=posts&slug=${encodeURIComponent(`${post.id}/audios`)}`
 
     // Persist metadata about this inline audio so we can list and clean up later
-    let audioRowId: number | null = null
-    try {
-      const size = (buffer as any)?.byteLength ?? null
-      const insertResult: any = await database.insert(schema.post_audios).values({
-        post_id: post.id,
-        pathname: `/${storedPath}`,
-        filename,
-        content_type: type,
-        size,
-        in_use: false,
-      }).run()
-
-      const rawId = insertResult?.lastInsertRowid ?? insertResult?.meta?.last_row_id ?? null
-      audioRowId = rawId !== null ? Number(rawId) : null
-    } catch (err) {
-      console.warn('Failed to persist post_audios metadata:', err)
-    }
+    const size = (buffer as any)?.byteLength ?? null
+    const insertResult: any = await database.insert(schema.post_audios).values({
+      post_id: post.id,
+      pathname: `/${storedPath}`,
+      filename,
+      content_type: type,
+      size,
+      in_use: false,
+    }).run()
+    metadataPersisted = true
+    const rawId = insertResult?.lastInsertRowid ?? insertResult?.meta?.last_row_id ?? null
+    const audioRowId = rawId !== null ? Number(rawId) : null
 
     return {
       success: true,
@@ -82,6 +81,13 @@ export default defineEventHandler(async (event) => {
       },
     }
   } catch (error) {
+    if (uploadedPaths.length && !metadataPersisted) {
+      try {
+        await cleanUpFailedPostUpload(post.id, uploadedPaths)
+      } catch (cleanupError) {
+        console.error('Failed to queue post audio cleanup after upload failure', cleanupError)
+      }
+    }
     console.error('Failed to upload post audio', error)
     throw createError({ statusCode: 500, message: 'Failed to upload audio' })
   }
