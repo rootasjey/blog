@@ -30,7 +30,7 @@
         </label>
 
         <fieldset class="home-post-section-editor__filters">
-          <legend>{{ labels.includeTags }}</legend>
+          <legend>{{ labels.includeTags }} <span>({{ draft.includeTags.length }})</span></legend>
           <div class="home-post-section-editor__choices">
             <label v-for="tag in availableTags" :key="`include-${tag.id}`">
               <input v-model="draft.includeTags" type="checkbox" :value="tag.name" :disabled="draft.excludeTags.includes(tag.name)">
@@ -41,7 +41,7 @@
         </fieldset>
 
         <fieldset class="home-post-section-editor__filters">
-          <legend>{{ labels.excludeTags }}</legend>
+          <legend>{{ labels.excludeTags }} <span>({{ draft.excludeTags.length }})</span></legend>
           <div class="home-post-section-editor__choices">
             <label v-for="tag in availableTags" :key="`exclude-${tag.id}`">
               <input v-model="draft.excludeTags" type="checkbox" :value="tag.name" :disabled="draft.includeTags.includes(tag.name)">
@@ -231,11 +231,43 @@ onUnmounted(() => {
 .home-post-section-editor__filters { min-width: 0; margin: 0; padding: 0; border: 0; }
 .home-post-section-editor__filters legend,
 .home-post-section-editor__match legend { margin-bottom: 8px; color: var(--site-color-heading); font-size: 14px; font-weight: 550; }
-.home-post-section-editor__choices { display: flex; max-height: 148px; flex-wrap: wrap; gap: 6px; overflow: auto; }
-.home-post-section-editor__choices label { display: inline-flex; align-items: center; gap: 5px; padding: 5px 8px; border: 1px solid var(--site-color-border); border-radius: 999px; color: var(--site-color-text); font-size: 12px; }
+.home-post-section-editor__filters legend span { margin-left: 4px; color: var(--site-color-muted); font-size: 12px; font-weight: 450; }
+.home-post-section-editor__choices {
+  display: grid;
+  max-height: 164px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 6px;
+  overflow: auto;
+  padding: 2px 4px 2px 0;
+  scrollbar-color: var(--site-color-border) transparent;
+  scrollbar-width: thin;
+}
+.home-post-section-editor__choices label {
+  box-sizing: border-box;
+  display: flex;
+  min-width: 0;
+  min-height: 36px;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  padding: 6px 9px;
+  border: 1px solid var(--site-color-border);
+  border-radius: var(--site-radius-control);
+  color: var(--site-color-text);
+  cursor: pointer;
+  font-size: 12px;
+  transition: border-color 150ms ease, background-color 150ms ease, opacity 150ms ease;
+}
+.home-post-section-editor__choices label:has(input:checked) {
+  border-color: var(--site-color-accent);
+  background: var(--site-color-hover-background);
+}
+.home-post-section-editor__choices label:has(input:disabled) { cursor: default; opacity: 0.5; }
+.home-post-section-editor__choices label > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .home-post-section-editor__choices input,
-.home-post-section-editor__match input { accent-color: var(--site-color-accent); }
-.home-post-section-editor__filters p { margin: 7px 0 0; color: var(--site-color-muted); font-size: 11px; }
+.home-post-section-editor__match input { width: 16px; height: 16px; flex: 0 0 16px; margin: 0; accent-color: var(--site-color-accent); }
+.home-post-section-editor__filters p { margin: 8px 0 0; color: var(--site-color-muted); font-size: 11px; line-height: 1.5; }
 .home-post-section-editor__match { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; padding: 0; border: 0; }
 .home-post-section-editor__match legend { width: 100%; }
 .home-post-section-editor__match label { display: inline-flex; align-items: center; gap: 5px; color: var(--site-color-text); font-size: 12px; }
