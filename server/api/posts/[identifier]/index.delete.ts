@@ -5,7 +5,7 @@ import type { ApiPost } from '~~/shared/types/post'
 import { convertApiToPost } from '~~/server/utils/post'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
 import { requireCurrentUserSession } from '~~/server/utils/api'
-import { postBlobGcJobsExist, schedulePostBlobPurge } from '~~/server/utils/postMediaGc'
+import { postBlobGcJobsExist, schedulePostBlobPurge } from '~~/server/utils/postBlobGc'
 export default defineEventHandler(async (event) => {
   const session = await requireCurrentUserSession(event)
   const database = db

@@ -1,7 +1,7 @@
 import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
 import { hasPostPermission } from '~~/server/utils/postPermissions'
-import { postBlobGcJobsExist, schedulePostBlobPurge } from '~~/server/utils/postMediaGc'
+import { postBlobGcJobsExist, schedulePostBlobPurge } from '~~/server/utils/postBlobGc'
 
 export default defineEventHandler(async (event) => {
   try {

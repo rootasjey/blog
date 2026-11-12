@@ -175,7 +175,7 @@ export const post_revisions = sqliteTable('post_revisions', {
   source: text('source').notNull().default('editor'),
   created_by: integer('created_by').notNull().references(() => users.id),
   created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
-})
+}, (table) => [index('idx_post_revisions_created_at').on(table.created_at)])
 
 export const post_media_gc = sqliteTable('post_media_gc', {
   id: integer('id').primaryKey({ autoIncrement: true }),

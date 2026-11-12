@@ -1,4 +1,4 @@
-import { and, eq, inArray, notExists, sql } from 'drizzle-orm'
+import { and, asc, eq, inArray, notExists, sql } from 'drizzle-orm'
 import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 
@@ -227,4 +227,75 @@ export async function getPostRevision(postId: number, revision: number) {
   const object = await blob.get(row.blob_path)
   if (!object) throw createError({ statusCode: 500, statusMessage: 'Revision content is missing' })
   return { row, article: JSON.parse(await object.text()) as object }
+}
+
+const REVISION_RETENTION_DAYS = 90
+const MINIMUM_RETAINED_REVISIONS = 20
+const MAX_REVISIONS_PRUNED_PER_RUN = 100
+const REVISION_BLOB_DELETE_GRACE_MS = 24 * 60 * 60 * 1000
+
+export async function pruneExpiredPostRevisions(now = new Date()) {
+  const cutoff = new Date(now.getTime() - REVISION_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString()
+  const candidates = await db.select({
+    id: schema.post_revisions.id,
+    post_id: schema.post_revisions.post_id,
+    blob_path: schema.post_revisions.blob_path,
+    media_paths: schema.post_revisions.media_paths,
+  }).from(schema.post_revisions)
+    .where(sql`
+      julianday(${schema.post_revisions.created_at}) < julianday(${cutoff})
+      AND ${schema.post_revisions.id} NOT IN (
+        SELECT retained.id
+        FROM post_revisions retained
+        WHERE retained.post_id = ${schema.post_revisions.post_id}
+        ORDER BY retained.revision DESC
+        LIMIT ${MINIMUM_RETAINED_REVISIONS}
+      )
+    `)
+    .orderBy(asc(schema.post_revisions.created_at))
+    .limit(MAX_REVISIONS_PRUNED_PER_RUN)
+
+  if (!candidates.length) return { pruned: 0, blobsQueued: 0 }
+
+  const revisionIds = candidates.map(revision => revision.id)
+  const releasedMediaPaths = [...new Set(candidates.flatMap((revision) => {
+    try {
+      const paths: unknown = JSON.parse(revision.media_paths)
+      return Array.isArray(paths)
+        ? paths.filter((path): path is string => typeof path === 'string').map(path => path.replace(/^\/+/, ''))
+        : []
+    } catch {
+      return []
+    }
+  }))]
+  const nowIso = now.toISOString()
+  const deleteAfter = new Date(now.getTime() + REVISION_BLOB_DELETE_GRACE_MS).toISOString()
+
+  const scheduleReleasedMedia = db.update(schema.post_media_gc).set({
+    delete_after: deleteAfter,
+    updated_at: nowIso,
+  }).where(and(
+    eq(schema.post_media_gc.status, 'pending'),
+    inArray(schema.post_media_gc.pathname, releasedMediaPaths.length ? releasedMediaPaths : ['']),
+  ))
+
+  const queueRevisionBlobs = db.insert(schema.post_media_gc).select(db.select({
+    post_id: schema.post_revisions.post_id,
+    pathname: schema.post_revisions.blob_path,
+    status: sql<string>`'pending'`.as('status'),
+    delete_after: sql<string>`${deleteAfter}`.as('delete_after'),
+    created_at: sql<string>`${nowIso}`.as('created_at'),
+    updated_at: sql<string>`${nowIso}`.as('updated_at'),
+  }).from(schema.post_revisions)
+    .where(inArray(schema.post_revisions.id, revisionIds)))
+    .onConflictDoNothing()
+
+  const deleteRevisions = db.delete(schema.post_revisions)
+    .where(inArray(schema.post_revisions.id, revisionIds))
+
+  const results = await db.batch([scheduleReleasedMedia, queueRevisionBlobs, deleteRevisions])
+  const pruned = Number((results[2] as any)?.meta?.changes ?? (results[2] as any)?.rowsAffected ?? 0)
+  const blobsQueued = Number((results[1] as any)?.meta?.changes ?? (results[1] as any)?.rowsAffected ?? 0)
+
+  return { pruned, blobsQueued }
 }
