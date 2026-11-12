@@ -103,7 +103,7 @@
             </template>
             <span v-else-if="lastArticleSavedAt">{{ $ts('pages.postEditor.saved', { timeAgo }) }}</span>
           </div>
-          <PostRevisionHistory
+          <EditorPostRevisionHistory
             :identifier="identifier"
             :content-revision="post.contentRevision ?? 0"
             :before-restore="prepareRevisionRestore"
