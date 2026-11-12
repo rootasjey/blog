@@ -2,6 +2,7 @@ import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { upsertPostTags } from '~~/server/utils/tags'
+import { generateUniqueSlug } from '~~/server/utils/post'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -27,13 +28,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const newName = `${source.name} (Copy)`
-    const baseSlug = `${source.slug}-copy`
-    let newSlug = baseSlug
-    let suffix = 1
-    while (await database.query.posts.findFirst({ where: eq(schema.posts.slug, newSlug), columns: { id: true } })) {
-      suffix += 1
-      newSlug = `${baseSlug}-${suffix}`
-    }
+    const newSlug = await generateUniqueSlug(database, `${source.slug}-copy`)
 
     const insertData: any = {
       name: newName,

@@ -1,4 +1,4 @@
-import { sql, eq } from 'drizzle-orm'
+import { inArray, sql, eq } from 'drizzle-orm'
 import { schema } from 'hub:db'
 import type { ApiPost, Post, PostAuthor } from "~~/shared/types/post"
 import type { ApiTag } from '~~/shared/types/tags'
@@ -198,7 +198,18 @@ export async function generateUniqueSlug(db: any, baseSlug: string) {
     // Use LIKE on sanitized base (safe from SQL wildcard surprises)
     const rows = await db.select({ slug: schema.posts.slug }).from(schema.posts).where(sql`${schema.posts.slug} LIKE ${base + '%'} `)
     const existing = new Set<string>((rows as any[]).map((r: any) => String(r.slug)))
-    if (!existing.has(base)) return base
+    const gcRows = await db.select({ prefix: schema.post_blob_gc.prefix })
+      .from(schema.post_blob_gc)
+      .where(inArray(schema.post_blob_gc.status, ['pending', 'deleting']))
+    const reservedNamespaces = gcRows
+      .map((row: { prefix: string }) => row.prefix.startsWith('posts/') && row.prefix.endsWith('/')
+        ? row.prefix.slice('posts/'.length, -1)
+        : '')
+      .filter(Boolean)
+    const isReserved = (slug: string) => reservedNamespaces.some((namespace: string) =>
+      slug === namespace || slug.startsWith(`${namespace}/`) || namespace.startsWith(`${slug}/`),
+    )
+    if (!existing.has(base) && !isReserved(base)) return base
 
     let max = 0
     for (const s of existing) {
@@ -209,7 +220,12 @@ export async function generateUniqueSlug(db: any, baseSlug: string) {
         if (!Number.isNaN(n) && n > max) max = n
       }
     }
-    return `${base}-${max + 1}`
+    let candidate = `${base}-${max + 1}`
+    while (existing.has(candidate) || isReserved(candidate)) {
+      max += 1
+      candidate = `${base}-${max + 1}`
+    }
+    return candidate
   } catch (err: any) {
     console.error('[generateUniqueSlug] Database error while checking existing slugs for base:', base, { message: err?.message, stack: err?.stack })
     throw err

@@ -1,7 +1,7 @@
-import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { hasPostPermission } from '~~/server/utils/postPermissions'
+import { postBlobGcJobsExist, schedulePostBlobPurge } from '~~/server/utils/postMediaGc'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -17,17 +17,19 @@ export default defineEventHandler(async (event) => {
     if (!(await hasPostPermission(user, apiPost, 'edit'))) return apiError(event, 403, 'FORBIDDEN', 'Not authorized')
     if (user.role !== 'admin' && apiPost.user_id !== user.id) return apiError(event, 403, 'FORBIDDEN', 'Not authorized')
 
-    if (apiPost.blob_path) await blob.del(apiPost.blob_path)
-    if (apiPost.image_src) {
-      const blobList = await blob.list({ prefix: apiPost.image_src })
-      for (const item of blobList.blobs) {
-        await blob.del(item.pathname)
-      }
-    }
+    const cleanup = await schedulePostBlobPurge(apiPost.id, apiPost.slug, (postId, prefixes) =>
+      db.delete(schema.posts).where(and(
+        eq(schema.posts.id, postId),
+        postBlobGcJobsExist(postId, prefixes),
+      )),
+    )
 
-    await db.delete(schema.posts).where(eq(schema.posts.id, apiPost.id)).run()
-
-    return apiSuccess(event, { id: apiPost.id, deleted: true })
+    return apiSuccess(event, {
+      id: apiPost.id,
+      deleted: true,
+      deletionScheduled: true,
+      deleteAfter: cleanup.deleteAfter,
+    })
   } catch (err: any) {
     console.error('[API v1] DELETE /posts/:id error:', err?.message || err)
     return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to delete post')

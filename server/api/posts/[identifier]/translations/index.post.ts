@@ -3,7 +3,7 @@ import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import type { ApiPost } from '~~/shared/types/post'
-import { convertApiToPost, getPostByIdentifier, sanitizeSlug } from '~~/server/utils/post'
+import { convertApiToPost, generateUniqueSlug, getPostByIdentifier, sanitizeSlug } from '~~/server/utils/post'
 import { upsertPostTags } from '~~/server/utils/tags'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
 
@@ -45,12 +45,7 @@ export default defineEventHandler(async (event) => {
   const newName = body.name || `${source.name} (${targetLanguage})`
 
   const localizedSlug = sanitizeSlug(newName) || `${sanitizeSlug(source.slug) || 'post'}-${targetLanguage}`
-  let newSlug = localizedSlug
-  let suffix = 2
-  while (await database.query.posts.findFirst({ where: eq(schema.posts.slug, newSlug), columns: { id: true } })) {
-    newSlug = `${localizedSlug}-${suffix}`
-    suffix += 1
-  }
+  const newSlug = await generateUniqueSlug(database, localizedSlug)
 
   const insertData: any = {
     name: newName,

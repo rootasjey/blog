@@ -4,7 +4,7 @@ import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import type { ApiPost } from '~~/shared/types/post'
-import { convertApiToPost, createArticle, createPostData, getPostByIdentifier } from '~~/server/utils/post'
+import { convertApiToPost, createArticle, createPostData, generateUniqueSlug, getPostByIdentifier } from '~~/server/utils/post'
 import { upsertPostTags } from '~~/server/utils/tags'
 import { requireCurrentUserSession } from '~~/server/utils/api'
 
@@ -31,13 +31,7 @@ export default defineEventHandler(async (event) => {
   // Create new post data (stored as draft by default for safety)
   const newName = `${source.name} (Copy)`
   // generate a unique slug by appending '-copy', '-copy-2' etc
-  const baseSlug = `${source.slug}-copy`
-  let newSlug = baseSlug
-  let suffix = 1
-  while (await database.query.posts.findFirst({ where: eq(schema.posts.slug, newSlug), columns: { id: true } })) {
-    suffix += 1
-    newSlug = `${baseSlug}-${suffix}`
-  }
+  const newSlug = await generateUniqueSlug(database, `${source.slug}-copy`)
 
   const insertData: any = {
     name: newName,

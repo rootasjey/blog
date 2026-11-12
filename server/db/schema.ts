@@ -1,4 +1,4 @@
-import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
 export const users = sqliteTable('users', {
@@ -187,6 +187,22 @@ export const post_media_gc = sqliteTable('post_media_gc', {
   created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
   updated_at: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 }, (table) => [index('idx_post_media_gc_due').on(table.status, table.delete_after)])
+
+export const post_blob_gc = sqliteTable('post_blob_gc', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  post_id: integer('post_id').notNull(),
+  slug: text('slug').notNull(),
+  prefix: text('prefix').notNull(),
+  status: text('status').notNull().default('pending'),
+  delete_after: text('delete_after').notNull(),
+  quiet_until: text('quiet_until').notNull(),
+  attempts: integer('attempts').notNull().default(0),
+  created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+  updated_at: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [
+  index('idx_post_blob_gc_due').on(table.status, table.delete_after),
+  uniqueIndex('idx_post_blob_gc_post_prefix').on(table.post_id, table.prefix),
+])
 
 export const site_settings = sqliteTable('site_settings', {
   id: integer('id').primaryKey({ autoIncrement: true }),
