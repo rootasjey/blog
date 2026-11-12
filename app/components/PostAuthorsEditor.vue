@@ -100,7 +100,7 @@ await loadAuthors()
 </script>
 
 <style scoped>
-.site-editor-authors { display: flex; width: min(700px, calc(100% - 32px)); align-items: center; flex-wrap: wrap; gap: 10px; margin: 12px auto 0; }
+.site-editor-authors { display: flex; width: min(700px, calc(100% - 32px)); align-items: center; flex-wrap: wrap; gap: 10px; margin: 12px auto 32px; }
 .site-editor-authors-label { color: var(--site-color-muted); font-size: 12px; font-weight: 600; }
 .site-editor-authors-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .site-editor-author-option { display: inline-flex; min-height: 32px; align-items: center; gap: 6px; padding: 3px 8px 3px 3px; border: 1px solid var(--site-color-social-border); border-radius: 999px; background: transparent; color: var(--site-color-muted); cursor: pointer; font: inherit; font-size: 12px; transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease; }
