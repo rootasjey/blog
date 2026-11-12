@@ -1,8 +1,7 @@
-import { blob } from 'hub:blob'
 import { hasPostPermission } from '~~/server/utils/postPermissions'
 import { db, schema } from 'hub:db'
-import { eq } from 'drizzle-orm'
-import { isPostMediaReferencedInArticleHistory } from '~~/server/utils/postRevisions'
+import { and, eq } from 'drizzle-orm'
+import { postMediaGcJobExists, schedulePostMediaDeletion } from '~~/server/utils/postMediaGc'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -21,22 +20,15 @@ export default defineEventHandler(async (event) => {
     const record = await db.query.post_videos.findFirst({ where: eq(schema.post_videos.id, id) })
     if (!record || record.post_id !== apiPost.id) return apiError(event, 404, 'NOT_FOUND', 'Video not found')
 
-    const videoPath = record.pathname.replace(/^\/+/, '')
-    const videoReferenced = await isPostMediaReferencedInArticleHistory(apiPost.id, videoPath, apiPost.blob_path)
-    if (!videoReferenced) {
-      try { await blob.del(videoPath) } catch {}
-    }
+    const mediaPaths = record.poster_path ? [record.pathname, record.poster_path] : [record.pathname]
+    const deletion = await schedulePostMediaDeletion(apiPost.id, mediaPaths, (pathnames) =>
+      db.delete(schema.post_videos).where(and(
+        eq(schema.post_videos.id, record.id),
+        ...pathnames.map(pathname => postMediaGcJobExists(apiPost.id, pathname)),
+      )),
+    )
 
-    if (record.poster_path) {
-      const posterPath = record.poster_path.replace(/^\/+/, '')
-      const posterReferenced = await isPostMediaReferencedInArticleHistory(apiPost.id, posterPath, apiPost.blob_path)
-      if (!posterReferenced) {
-        try { await blob.del(posterPath) } catch {}
-      }
-    }
-    await db.delete(schema.post_videos).where(eq(schema.post_videos.id, record.id)).run()
-
-    return apiSuccess(event, { id: record.id, deleted: true })
+    return apiSuccess(event, { id: record.id, deleted: true, deletionScheduled: true, deleteAfter: deletion.deleteAfter })
   } catch (err: any) {
     console.error('[API v1] DELETE /posts/:id/videos error:', err?.message || err)
     return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to delete video')

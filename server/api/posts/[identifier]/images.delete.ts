@@ -1,16 +1,14 @@
 // DELETE /api/posts/[identifier]/images
 // Accepts query ?id=<imageRowId> or ?filename=<filename> to remove a single inline image
-import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
 import type { ApiPost } from '~~/shared/types/post'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
-import { isPostMediaReferencedInArticleHistory } from '~~/server/utils/postRevisions'
+import { postMediaGcJobExists, schedulePostMediaDeletion } from '~~/server/utils/postMediaGc'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   const userId = session.user.id
   const database = db
-  const hb = blob
 
   const identifier = decodeURIComponent(getRouterParam(event, 'identifier') ?? '')
   if (!identifier) throw createError({ statusCode: 400, message: 'Post identifier is required' })
@@ -47,20 +45,14 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 403, message: 'Image belongs to a different post' })
     }
 
-    const pathname = record.pathname.replace(/^\/+/, '')
-    const referencedByArticle = await isPostMediaReferencedInArticleHistory(post.id, pathname, post.blob_path)
-    if (!referencedByArticle) {
-      try {
-        await hb.del(pathname)
-      } catch (err) {
-        console.warn('Failed to delete blob for inline image', err)
-      }
-    }
+    const deletion = await schedulePostMediaDeletion(post.id, record.pathname, ([pathname]) =>
+      database.delete(schema.post_images).where(and(
+        eq(schema.post_images.id, record.id),
+        postMediaGcJobExists(post.id, pathname!),
+      )),
+    )
 
-    // Delete DB record
-    await database.delete(schema.post_images).where(eq(schema.post_images.id, record.id)).run()
-
-    return { success: true }
+    return { success: true, deletionScheduled: true, deleteAfter: deletion.deleteAfter }
   } catch (err: any) {
     console.error('Failed to delete inline image', err)
     throw createError({ statusCode: 500, message: err?.message || 'Failed to delete image' })

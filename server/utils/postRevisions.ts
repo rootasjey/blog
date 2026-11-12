@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm'
+import { and, eq, inArray, notExists, sql } from 'drizzle-orm'
 import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 
@@ -57,6 +57,11 @@ function collectMediaPaths(value: unknown, postId: number, paths = new Set<strin
   return [...paths]
 }
 
+export function postArticleUsesMedia(value: unknown, postId: number, storedPath: string) {
+  const normalizedPath = storedPath.replace(/^\/+/, '')
+  return collectMediaPaths(value, postId).includes(normalizedPath)
+}
+
 async function contentHash(content: string) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(content))
   return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')
@@ -94,6 +99,14 @@ export async function savePostRevision(input: {
   const nextMedia = collectMediaPaths(article, post.id)
   const previousHash = await contentHash(previousContent)
   const nextHash = await contentHash(nextContent)
+  const mediaAvailable = nextMedia.length
+    ? notExists(db.select({ id: schema.post_media_gc.id })
+      .from(schema.post_media_gc)
+      .where(and(
+        inArray(schema.post_media_gc.pathname, nextMedia),
+        inArray(schema.post_media_gc.status, ['deleting', 'deleted']),
+      )))
+    : sql`1 = 1`
 
   // R2 and D1 cannot share a transaction. Immutable objects are written first;
   // a failed compare-and-swap leaves only an orphan object, never a lost article.
@@ -108,12 +121,14 @@ export async function savePostRevision(input: {
     .where(and(
       eq(schema.posts.id, post.id),
       eq(schema.posts.content_revision, expectedRevision),
+      mediaAvailable,
     ))
 
   const savedPostCondition = and(
     eq(schema.posts.id, post.id),
     eq(schema.posts.content_revision, nextRevision),
     eq(schema.posts.blob_path, nextPath),
+    mediaAvailable,
   )
   const insertBaseline = db.insert(schema.post_revisions)
     .select(db.select({
@@ -150,6 +165,21 @@ export async function savePostRevision(input: {
   const changes = Number((results[0] as any)?.meta?.changes ?? (results[0] as any)?.rowsAffected ?? 0)
   if (!changes) {
     await cleanupUnreferencedRevisionBlob(post.id, nextPath)
+    if (nextMedia.length) {
+      const unavailableMedia = await db.query.post_media_gc.findFirst({
+        where: and(
+          inArray(schema.post_media_gc.pathname, nextMedia),
+          inArray(schema.post_media_gc.status, ['deleting', 'deleted']),
+        ),
+        columns: { pathname: true },
+      })
+      if (unavailableMedia) {
+        throw createError({
+          statusCode: 409,
+          statusMessage: 'One of this article’s media files is being deleted. Upload it again before saving.',
+        })
+      }
+    }
     throw createError({
       statusCode: 409,
       statusMessage: 'Article changed while saving. Reload it before saving again.',
@@ -197,28 +227,4 @@ export async function getPostRevision(postId: number, revision: number) {
   const object = await blob.get(row.blob_path)
   if (!object) throw createError({ statusCode: 500, statusMessage: 'Revision content is missing' })
   return { row, article: JSON.parse(await object.text()) as object }
-}
-
-export async function isPostMediaReferencedInArticleHistory(postId: number, storedPath: string, currentBlobPath: string | null) {
-  const normalizedPath = storedPath.replace(/^\/+/, '')
-  if (currentBlobPath) {
-    const currentObject = await blob.get(currentBlobPath)
-    if (currentObject) {
-      const currentArticle = JSON.parse(await currentObject.text()) as unknown
-      if (collectMediaPaths(currentArticle, postId).includes(normalizedPath)) return true
-    }
-  }
-
-  const revisions = await db.select({ media_paths: schema.post_revisions.media_paths })
-    .from(schema.post_revisions)
-    .where(eq(schema.post_revisions.post_id, postId))
-
-  return revisions.some((revision) => {
-    try {
-      const paths: unknown = JSON.parse(revision.media_paths)
-      return Array.isArray(paths) && paths.some(path => typeof path === 'string' && path.replace(/^\/+/, '') === normalizedPath)
-    } catch {
-      return false
-    }
-  })
 }

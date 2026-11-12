@@ -1,8 +1,7 @@
-import { blob } from 'hub:blob'
 import { hasPostPermission } from '~~/server/utils/postPermissions'
 import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
-import { isPostMediaReferencedInArticleHistory } from '~~/server/utils/postRevisions'
+import { postMediaGcJobExists, schedulePostMediaDeletion } from '~~/server/utils/postMediaGc'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -21,14 +20,14 @@ export default defineEventHandler(async (event) => {
     const record = await db.query.post_images.findFirst({ where: eq(schema.post_images.id, id) })
     if (!record || record.post_id !== apiPost.id) return apiError(event, 404, 'NOT_FOUND', 'Image not found')
 
-    const pathname = record.pathname.replace(/^\/+/, '')
-    const referencedByArticle = await isPostMediaReferencedInArticleHistory(apiPost.id, pathname, apiPost.blob_path)
-    if (!referencedByArticle) {
-      try { await blob.del(pathname) } catch {}
-    }
-    await db.delete(schema.post_images).where(eq(schema.post_images.id, record.id)).run()
+    const deletion = await schedulePostMediaDeletion(apiPost.id, record.pathname, ([pathname]) =>
+      db.delete(schema.post_images).where(and(
+        eq(schema.post_images.id, record.id),
+        postMediaGcJobExists(apiPost.id, pathname!),
+      )),
+    )
 
-    return apiSuccess(event, { id: record.id, deleted: true })
+    return apiSuccess(event, { id: record.id, deleted: true, deletionScheduled: true, deleteAfter: deletion.deleteAfter })
   } catch (err: any) {
     console.error('[API v1] DELETE /posts/:id/images error:', err?.message || err)
     return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to delete image')

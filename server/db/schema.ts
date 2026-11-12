@@ -1,4 +1,4 @@
-import { integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
 export const users = sqliteTable('users', {
@@ -176,6 +176,17 @@ export const post_revisions = sqliteTable('post_revisions', {
   created_by: integer('created_by').notNull().references(() => users.id),
   created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 })
+
+export const post_media_gc = sqliteTable('post_media_gc', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  post_id: integer('post_id').notNull().references(() => posts.id, { onDelete: 'cascade' }),
+  pathname: text('pathname').notNull().unique(),
+  status: text('status').notNull().default('pending'),
+  delete_after: text('delete_after').notNull(),
+  attempts: integer('attempts').notNull().default(0),
+  created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+  updated_at: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [index('idx_post_media_gc_due').on(table.status, table.delete_after)])
 
 export const site_settings = sqliteTable('site_settings', {
   id: integer('id').primaryKey({ autoIncrement: true }),
