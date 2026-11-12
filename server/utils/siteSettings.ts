@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { DEFAULT_HOME_IDENTITY, type HomeIdentity } from '~~/shared/types/home-identity'
 import { DEFAULT_HOME_POST_SECTIONS, type HomePostSectionsContent } from '~~/shared/types/home-post-sections'
+import { DEFAULT_SITE_BRAND_NAME } from '~~/shared/types/site-settings'
 import {
   DEFAULT_ABOUT_PAGE_CONTENT,
   DEFAULT_RECOMMENDATIONS_CONTENT,
@@ -12,10 +13,12 @@ import {
 } from '~~/shared/types/public-page-content'
 
 export const SOCIALS_KEY = 'socials'
+export const SITE_BRAND_NAME_KEY = 'siteBrandName'
 export const HOME_IDENTITY_KEY = 'homeIdentity'
 export const HOME_POST_SECTIONS_KEY = 'homePostSections'
 export const RECOMMENDATIONS_CONTENT_KEY = 'recommendationsContent'
 export const ABOUT_PAGE_CONTENT_KEY = 'aboutPageContent'
+export const siteBrandNameSchema = z.string().trim().min(1).max(80)
 
 export const homeIdentitySchema = z.object({
   avatar: z.string().max(500).refine(value => value.startsWith('/') || /^https:\/\//i.test(value), 'Invalid avatar URL'),
@@ -139,6 +142,16 @@ export async function setSettingValue(key: string, value: unknown) {
 
 export async function getSocials(): Promise<SocialLink[]> {
   return getSettingValue<SocialLink[]>(SOCIALS_KEY, [])
+}
+
+export async function getSiteBrandName(): Promise<string> {
+  const value = await getSettingValue<unknown>(SITE_BRAND_NAME_KEY, DEFAULT_SITE_BRAND_NAME)
+  const parsed = siteBrandNameSchema.safeParse(value)
+  return parsed.success ? parsed.data : DEFAULT_SITE_BRAND_NAME
+}
+
+export async function setSiteBrandName(name: string) {
+  await setSettingValue(SITE_BRAND_NAME_KEY, siteBrandNameSchema.parse(name))
 }
 
 export async function setSocials(socials: SocialLink[]) {

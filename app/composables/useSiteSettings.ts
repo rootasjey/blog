@@ -1,4 +1,8 @@
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
+import type { HomeIdentity } from '~~/shared/types/home-identity'
+import type { HomePostSectionsContent } from '~~/shared/types/home-post-sections'
+import type { AboutPageContent, RecommendationsContent } from '~~/shared/types/public-page-content'
+import { DEFAULT_SITE_BRAND_NAME } from '~~/shared/types/site-settings'
 
 export type SocialLink = {
   platform: string
@@ -8,59 +12,88 @@ export type SocialLink = {
   enabled?: boolean
 }
 
-type SiteSettingsState = {
+export type PublicSiteSettings = {
   socials: SocialLink[]
+  siteBrandName: string
+  homeIdentity?: HomeIdentity
+  homePostSections?: HomePostSectionsContent
+  recommendationsContent?: RecommendationsContent
+  aboutPageContent?: AboutPageContent
 }
 
-export default function useSiteSettings() {
-  const state = useState<SiteSettingsState>('site-settings', () => ({ socials: [] }))
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+const defaultSiteSettings = (): PublicSiteSettings => ({
+  socials: [],
+  siteBrandName: DEFAULT_SITE_BRAND_NAME,
+})
+
+export default async function useSiteSettings() {
+  const { data: settings, refresh, error: requestError } = await useFetch<PublicSiteSettings>('/api/site-settings', {
+    key: 'public-site-settings',
+    default: defaultSiteSettings,
+  })
+  const refreshing = ref(false)
+  const saving = ref(false)
+  const operationError = ref<string | null>(null)
+  const loading = computed(() => refreshing.value || saving.value)
+  const error = computed(() => operationError.value || requestError.value?.message || null)
 
   async function fetchSettings() {
-    loading.value = true
-    error.value = null
+    refreshing.value = true
+    operationError.value = null
     try {
-      const res = await $fetch<SiteSettingsState>('/api/site-settings')
-      state.value.socials = res.socials || []
-    } catch (e: any) {
-      error.value = e?.data?.message || e?.message || 'Failed to load site settings'
+      await refresh()
+      if (requestError.value) throw requestError.value
+    } catch (caught) {
+      operationError.value = caught instanceof Error ? caught.message : 'Failed to load site settings'
+      throw caught
     } finally {
-      loading.value = false
+      refreshing.value = false
     }
   }
 
   async function updateSocials(socials: SocialLink[]) {
-    loading.value = true
-    error.value = null
+    saving.value = true
+    operationError.value = null
     try {
       await $fetch('/api/admin/site-settings', {
         method: 'PUT',
         body: { socials },
       })
-      state.value.socials = socials
-    } catch (e: any) {
-      error.value = e?.data?.message || e?.message || 'Failed to update site settings'
-      throw e
+      settings.value.socials = socials
+    } catch (caught: any) {
+      operationError.value = caught?.data?.message || caught?.message || 'Failed to update site settings'
+      throw caught
     } finally {
-      loading.value = false
+      saving.value = false
     }
   }
 
-  if (import.meta.client && !state.value.socials.length) {
-    // Fire-and-forget initial fetch on client side
-    fetchSettings()
+  async function updateSiteBrandName(name: string) {
+    const normalizedName = name.trim()
+    saving.value = true
+    operationError.value = null
+    try {
+      await $fetch('/api/admin/site-settings', {
+        method: 'PUT',
+        body: { siteBrandName: normalizedName },
+      })
+      settings.value.siteBrandName = normalizedName
+    } catch (caught: any) {
+      operationError.value = caught?.data?.message || caught?.message || 'Failed to update site title'
+      throw caught
+    } finally {
+      saving.value = false
+    }
   }
 
-  const socials = computed(() => state.value.socials)
-
   return {
-    settings: state,
-    socials,
+    settings,
+    socials: computed(() => settings.value.socials),
     loading,
     error,
     fetchSettings,
     refresh: fetchSettings,
     updateSocials,
+    updateSiteBrandName,
   }
 }

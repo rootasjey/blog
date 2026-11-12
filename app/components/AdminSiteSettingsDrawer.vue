@@ -76,7 +76,7 @@ const isOpen = computed({
   },
 })
 
-const { socials, fetchSettings, updateSocials, loading, error: loadError } = useSiteSettings()
+const { socials, updateSocials, error: loadError } = await useSiteSettings()
 const localSocials = ref<SocialLink[]>([])
 const saving = ref(false)
 const success = ref('')
@@ -99,9 +99,6 @@ watch(isOpen, (newIsOpen) => {
   success.value = ''
   error.value = loadError.value || ''
   
-  if (!socials.value.length) {
-    fetchSettings()
-  }
 })
 
 async function handleSave(payload: SocialLink[]) {
@@ -114,7 +111,6 @@ async function handleSave(payload: SocialLink[]) {
   success.value = ''
   try {
     await updateSocials(payload)
-    await fetchSettings()
     success.value = 'Socials updated'
     close()
   } catch (e: any) {

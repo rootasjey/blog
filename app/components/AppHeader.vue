@@ -144,7 +144,7 @@
               'text-white': !isScrolled && router.currentRoute.value.path === '/',
             }"
           >
-          {{ $ts('nav.brand') }}
+          {{ siteBrandName }}
         </span>
         </NuxtLink>
         <div class="site-header-controls flex items-center gap-3">
@@ -210,7 +210,7 @@
             <span
               class="site-wordmark"
             >
-              {{ $ts('nav.brand') }}
+              {{ siteBrandName }}
             </span>
           </NuxtLink>
         </div>
@@ -359,6 +359,14 @@
   <ClientOnly>
     <AdminSiteSettingsDrawer v-model:open="siteSettingsDrawerOpen" />
   </ClientOnly>
+  <SiteBrandEditor
+    :open="siteBrandEditorOpen"
+    :brand-name="siteBrandName"
+    :saving="siteBrandSaving"
+    :error="siteBrandError"
+    @update:open="siteBrandEditorOpen = $event"
+    @save="saveSiteBrandName"
+  />
 </template>
 
 <script setup lang="ts">
@@ -370,13 +378,15 @@ import useSiteSettings from '~/composables/useSiteSettings'
 import { localizedPath } from '~/utils/presentationPosts'
 import { troncheAvatarUrl } from '~/utils/troncheAvatar'
 import { requestPublicPageEdit } from '~/utils/publicPageEditRequests'
+import { DEFAULT_SITE_BRAND_NAME } from '~~/shared/types/site-settings'
 
 type ThemePreference = 'light' | 'dark' | 'system'
 type ThemeMenuScope = 'desktop' | 'mobile'
 
 const { user, loggedIn, fetch: refreshSession, clear: clearSession } = useUserSession()
 const router = useRouter()
-const { socials: siteSocials } = useSiteSettings()
+const { settings: publicSiteSettings, socials: siteSocials, updateSiteBrandName } = await useSiteSettings()
+const siteBrandName = computed(() => publicSiteSettings.value.siteBrandName || DEFAULT_SITE_BRAND_NAME)
 
 const orderedSocials = computed(() => [...siteSocials.value].filter((s) => s.enabled !== false).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)))
 
@@ -399,6 +409,9 @@ const isPagesMenuOpen = ref(false)
 const colorMode = useColorMode()
 const { isScrolled, y: scrollY } = useHeaderScroll({ threshold: 12 })
 const siteSettingsDrawerOpen = ref(false)
+const siteBrandEditorOpen = ref(false)
+const siteBrandSaving = ref(false)
+const siteBrandError = ref('')
 
 const desktopThemeMenu = createThemeMenuController()
 const mobileThemeMenu = createThemeMenuController()
@@ -439,24 +452,46 @@ const pageEditMenuItems = computed(() => {
   const homePath = localizedPath('/', locale).replace(/\/+$/, '') || '/'
   const aboutPath = localizedPath('/about', locale).replace(/\/+$/, '') || '/'
   const recommendationsPath = localizedPath('/recommendations', locale).replace(/\/+$/, '') || '/'
+  const siteBrandItem = {
+    label: locale === 'fr' ? 'Nom du site' : 'Site title',
+    leading: 'i-ph-text-aa',
+    onSelect: () => {
+      siteBrandError.value = ''
+      siteBrandEditorOpen.value = true
+    },
+  }
 
   if (currentPath === homePath) {
     return [
+      siteBrandItem,
       { label: 'Introduction', leading: 'i-ph-text-aa', onSelect: () => requestPublicPageEdit('home-intro') },
       { label: $ts('nav.recommendations'), leading: 'i-ph-cards', onSelect: () => requestPublicPageEdit('recommendations') },
     ]
   }
 
   if (currentPath === aboutPath) {
-    return [{ label: locale === 'fr' ? 'Page À propos' : 'About page', leading: 'i-ph-info', onSelect: () => requestPublicPageEdit('about') }]
+    return [siteBrandItem, { label: locale === 'fr' ? 'Page À propos' : 'About page', leading: 'i-ph-info', onSelect: () => requestPublicPageEdit('about') }]
   }
 
   if (currentPath === recommendationsPath) {
-    return [{ label: $ts('nav.recommendations'), leading: 'i-ph-cards', onSelect: () => requestPublicPageEdit('recommendations') }]
+    return [siteBrandItem, { label: $ts('nav.recommendations'), leading: 'i-ph-cards', onSelect: () => requestPublicPageEdit('recommendations') }]
   }
 
-  return [{ label: locale === 'fr' ? 'Aucune section éditable ici' : 'No editable sections here', disabled: true }]
+  return [siteBrandItem, { label: locale === 'fr' ? 'Aucune section éditable ici' : 'No editable sections here', disabled: true }]
 })
+
+async function saveSiteBrandName(name: string) {
+  siteBrandSaving.value = true
+  siteBrandError.value = ''
+  try {
+    await updateSiteBrandName(name)
+    siteBrandEditorOpen.value = false
+  } catch {
+    siteBrandError.value = $getLocale() === 'fr' ? 'Impossible d’enregistrer le nom du site.' : 'Could not save the site title.'
+  } finally {
+    siteBrandSaving.value = false
+  }
+}
 
 function toggleContentEditMode() {
   if (!isAdmin.value) return

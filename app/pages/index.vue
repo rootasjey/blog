@@ -41,6 +41,7 @@ import { computed, defineAsyncComponent, onMounted, onUnmounted } from 'vue'
 import { DEFAULT_HOME_IDENTITY, type HomeIdentity } from '~~/shared/types/home-identity'
 import { localizedPath } from '~/utils/presentationPosts'
 import { getPublicTagEditId, PUBLIC_PAGE_EDIT_REQUEST_EVENT, type PublicPageEditTarget } from '~/utils/publicPageEditRequests'
+import useSiteSettings from '~/composables/useSiteSettings'
 
 const isMobile = useIsMobile()
 const config = useRuntimeConfig()
@@ -53,9 +54,7 @@ const mobileIndex = computed(() => {
 const ogImageUrl = `${config.public.siteUrl}/og/home/default.png`
 
 const { $ts, $getLocale } = useI18n()
-const { data: settingsData } = await useFetch<{ socials: unknown[]; homeIdentity?: HomeIdentity }>('/api/site-settings', {
-  default: () => ({ socials: [], homeIdentity: DEFAULT_HOME_IDENTITY }),
-})
+const { settings: settingsData } = await useSiteSettings()
 const homeIdentity = computed(() => settingsData.value?.homeIdentity || DEFAULT_HOME_IDENTITY)
 const localizedIdentity = computed(() => homeIdentity.value[$getLocale() === 'en' ? 'en' : 'fr'])
 const homeIntroParagraphs = computed(() => localizedIdentity.value.description.split(/\n\s*\n/).filter(Boolean))

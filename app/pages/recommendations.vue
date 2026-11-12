@@ -14,11 +14,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { DEFAULT_RECOMMENDATIONS_CONTENT, type RecommendationsContent } from '~~/shared/types/public-page-content'
+import useSiteSettings from '~/composables/useSiteSettings'
 
 const { $getLocale } = useI18n()
-const { data: settingsData } = await useFetch<{ recommendationsContent?: RecommendationsContent }>('/api/site-settings', {
-  default: () => ({ recommendationsContent: DEFAULT_RECOMMENDATIONS_CONTENT }),
-})
+const { settings: settingsData } = await useSiteSettings()
 const locale = computed(() => $getLocale() === 'fr' ? 'fr' : 'en')
 const copy = computed(() => settingsData.value?.recommendationsContent?.[locale.value] || DEFAULT_RECOMMENDATIONS_CONTENT[locale.value])
 const { user, loggedIn } = useUserSession()

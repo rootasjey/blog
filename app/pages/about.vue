@@ -72,12 +72,11 @@
 <script setup lang="ts">
 import { localizedPath } from '~/utils/presentationPosts'
 import { DEFAULT_ABOUT_PAGE_CONTENT, type AboutPageContent, type SupportedContentLocale } from '~~/shared/types/public-page-content'
+import useSiteSettings from '~/composables/useSiteSettings'
 
 const { $ts, $getLocale } = useI18n()
 const config = useRuntimeConfig()
-const { data: settingsData } = await useFetch<{ aboutPageContent?: AboutPageContent }>('/api/site-settings', {
-  default: () => ({ aboutPageContent: DEFAULT_ABOUT_PAGE_CONTENT }),
-})
+const { settings: settingsData } = await useSiteSettings()
 const locale = computed(() => $getLocale())
 const activeContentLocale = computed<SupportedContentLocale>(() => locale.value === 'fr' ? 'fr' : 'en')
 const aboutPageContent = computed(() => settingsData.value?.aboutPageContent || DEFAULT_ABOUT_PAGE_CONTENT)

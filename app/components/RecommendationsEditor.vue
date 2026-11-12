@@ -7,11 +7,15 @@
       role="dialog"
       aria-modal="false"
       aria-labelledby="recommendations-editor-title"
+      :class="panelClasses"
       :style="positionStyle"
     >
       <header class="recommendations-editor__header" @pointerdown="startDrag">
         <h2 id="recommendations-editor-title">{{ labels.title }}</h2>
-        <NButton btn="ghost-gray" size="xs" icon label="i-lucide-x" :aria-label="labels.close" @click="close" />
+        <div class="recommendations-editor__header-actions">
+          <NButton btn="ghost-gray" size="xs" icon :label="isMaximized ? 'i-lucide-minimize-2' : 'i-lucide-maximize-2'" :aria-label="isMaximized ? labels.restore : labels.maximize" :title="isMaximized ? labels.restore : labels.maximize" @click="toggleMaximize" />
+          <NButton btn="ghost-gray" size="xs" icon label="i-lucide-x" :aria-label="labels.close" @click="close" />
+        </div>
       </header>
 
       <div class="recommendations-editor__body">
@@ -75,6 +79,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useEditorPanelMaximize } from '~/composables/useEditorPanelMaximize'
 import type { RecommendationsContent, SupportedContentLocale } from '~~/shared/types/public-page-content'
 import { PUBLIC_PAGE_EDIT_REQUEST_EVENT } from '~/utils/publicPageEditRequests'
 
@@ -83,12 +88,12 @@ const emit = defineEmits<{ saved: [content: RecommendationsContent] }>()
 const { $getLocale } = useI18n()
 const locale = computed(() => $getLocale())
 const labels = computed(() => locale.value === 'fr' ? {
-  title: 'Modifier les recommandations', close: 'Fermer', languages: 'Langue du contenu',
+  title: 'Modifier les recommandations', close: 'Fermer', maximize: 'Agrandir', restore: 'Restaurer', languages: 'Langue du contenu',
   pageTitle: 'Titre de la page', pageDescription: 'Introduction', cards: 'Cartes', addCard: 'Ajouter une carte', untitled: 'Sans titre',
   name: 'Nom', description: 'Description', url: 'Lien', icon: 'Icône (URL d’image)', moveUp: 'Monter', moveDown: 'Descendre', removeCard: 'Supprimer la carte',
   cancel: 'Annuler', save: 'Enregistrer', saving: 'Enregistrement…', saved: 'Modifications enregistrées', saveError: 'Enregistrement impossible',
 } : {
-  title: 'Edit recommendations', close: 'Close', languages: 'Content language',
+  title: 'Edit recommendations', close: 'Close', maximize: 'Maximize', restore: 'Restore', languages: 'Content language',
   pageTitle: 'Page title', pageDescription: 'Introduction', cards: 'Cards', addCard: 'Add card', untitled: 'Untitled',
   name: 'Name', description: 'Description', url: 'Link', icon: 'Icon (image URL)', moveUp: 'Move up', moveDown: 'Move down', removeCard: 'Remove card',
   cancel: 'Cancel', save: 'Save', saving: 'Saving…', saved: 'Changes saved', saveError: 'Could not save changes',
@@ -106,9 +111,10 @@ const x = ref(0)
 const y = ref(0)
 let dragOffsetX = 0
 let dragOffsetY = 0
-const positionStyle = computed(() => ({ left: `${x.value}px`, top: `${y.value}px` }))
+const { isMaximized, panelStyle: positionStyle, panelClasses, prepareForOpen, captureNormalHeight, toggleMaximize } = useEditorPanelMaximize(editorPanel, x, y, open)
 
 function openEditor() {
+  prepareForOpen()
   draft.value = structuredClone(props.content)
   activeLanguage.value = locale.value === 'en' ? 'en' : 'fr'
   success.value = ''
@@ -121,7 +127,7 @@ function close() {
 }
 
 function startDrag(event: PointerEvent) {
-  if ((event.target as HTMLElement).closest('button')) return
+  if (isMaximized.value || event.button !== 0 || (event.target as HTMLElement).closest('button')) return
   event.preventDefault()
   window.getSelection()?.removeAllRanges()
   dragOffsetX = event.clientX - x.value
@@ -193,6 +199,7 @@ watch(open, async (isOpen) => {
   x.value = Math.max(16, window.innerWidth - 392)
   y.value = 88
   await nextTick()
+  captureNormalHeight()
   pageTitleInput.value?.focus()
 })
 
@@ -230,6 +237,31 @@ onUnmounted(() => {
   border-radius: var(--site-radius-card);
   background: var(--site-color-surface);
   color: var(--site-color-text);
+  height: var(--editor-panel-normal-height, auto);
+}
+.recommendations-editor.editor-panel--transition-ready {
+  transition: left 520ms cubic-bezier(.2, .75, .25, 1), top 520ms cubic-bezier(.2, .75, .25, 1), width 520ms cubic-bezier(.2, .75, .25, 1), height 520ms cubic-bezier(.2, .75, .25, 1), max-height 520ms cubic-bezier(.2, .75, .25, 1), border-radius 300ms ease;
+}
+.recommendations-editor.editor-panel--spring-expanding { animation: editor-panel-spring-expand 620ms cubic-bezier(.2, .75, .25, 1) both; }
+.recommendations-editor.editor-panel--spring-restoring { animation: editor-panel-spring-restore 620ms cubic-bezier(.2, .75, .25, 1) both; }
+@keyframes editor-panel-spring-expand {
+  0% { transform: scale(.985); }
+  72% { transform: scale(1.022); }
+  88% { transform: scale(.996); }
+  100% { transform: scale(1); }
+}
+@keyframes editor-panel-spring-restore {
+  0% { transform: scale(1); }
+  72% { transform: scale(.985); }
+  88% { transform: scale(1.008); }
+  100% { transform: scale(1); }
+}
+.recommendations-editor.editor-panel--maximized {
+  border-radius: calc(var(--site-radius-card) * 1.2);
+}
+.recommendations-editor.editor-panel--maximized .recommendations-editor__body {
+  min-height: 0;
+  flex: 1 1 auto;
 }
 .recommendations-editor__header,
 .recommendations-editor__footer,
@@ -251,7 +283,17 @@ onUnmounted(() => {
   user-select: none;
   -webkit-user-select: none;
 }
+.recommendations-editor__header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--site-space-1);
+}
 .recommendations-editor__footer { border-top: 1px solid var(--site-color-border); }
+@media (prefers-reduced-motion: reduce) {
+  .recommendations-editor.editor-panel--transition-ready { transition-duration: 0.01ms; }
+  .recommendations-editor.editor-panel--spring-expanding,
+  .recommendations-editor.editor-panel--spring-restoring { animation-duration: 0.01ms; }
+}
 .recommendations-editor__header h2,
 .recommendations-editor__list-heading h3 {
   margin: 0;

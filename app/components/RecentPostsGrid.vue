@@ -91,6 +91,7 @@ import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
 import { postTagColor } from '~/utils/postTagColor'
 import { DEFAULT_HOME_POST_SECTIONS, type HomePostSectionsContent } from '~~/shared/types/home-post-sections'
 import { filterHomePosts } from '~/utils/homePostSectionFilters'
+import useSiteSettings from '~/composables/useSiteSettings'
 
 const props = withDefaults(defineProps<{ isAdmin?: boolean; isEditMode?: boolean }>(), { isAdmin: false, isEditMode: false })
 const { $ts, $getLocale } = useI18n()
@@ -99,7 +100,7 @@ const { enhancePost } = usePost()
 const { data: items, pending, error } = await useFetch<Post[]>('/api/posts', {
   query: { limit: 50 },
 })
-const { data: settingsData } = await useFetch<{ homePostSections?: HomePostSectionsContent }>('/api/site-settings')
+const { settings: settingsData } = await useSiteSettings()
 const sectionsContent = computed(() => settingsData.value?.homePostSections ?? DEFAULT_HOME_POST_SECTIONS)
 const sectionConfig = computed(() => sectionsContent.value.recentPosts)
 

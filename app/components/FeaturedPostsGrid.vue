@@ -49,6 +49,7 @@ import type { Post } from '~~/shared/types/post'
 import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
 import { DEFAULT_HOME_POST_SECTIONS, type HomePostSectionsContent } from '~~/shared/types/home-post-sections'
 import { filterHomePosts } from '~/utils/homePostSectionFilters'
+import useSiteSettings from '~/composables/useSiteSettings'
 
 const props = withDefaults(defineProps<{ isAdmin?: boolean; isEditMode?: boolean }>(), { isAdmin: false, isEditMode: false })
 
@@ -61,7 +62,7 @@ const activeIndex = ref(0)
 const { data } = await useFetch<Post[]>('/api/posts', {
   query: { limit: 50, language: $getLocale() },
 })
-const { data: settingsData } = await useFetch<{ homePostSections?: HomePostSectionsContent }>('/api/site-settings')
+const { settings: settingsData } = await useSiteSettings()
 const sectionsContent = computed(() => settingsData.value?.homePostSections ?? DEFAULT_HOME_POST_SECTIONS)
 const sectionConfig = computed(() => sectionsContent.value.featuredPosts)
 

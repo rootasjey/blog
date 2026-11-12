@@ -1,9 +1,12 @@
 <template>
   <Teleport to="body">
-    <section v-if="open" class="about-page-editor" role="dialog" aria-modal="false" aria-labelledby="about-page-editor-title" :style="positionStyle">
-      <header class="about-page-editor__header">
+    <section ref="panel" v-if="open" class="about-page-editor" :class="panelClasses" role="dialog" aria-modal="false" aria-labelledby="about-page-editor-title" :style="positionStyle">
+      <header class="about-page-editor__header" @pointerdown="startDrag">
         <h2 id="about-page-editor-title">{{ labels.title }}</h2>
-        <NButton btn="ghost-gray" size="xs" icon label="i-lucide-x" :aria-label="labels.close" @click="close" />
+        <div class="about-page-editor__header-actions">
+          <NButton btn="ghost-gray" size="xs" icon :label="isMaximized ? 'i-lucide-minimize-2' : 'i-lucide-maximize-2'" :aria-label="isMaximized ? labels.restore : labels.maximize" :title="isMaximized ? labels.restore : labels.maximize" @click="toggleMaximize" />
+          <NButton btn="ghost-gray" size="xs" icon label="i-lucide-x" :aria-label="labels.close" @click="close" />
+        </div>
       </header>
 
       <div class="about-page-editor__body">
@@ -53,20 +56,21 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { AboutPageContent, SupportedContentLocale } from '~~/shared/types/public-page-content'
 import { PUBLIC_PAGE_EDIT_REQUEST_EVENT } from '~/utils/publicPageEditRequests'
+import { useEditorPanelMaximize } from '~/composables/useEditorPanelMaximize'
 
 const props = defineProps<{ content: AboutPageContent; isAdmin: boolean; isEditMode: boolean }>()
 const emit = defineEmits<{ saved: [content: AboutPageContent] }>()
 const { $getLocale } = useI18n()
 const locale = computed(() => $getLocale())
 const labels = computed(() => locale.value === 'fr' ? {
-  title: 'Modifier À propos', close: 'Fermer', languages: 'Langue du contenu',
+  title: 'Modifier À propos', close: 'Fermer', maximize: 'Agrandir', restore: 'Restaurer', languages: 'Langue du contenu',
   heading: 'Titre', mainTitle: 'Accroche', intro: 'Introduction', description: 'Description', openSourceHeading: 'Titre open source',
   openSourceText: 'Texte open source', faqHeading: 'Titre de la FAQ', faq: 'Questions fréquentes', addQuestion: 'Ajouter une question', untitled: 'Sans titre',
   question: 'Question', answer: 'Réponse', moveUp: 'Monter', moveDown: 'Descendre', removeQuestion: 'Supprimer la question',
   contactHeading: 'Titre du contact', contactText: 'Texte du contact', cancel: 'Annuler', save: 'Enregistrer', saving: 'Enregistrement…',
   saved: 'Modifications enregistrées', saveError: 'Enregistrement impossible',
 } : {
-  title: 'Edit About page', close: 'Close', languages: 'Content language',
+  title: 'Edit About page', close: 'Close', maximize: 'Maximize', restore: 'Restore', languages: 'Content language',
   heading: 'Heading', mainTitle: 'Lead', intro: 'Introduction', description: 'Description', openSourceHeading: 'Open source heading',
   openSourceText: 'Open source text', faqHeading: 'FAQ heading', faq: 'Frequently asked questions', addQuestion: 'Add question', untitled: 'Untitled',
   question: 'Question', answer: 'Answer', moveUp: 'Move up', moveDown: 'Move down', removeQuestion: 'Remove question',
@@ -76,6 +80,7 @@ const labels = computed(() => locale.value === 'fr' ? {
 const languages: { code: SupportedContentLocale; label: string }[] = [{ code: 'fr', label: 'FR' }, { code: 'en', label: 'EN' }]
 const activeLanguage = ref<SupportedContentLocale>('fr')
 const open = ref(false)
+const panel = ref<HTMLElement | null>(null)
 const draft = ref<AboutPageContent>(structuredClone(props.content))
 const headingInput = ref<HTMLInputElement | null>(null)
 const saving = ref(false)
@@ -83,9 +88,12 @@ const success = ref('')
 const error = ref('')
 const x = ref(0)
 const y = ref(0)
-const positionStyle = computed(() => ({ left: `${x.value}px`, top: `${y.value}px` }))
+let dragOffsetX = 0
+let dragOffsetY = 0
+const { isMaximized, panelStyle: positionStyle, panelClasses, prepareForOpen, captureNormalHeight, toggleMaximize } = useEditorPanelMaximize(panel, x, y, open)
 
 function openEditor() {
+  prepareForOpen()
   draft.value = structuredClone(props.content)
   activeLanguage.value = locale.value === 'en' ? 'en' : 'fr'
   success.value = ''
@@ -94,7 +102,34 @@ function openEditor() {
 }
 
 function close() {
+  stopDrag()
   if (!saving.value) open.value = false
+}
+
+function startDrag(event: PointerEvent) {
+  if (isMaximized.value || event.button !== 0 || (event.target as HTMLElement).closest('button')) return
+  event.preventDefault()
+  window.getSelection()?.removeAllRanges()
+  dragOffsetX = event.clientX - x.value
+  dragOffsetY = event.clientY - y.value
+  window.addEventListener('pointermove', drag)
+  window.addEventListener('pointerup', stopDrag)
+  window.addEventListener('pointercancel', stopDrag)
+}
+
+function drag(event: PointerEvent) {
+  const element = panel.value
+  if (!element) return
+  const maxX = Math.max(8, window.innerWidth - element.offsetWidth - 8)
+  const maxY = Math.max(8, window.innerHeight - element.offsetHeight - 8)
+  x.value = Math.max(8, Math.min(maxX, event.clientX - dragOffsetX))
+  y.value = Math.max(8, Math.min(maxY, event.clientY - dragOffsetY))
+}
+
+function stopDrag() {
+  window.removeEventListener('pointermove', drag)
+  window.removeEventListener('pointerup', stopDrag)
+  window.removeEventListener('pointercancel', stopDrag)
 }
 
 function addFaq() {
@@ -144,9 +179,15 @@ async function save() {
 
 watch(open, async (isOpen) => {
   if (!isOpen || !import.meta.client) return
-  x.value = Math.max(16, window.innerWidth - 392)
+  x.value = Math.max(8, window.innerWidth - 392)
   y.value = 88
   await nextTick()
+  const element = panel.value
+  if (element) {
+    x.value = Math.max(8, Math.min(window.innerWidth - element.offsetWidth - 8, x.value))
+    y.value = Math.max(8, Math.min(window.innerHeight - element.offsetHeight - 8, y.value))
+  }
+  captureNormalHeight()
   headingInput.value?.focus()
 })
 
@@ -161,6 +202,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeydown)
   window.removeEventListener(PUBLIC_PAGE_EDIT_REQUEST_EVENT, onPublicPageEditRequest)
+  stopDrag()
 })
 </script>
 
@@ -180,14 +222,35 @@ onUnmounted(() => {
   border-radius: var(--site-radius-card);
   background: var(--site-color-surface);
   color: var(--site-color-text);
+  height: var(--editor-panel-normal-height, auto);
 }
+.about-page-editor.editor-panel--transition-ready {
+  transition: left 520ms cubic-bezier(.2, .75, .25, 1), top 520ms cubic-bezier(.2, .75, .25, 1), width 520ms cubic-bezier(.2, .75, .25, 1), height 520ms cubic-bezier(.2, .75, .25, 1), max-height 520ms cubic-bezier(.2, .75, .25, 1), border-radius 300ms ease;
+}
+.about-page-editor.editor-panel--spring-expanding { animation: editor-panel-spring-expand 620ms cubic-bezier(.2, .75, .25, 1) both; }
+.about-page-editor.editor-panel--spring-restoring { animation: editor-panel-spring-restore 620ms cubic-bezier(.2, .75, .25, 1) both; }
+@keyframes editor-panel-spring-expand {
+  0% { transform: scale(.985); }
+  72% { transform: scale(1.022); }
+  88% { transform: scale(.996); }
+  100% { transform: scale(1); }
+}
+@keyframes editor-panel-spring-restore {
+  0% { transform: scale(1); }
+  72% { transform: scale(.985); }
+  88% { transform: scale(1.008); }
+  100% { transform: scale(1); }
+}
+.about-page-editor.editor-panel--maximized { border-radius: calc(var(--site-radius-card) * 1.2); }
+.about-page-editor.editor-panel--maximized .about-page-editor__body { min-height: 0; flex: 1 1 auto; }
 .about-page-editor__header,
 .about-page-editor__footer,
 .about-page-editor__list-heading,
 .about-page-editor__item-actions { display: flex; align-items: center; justify-content: space-between; gap: var(--site-space-2); }
 .about-page-editor__header,
 .about-page-editor__footer { padding: var(--site-space-4); }
-.about-page-editor__header { border-bottom: 1px solid var(--site-color-border); }
+.about-page-editor__header-actions { display: flex; align-items: center; gap: var(--site-space-1); }
+.about-page-editor__header { border-bottom: 1px solid var(--site-color-border); cursor: move; touch-action: none; user-select: none; -webkit-user-select: none; }
 .about-page-editor__footer { border-top: 1px solid var(--site-color-border); }
 .about-page-editor__header h2,
 .about-page-editor__list-heading h3 { margin: 0; color: var(--site-color-heading); font-size: 1rem; font-weight: 550; }
@@ -211,5 +274,10 @@ onUnmounted(() => {
 .about-page-editor__item-actions { justify-content: flex-end; }
 .about-page-editor__message { margin: 0; color: var(--site-color-heading); font-size: 0.875rem; }
 .about-page-editor__message--error { color: var(--site-color-danger); }
+@media (prefers-reduced-motion: reduce) {
+  .about-page-editor.editor-panel--transition-ready { transition-duration: 0.01ms; }
+  .about-page-editor.editor-panel--spring-expanding,
+  .about-page-editor.editor-panel--spring-restoring { animation-duration: 0.01ms; }
+}
 }
 </style>

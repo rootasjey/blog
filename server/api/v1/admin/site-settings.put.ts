@@ -4,9 +4,11 @@ import {
   homePostSectionsSchema,
   setHomePostSections,
   recommendationsContentSchema,
+  siteBrandNameSchema,
   setAboutPageContent,
   setHomeIdentity,
   setRecommendationsContent,
+  setSiteBrandName,
   setSocials,
   socialsSchema,
 } from '~~/server/utils/siteSettings'
@@ -23,6 +25,11 @@ export default defineEventHandler(async (event) => {
       if (!parsed.success) return apiError(event, 400, 'VALIDATION_ERROR', 'Invalid socials format')
       await setSocials(parsed.data)
       updatedSocials = parsed.data
+    }
+    if (body?.siteBrandName !== undefined) {
+      const parsed = siteBrandNameSchema.safeParse(body.siteBrandName)
+      if (!parsed.success) return apiError(event, 400, 'VALIDATION_ERROR', 'Invalid site brand name format')
+      await setSiteBrandName(parsed.data)
     }
     if (body?.homeIdentity !== undefined) {
       const parsed = homeIdentitySchema.safeParse(body.homeIdentity)
@@ -44,7 +51,7 @@ export default defineEventHandler(async (event) => {
       if (!parsed.success) return apiError(event, 400, 'VALIDATION_ERROR', 'Invalid about page content format')
       await setAboutPageContent(parsed.data)
     }
-    if (body?.socials === undefined && body?.homeIdentity === undefined && body?.homePostSections === undefined && body?.recommendationsContent === undefined && body?.aboutPageContent === undefined) {
+    if (body?.socials === undefined && body?.siteBrandName === undefined && body?.homeIdentity === undefined && body?.homePostSections === undefined && body?.recommendationsContent === undefined && body?.aboutPageContent === undefined) {
       return apiError(event, 400, 'VALIDATION_ERROR', 'No supported setting provided')
     }
 
