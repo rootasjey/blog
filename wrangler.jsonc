@@ -54,5 +54,53 @@
   ],
   "vars": {
     "NUXT_PUBLIC_SITE_URL": "https://corpinot.cc"
+  },
+  "env": {
+    "staging": {
+      "name": "corpinot-staging",
+      "workers_dev": false,
+      "routes": [],
+      "compatibility_date": "2025-12-31",
+      "compatibility_flags": ["nodejs_compat"],
+      "triggers": {
+        "crons": ["0 * * * *"]
+      },
+      "assets": {
+        "directory": "./.output/public",
+        "binding": "ASSETS"
+      },
+      "ai": {
+        "binding": "AI"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "corpinot-staging",
+          "database_id": "b666ba5e-80cf-4b1e-95f9-0ffd3ff6ea4c",
+          "migrations_dir": "server/db/migrations"
+        }
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "KV",
+          "id": "52e58e405dc94277b974d61272b930d7"
+        },
+        {
+          "binding": "CACHE",
+          "id": "91042409f3fc45f4ad23159f27aece38"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "BLOB",
+          "bucket_name": "corpinot-staging"
+        }
+      ],
+      "vars": {
+        "NUXT_PUBLIC_FEATURE_AI_WRITER": "false",
+        "NUXT_PUBLIC_SITE_URL": "http://localhost:3000",
+        "ENVIRONMENT": "staging"
+      }
+    }
   }
 }
