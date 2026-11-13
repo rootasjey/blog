@@ -6,7 +6,7 @@ import { requireCurrentUserSession } from '~~/server/utils/api'
 
 export default defineEventHandler(async (event) => {
   try {
-    const identifier = decodeURIComponent(getRouterParam(event, 'slug') ?? '')
+    const identifier = decodeURIComponent(getRouterParam(event, 'identifier') ?? '')
     if (!identifier) {
       return apiError(event, 400, 'BAD_REQUEST', 'Post identifier is required')
     }
@@ -55,7 +55,7 @@ export default defineEventHandler(async (event) => {
 
     return apiSuccess(event, post)
   } catch (err: any) {
-    console.error('[API v1] GET /posts/:slug error:', err?.message || err)
+    console.error('[API v1] GET /posts/:identifier error:', err?.message || err)
     return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to fetch post')
   }
 })

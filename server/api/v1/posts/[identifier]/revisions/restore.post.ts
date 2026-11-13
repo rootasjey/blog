@@ -28,6 +28,7 @@ export default defineEventHandler(async (event) => {
     return apiSuccess(event, { restoredRevision: body.revision, revision: saved.revision })
   } catch (error: any) {
     const statusCode = Number(error?.statusCode) || 500
+    if (statusCode === 401) return apiError(event, 401, 'UNAUTHORIZED', 'Authentication required')
     if (statusCode === 409) return apiError(event, 409, 'REVISION_CONFLICT', error.statusMessage || 'Article revision conflict')
     if (statusCode === 403) return apiError(event, 403, 'FORBIDDEN', error.statusMessage || 'Not authorized')
     if (statusCode === 400) return apiError(event, 400, 'VALIDATION_ERROR', error.statusMessage || 'Invalid payload')
