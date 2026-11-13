@@ -132,6 +132,7 @@ export async function savePostRevision(input: {
   )
   const insertBaseline = db.insert(schema.post_revisions)
     .select(db.select({
+      id: sql<number>`NULL`.as('id'),
       post_id: sql<number>`${post.id}`.as('post_id'),
       revision: sql<number>`${expectedRevision}`.as('revision'),
       blob_path: sql<string>`${previousPath}`.as('blob_path'),
@@ -145,6 +146,7 @@ export async function savePostRevision(input: {
 
   const insertCurrent = db.insert(schema.post_revisions)
     .select(db.select({
+      id: sql<number>`NULL`.as('id'),
       post_id: sql<number>`${post.id}`.as('post_id'),
       revision: sql<number>`${nextRevision}`.as('revision'),
       blob_path: sql<string>`${nextPath}`.as('blob_path'),
@@ -280,10 +282,12 @@ export async function pruneExpiredPostRevisions(now = new Date()) {
   ))
 
   const queueRevisionBlobs = db.insert(schema.post_media_gc).select(db.select({
+    id: sql<number>`NULL`.as('id'),
     post_id: schema.post_revisions.post_id,
     pathname: schema.post_revisions.blob_path,
     status: sql<string>`'pending'`.as('status'),
     delete_after: sql<string>`${deleteAfter}`.as('delete_after'),
+    attempts: sql<number>`0`.as('attempts'),
     created_at: sql<string>`${nowIso}`.as('created_at'),
     updated_at: sql<string>`${nowIso}`.as('updated_at'),
   }).from(schema.post_revisions)
