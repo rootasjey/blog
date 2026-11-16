@@ -66,8 +66,7 @@ export function getPrompt(req: AIRequest) {
     return `Shorten the text while preserving core meaning and readability. Aim for ${target} words. Keep the author's voice. Return only the shortened text.\n\nText:\n${req.content}`
   }
   if (req.action === 'summarize') {
-    const target = req.length === 'short' ? '2-3 sentences' : req.length === 'medium' ? '4-6 sentences' : '8-10 sentences'
-    return `Summarize the text into ${target}, preserving key facts, numbers, and names. Return only the summary.\n\nText:\n${req.content}`
+    return `${getSummaryInstruction(getSummarySentenceRange(req.length))}\n\nText:\n${req.content}`
   }
   if (req.action === 'ask') {
     const target = req.length === 'short' ? '80-120' : req.length === 'medium' ? '150-250' : '300-450'
@@ -122,6 +121,10 @@ function getSummarySentenceRange(length?: AIRequest['length']) {
   if (length === 'short') return '2-3'
   if (length === 'long') return '8-10'
   return '4-6'
+}
+
+function getSummaryInstruction(sentenceRange: string) {
+  return `Summarize the user-provided text into ${sentenceRange} sentences in the same language as the original. Preserve key facts, numbers, and names, along with all rules that affect what is allowed, required, prohibited, or rejected, including retention periods, required confirmations, exceptions, and conflict checks. If space is limited, prioritize these rules over background details. Return only the summary.`
 }
 
 function getSummaryText(json: any) {
@@ -228,7 +231,7 @@ export async function summarizeWithWorkersAI(
       messages: [
         {
           role: 'system',
-          content: `Summarize the user-provided text into ${getSummarySentenceRange(input.length)} sentences, preserving key facts, numbers, and names. Return only the summary.`,
+          content: getSummaryInstruction(getSummarySentenceRange(input.length)),
         },
         { role: 'user', content: input.text },
       ],

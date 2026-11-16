@@ -38,6 +38,14 @@ describe('getPrompt', () => {
   it('builds summarize prompt', () => {
     const prompt = getPrompt({ ...base, action: 'summarize', length: 'long' })
     expect(prompt).toContain('8-10 sentences')
+    expect(prompt).toContain('same language as the original')
+    expect(prompt).toContain('required confirmations')
+    expect(prompt).toContain('conflict checks')
+  })
+
+  it('uses the medium summary range when length is omitted', () => {
+    const prompt = getPrompt({ ...base, action: 'summarize' })
+    expect(prompt).toContain('4-6 sentences')
   })
 
   it('builds ask prompt', () => {
@@ -207,6 +215,10 @@ describe('summarizeWithWorkersAI', () => {
     const body = JSON.parse(String(fetchSpy.mock.calls[0]?.[1]?.body))
     expect(body.max_tokens).toBe(320)
     expect(body.temperature).toBe(0.2)
+    expect(body.messages[0].content).toContain('same language as the original')
+    expect(body.messages[0].content).toContain('required confirmations')
+    expect(body.messages[0].content).toContain('conflict checks')
+    expect(body.messages[0].content).toContain('prohibited')
   })
 
   it('reads the chat-completions response shape', async () => {
