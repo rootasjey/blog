@@ -98,7 +98,12 @@ export default defineNuxtConfig({
   
   runtimeConfig: {
     // Private keys (only available on server-side)
-    authSecret: process.env.NUXT_AUTH_SECRET,
+    // Cloudflare secrets are injected at runtime; never bake local .env values
+    // into a Worker bundle.
+    authSecret: usesCloudflarePreset ? '' : process.env.NUXT_AUTH_SECRET ?? '',
+    session: {
+      password: usesCloudflarePreset ? '' : process.env.NUXT_SESSION_PASSWORD ?? '',
+    },
     // Secret key used to authorize clearing the OG cache via GET endpoint
     ogCacheResetKey: process.env.NUXT_OG_CACHE_RESET_KEY || '',
     ai: {
