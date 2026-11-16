@@ -70,10 +70,6 @@
       "triggers": {
         "crons": ["0 * * * *"]
       },
-      "assets": {
-        "directory": "./.output/public",
-        "binding": "ASSETS"
-      },
       "ai": {
         "binding": "AI"
       },
