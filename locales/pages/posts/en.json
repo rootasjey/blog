@@ -13,6 +13,7 @@
       "publishedHeading": "The Journal",
       "publishedDescription": "Essays, observations, and process notes on design, creative work, and the ideas taking shape.",
       "filteredByTag": "Tag: {tag}",
+      "noPostsFound": "No posts found for this tag.",
       "clearTagFilter": "Clear tag filter",
       "noMatchingPresentationPosts": "No sample posts match this tag.",
       "draftsHeading": "Drafts",

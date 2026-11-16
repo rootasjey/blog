@@ -1,1 +1,7 @@
-{}
+{
+  "pages": {
+    "posts": {
+      "noPostsFound": "Nessun articolo trovato per questo tag."
+    }
+  }
+}

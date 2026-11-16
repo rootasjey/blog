@@ -4,13 +4,13 @@
       <div class="container">
         <div>
           <nav class="site-preview-topic-nav" :aria-label="locale === 'fr' ? 'Articles associés' : 'Related posts'">
-            <NuxtLink v-if="previousPost" :to="localizedPath(`/preview/${previousPost.slug}`, $getLocale())" :aria-label="locale === 'fr' ? 'Article précédent' : 'Previous post'">
+            <NuxtLink v-if="previousPost" :to="localizedPath(`/preview/${previousPost.slug}`, $getLocale())" :aria-label="locale === 'fr' ? 'Article précédent' : 'Previous post'" :data-cursor-tooltip="locale === 'fr' ? 'Article précédent' : 'Previous post'">
               <span class="i-ph-arrow-left" aria-hidden="true" />
             </NuxtLink>
             <NuxtLink class="site-preview-tag" :to="`${localizedPath('/posts', $getLocale())}?tag=${encodeURIComponent(post.tag[locale])}`">
               {{ post.tag[locale] }}
             </NuxtLink>
-            <NuxtLink v-if="nextPost" :to="localizedPath(`/preview/${nextPost.slug}`, $getLocale())" :aria-label="locale === 'fr' ? 'Article suivant' : 'Next post'">
+            <NuxtLink v-if="nextPost" :to="localizedPath(`/preview/${nextPost.slug}`, $getLocale())" :aria-label="locale === 'fr' ? 'Article suivant' : 'Next post'" :data-cursor-tooltip="locale === 'fr' ? 'Article suivant' : 'Next post'">
               <span class="i-ph-arrow-right" aria-hidden="true" />
             </NuxtLink>
           </nav>
@@ -28,7 +28,7 @@
 
     <article class="site-post-content">
       <div class="container">
-        <div class="post-content">
+        <div class="site-post-reading-column post-content">
           <p v-for="paragraph in post.paragraphs[locale]" :key="paragraph">{{ paragraph }}</p>
           <h2>{{ locale === 'fr' ? 'À retenir' : 'A note to take away' }}</h2>
           <p>{{ locale === 'fr'
@@ -41,15 +41,22 @@
 
     <section v-if="!post.isProject" class="site-post-end">
       <div class="container">
-        <div class="site-post-author-card">
-          <img src="/images/presentation/jc-pp.jpg" :alt="$ts('components.postEndMatter.authorName')" width="48" height="48" loading="lazy">
-          <div class="site-post-author-copy">
-            <NuxtLink :to="localizedPath('/about', $getLocale())">{{ $ts('components.postEndMatter.authorName') }}</NuxtLink>
-            <p>{{ $ts('components.postEndMatter.authorBio') }}</p>
+        <div class="site-post-author-card site-post-public-byline">
+          <NuxtLink class="site-post-author-link" :to="localizedPath('/about', $getLocale())" :aria-label="$ts('components.postEndMatter.authorName')">
+            <div class="site-post-author-heading">
+              <img src="/images/presentation/jc-pp.jpg" :alt="$ts('components.postEndMatter.authorName')" width="32" height="32" loading="lazy">
+              <span>{{ $ts('components.postEndMatter.authorName') }}</span>
+            </div>
+            <p class="site-post-author-bio">{{ $ts('components.postEndMatter.authorBio') }}</p>
+          </NuxtLink>
+          <div class="site-post-public-meta">
+            <time :datetime="post.publishedAt">{{ publishedAtLabel }}</time>
           </div>
-          <PostShareActions :title="post.title[locale]" />
         </div>
 
+        <div class="site-post-actions-row">
+          <PostShareActions :title="post.title[locale]" />
+        </div>
         <PostRelatedArticles :articles="relatedArticles" />
       </div>
     </section>
@@ -67,6 +74,12 @@ const { $getLocale, $ts } = useI18n()
 const locale = computed(() => $getLocale() === 'fr' ? 'fr' : 'en')
 const post = computed(() => PRESENTATION_POSTS.find(item => item.slug === route.params.slug))
 const postIndex = computed(() => PRESENTATION_POSTS.findIndex(item => item.slug === route.params.slug))
+const publishedAtLabel = computed(() => {
+  const publishedAt = post.value?.publishedAt
+  if (!publishedAt) return ''
+
+  return new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(new Date(`${publishedAt}T12:00:00`))
+})
 const previousPost = computed(() => PRESENTATION_POSTS[(postIndex.value - 1 + PRESENTATION_POSTS.length) % PRESENTATION_POSTS.length])
 const nextPost = computed(() => PRESENTATION_POSTS[(postIndex.value + 1) % PRESENTATION_POSTS.length])
 const relatedArticles = computed(() => {
@@ -100,5 +113,19 @@ useSeoMeta({
 
 /* Component and page styles moved from the global stylesheets. */
 .site-shell .site-preview-back { color: var(--site-color-accent); text-decoration: underline; text-underline-offset: var(--site-link-underline-offset); }
+.site-shell .site-preview-post .site-post-content .post-content { color: var(--site-color-text); font-family: var(--site-font-body); font-size: 16px; line-height: 1.7; }
+.site-shell .site-preview-post .site-post-content .post-content > p { margin-block: 0 24px; font-size: 16px; line-height: 1.7; }
+.site-shell .site-preview-post .site-post-content .post-content h2 { margin-block: 40px 18px; color: var(--site-color-heading); font-family: var(--site-font-body); font-size: 20px; font-weight: 550; letter-spacing: 0; line-height: 1.4; }
+.site-shell .site-preview-post .site-post-author-heading { display: flex; width: fit-content; align-items: center; gap: 12px; color: var(--site-color-heading); font-size: 16px; font-weight: 550; }
+.site-shell .site-preview-post .site-post-author-heading > img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+.site-shell .site-preview-post .site-post-author-bio { margin: 14px 0 0; color: var(--site-color-muted); font-size: 14px; line-height: 1.55; }
+.site-shell .site-preview-post .site-post-actions-row { display: flex; width: min(700px, calc(100% - 32px)); align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin: 20px auto 0; }
+@media (max-width: 640px) {
+  .site-shell .site-preview-post .site-post-author-heading { gap: 10px; }
+  .site-shell .site-preview-post .site-post-actions-row { gap: 8px; margin-top: 16px; }
+  .site-shell .site-preview-post .site-post-actions-row .site-post-share-actions { gap: 4px; }
+  .site-shell .site-preview-post .site-post-actions-row .site-post-share-actions > a,
+  .site-shell .site-preview-post .site-post-actions-row .site-post-share-actions > button { width: 32px; height: 32px; }
+}
 }
 </style>

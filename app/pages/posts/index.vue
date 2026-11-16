@@ -99,7 +99,7 @@
       />
 
       <div v-else-if="isAdmin && activeTab === 'published' && publicTagFilter && posts && !pending" class="site-public-tag-empty">
-        <p>{{ $ts('pages.tags.noPostsFound') }} — {{ publicTagFilter }}</p>
+        <p>{{ $ts('pages.posts.noPostsFound') }} — {{ publicTagFilter }}</p>
         <NuxtLink :to="localizedPath('/posts', $getLocale())">{{ $getLocale() === 'fr' ? 'Voir tous les articles' : 'View all posts' }}</NuxtLink>
       </div>
 

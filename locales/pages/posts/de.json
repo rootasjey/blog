@@ -1,1 +1,7 @@
-{}
+{
+  "pages": {
+    "posts": {
+      "noPostsFound": "Keine Beiträge zu diesem Thema gefunden."
+    }
+  }
+}

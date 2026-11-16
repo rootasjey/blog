@@ -1,1 +1,7 @@
-{}
+{
+  "pages": {
+    "posts": {
+      "noPostsFound": "No se encontraron artículos para esta etiqueta."
+    }
+  }
+}
