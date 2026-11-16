@@ -29,13 +29,54 @@ export type AIProvider = 'cloudflare' | 'openrouter'
 export const DEFAULT_CLOUDFLARE_MODEL = '@cf/zai-org/glm-4.7-flash'
 export const DEFAULT_CLOUDFLARE_SUMMARY_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
 
+export class WorkersAIHttpError extends Error {
+  constructor(public readonly status: number) {
+    super(`Workers AI request failed with HTTP ${status}`)
+    this.name = 'WorkersAIHttpError'
+  }
+}
+
 const DEFAULT_MODELS: Record<AIProvider, string> = {
   cloudflare: DEFAULT_CLOUDFLARE_MODEL,
   openrouter: 'mistralai/devstral-2512:free',
 }
 
 export function getCFClient(accountId: string, apiKey: string) {
-  return createWorkersAI({ accountId, apiKey })
+  return createWorkersAI({
+    binding: {
+      async run(model: string, input: Record<string, unknown>) {
+        const response = await fetch(
+          `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model}`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(input),
+          },
+        )
+
+        if (!response.ok) {
+          throw new WorkersAIHttpError(response.status)
+        }
+
+        if (input.stream === true) {
+          if (!response.body) {
+            throw new Error('Workers AI returned no response body')
+          }
+          return response.body
+        }
+
+        const payload = await response.json().catch(() => null)
+        if (!payload || typeof payload !== 'object' || !('result' in payload)) {
+          throw new Error('Workers AI returned an invalid response')
+        }
+
+        return payload.result
+      },
+    } as unknown as NonNullable<Parameters<typeof createWorkersAI>[0]['binding']>,
+  })
 }
 
 export function getOpenRouterClient(apiKey: string, baseUrl?: string) {
@@ -302,11 +343,41 @@ export async function streamAI(options: {
   }
 
   const provider = getCFClient(options.cloudflareAccountId, options.cloudflareApiKey)
-  return streamText({
+  let providerError: unknown
+  const response = streamText({
     model: provider(model, { safePrompt: true }),
     prompt: options.prompt,
     maxOutputTokens: 1200,
     temperature: 0.2,
     abortSignal: options.signal,
+    onError({ error }) {
+      providerError = error
+    },
   })
+
+  const textStream = new ReadableStream<string>({
+    async start(controller) {
+      const reader = response.textStream.getReader()
+      try {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          controller.enqueue(value)
+        }
+
+        if (providerError) {
+          controller.error(providerError)
+          return
+        }
+
+        controller.close()
+      } catch (error) {
+        controller.error(providerError ?? error)
+      } finally {
+        reader.releaseLock()
+      }
+    },
+  })
+
+  return { ...response, textStream }
 }

@@ -1,11 +1,19 @@
 import { and, eq } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
-import { aiRequestSchema, DEFAULT_CLOUDFLARE_MODEL, DEFAULT_CLOUDFLARE_SUMMARY_MODEL, getPrompt, resolveModel, streamAI, summarizeWithWorkersAI, translateWithWorkersAI } from '~~/server/utils/ai'
+import { aiRequestSchema, DEFAULT_CLOUDFLARE_MODEL, DEFAULT_CLOUDFLARE_SUMMARY_MODEL, getPrompt, resolveModel, streamAI, summarizeWithWorkersAI, translateWithWorkersAI, WorkersAIHttpError } from '~~/server/utils/ai'
 import type { AIProvider } from '~~/server/utils/ai'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
 
 function encodeSseData(text: string) {
   return text.replace(/\r\n/g, '\n').split('\n').map(line => `data: ${line}`).join('\n') + '\n\n'
+}
+
+function getProviderErrorCode(error: unknown, fallback: string) {
+  if (error instanceof WorkersAIHttpError) {
+    return `provider_http_${error.status}`
+  }
+
+  return fallback
 }
 
 export default defineEventHandler(async (event) => {
@@ -115,7 +123,9 @@ export default defineEventHandler(async (event) => {
           }
         } catch (error) {
           failed = true
-          const code = abort.signal.aborted ? 'cancelled' : 'provider_stream_error'
+          const code = abort.signal.aborted
+            ? 'cancelled'
+            : getProviderErrorCode(error, 'provider_stream_error')
           await db.update(schema.ai_requests).set({
             status: abort.signal.aborted ? 'cancelled' : 'failed',
             error_code: code,
@@ -142,7 +152,9 @@ export default defineEventHandler(async (event) => {
       'X-Accel-Buffering': 'no',
     } })
   } catch (error: any) {
-    const code = abort.signal.aborted ? 'cancelled' : 'provider_request_error'
+    const code = abort.signal.aborted
+      ? 'cancelled'
+      : getProviderErrorCode(error, 'provider_request_error')
     await db.update(schema.ai_requests).set({
       status: abort.signal.aborted ? 'cancelled' : 'failed',
       error_code: code,

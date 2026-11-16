@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm'
 import { createHandlerEvent } from '../../helpers/handler'
 import { createTestDbSeeded, type TestDb } from '../../helpers/db'
 import * as schema from '../../../../server/db/schema'
+import { WorkersAIHttpError } from '../../../../server/utils/ai'
 
 const mocks = vi.hoisted(() => {
   let testDb: TestDb | null = null
@@ -207,6 +208,29 @@ describe('POST /api/v1/ai/write authorization gates', () => {
     const [request] = await aiRequestRows()
     expect(request?.status).toBe('failed')
     expect(request?.error_code).toBe('empty_provider_response')
+  })
+
+  it('preserves a Workers AI HTTP status in the audit row and SSE error event', async () => {
+    const apiKey = await createApiKey(['ai:run'], [1])
+    mocks.streamAI.mockResolvedValueOnce({
+      textStream: new ReadableStream<string>({
+        start(controller) {
+          controller.error(new WorkersAIHttpError(403))
+        },
+      }),
+    })
+
+    const response = await invokeAiWriteStream({
+      action: 'ask',
+      content: 'Provide a short greeting.',
+      postIdentifier: '1',
+    }, apiKey.raw)
+
+    expect(response.body).toContain('event: error\ndata: provider_http_403')
+    expect(response.body).not.toContain('test-key')
+    const [request] = await aiRequestRows()
+    expect(request?.status).toBe('failed')
+    expect(request?.error_code).toBe('provider_http_403')
   })
 
   it('completes a provider stream that contains generated text', async () => {

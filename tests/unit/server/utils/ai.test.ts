@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { resolveModel, getPrompt, getSummaryMaxLength, aiRequestSchema, toSSEStreamFromText, translateWithWorkersAI, summarizeWithWorkersAI, DEFAULT_CLOUDFLARE_MODEL, DEFAULT_CLOUDFLARE_SUMMARY_MODEL } from '../../../../server/utils/ai'
+import { resolveModel, getPrompt, getSummaryMaxLength, aiRequestSchema, toSSEStreamFromText, translateWithWorkersAI, summarizeWithWorkersAI, streamAI, WorkersAIHttpError, DEFAULT_CLOUDFLARE_MODEL, DEFAULT_CLOUDFLARE_SUMMARY_MODEL } from '../../../../server/utils/ai'
 import type { AIRequest } from '../../../../server/utils/ai'
 
 describe('resolveModel', () => {
@@ -348,5 +348,51 @@ describe('summarizeWithWorkersAI', () => {
     await expect(
       summarizeWithWorkersAI('account-id', 'api-key', { text: 'Hello' })
     ).rejects.toThrow('Workers AI summarize failed')
+  })
+})
+
+describe('streamAI with Workers AI', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('surfaces the upstream HTTP status instead of parsing an error body as an empty stream', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ success: false, errors: [{ code: 10000 }] }), { status: 403 }),
+    )
+
+    const result = await streamAI({
+      provider: 'cloudflare',
+      cloudflareAccountId: 'account-id',
+      cloudflareApiKey: 'api-key',
+      model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+      prompt: 'Reply with OK',
+    })
+
+    const reader = (result as any).textStream.getReader()
+    await expect(reader.read()).rejects.toBeInstanceOf(WorkersAIHttpError)
+  })
+
+  it('streams generated text from a successful Workers AI response', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response('data: {"response":"Hello."}\n\ndata: [DONE]\n\n', {
+        headers: { 'Content-Type': 'text/event-stream' },
+      }),
+    )
+
+    const result = await streamAI({
+      provider: 'cloudflare',
+      cloudflareAccountId: 'account-id',
+      cloudflareApiKey: 'api-key',
+      model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+      prompt: 'Reply with Hello.',
+    })
+
+    const chunks: string[] = []
+    for await (const chunk of (result as any).textStream as ReadableStream<string>) {
+      chunks.push(chunk)
+    }
+
+    expect(chunks.join('')).toBe('Hello.')
   })
 })
