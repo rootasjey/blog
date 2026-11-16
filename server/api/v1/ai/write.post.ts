@@ -1,6 +1,6 @@
 import { and, eq } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
-import { aiRequestSchema, getPrompt, resolveModel, streamAI, summarizeWithWorkersAI, translateWithWorkersAI } from '~~/server/utils/ai'
+import { aiRequestSchema, DEFAULT_CLOUDFLARE_MODEL, DEFAULT_CLOUDFLARE_SUMMARY_MODEL, getPrompt, resolveModel, streamAI, summarizeWithWorkersAI, translateWithWorkersAI } from '~~/server/utils/ai'
 import type { AIProvider } from '~~/server/utils/ai'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
 
@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
   const model = request.action === 'translate'
     ? '@cf/meta/m2m100-1.2b'
     : request.action === 'summarize'
-      ? '@cf/facebook/bart-large-cnn'
+      ? DEFAULT_CLOUDFLARE_SUMMARY_MODEL
       : resolveModel(provider, request.model)
 
   if (provider === 'openrouter' && !config.ai?.openrouterKey) {

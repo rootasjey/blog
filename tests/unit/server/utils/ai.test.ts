@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { resolveModel, getPrompt, getSummaryMaxLength, aiRequestSchema, toSSEStreamFromText, translateWithWorkersAI, summarizeWithWorkersAI } from '../../../../server/utils/ai'
+import { resolveModel, getPrompt, getSummaryMaxLength, aiRequestSchema, toSSEStreamFromText, translateWithWorkersAI, summarizeWithWorkersAI, DEFAULT_CLOUDFLARE_MODEL, DEFAULT_CLOUDFLARE_SUMMARY_MODEL } from '../../../../server/utils/ai'
 import type { AIRequest } from '../../../../server/utils/ai'
 
 describe('resolveModel', () => {
@@ -8,7 +8,7 @@ describe('resolveModel', () => {
   })
 
   it('returns default cloudflare model when no model requested', () => {
-    expect(resolveModel('cloudflare')).toBe('@cf/meta/llama-2-7b-chat-int8')
+    expect(resolveModel('cloudflare')).toBe(DEFAULT_CLOUDFLARE_MODEL)
   })
 
   it('returns default openrouter model when no model requested', () => {
@@ -16,7 +16,7 @@ describe('resolveModel', () => {
   })
 
   it('ignores whitespace-only model string', () => {
-    expect(resolveModel('cloudflare', '   ')).toBe('@cf/meta/llama-2-7b-chat-int8')
+    expect(resolveModel('cloudflare', '   ')).toBe(DEFAULT_CLOUDFLARE_MODEL)
   })
 })
 
@@ -191,12 +191,109 @@ describe('summarizeWithWorkersAI', () => {
   })
 
   it('calls Workers AI API and returns summary', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response(JSON.stringify({ result: { summary: 'A short summary.' } }), { status: 200 })
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ result: { response: 'A short summary.' } }), { status: 200 })
     )
 
     const result = await summarizeWithWorkersAI('account-id', 'api-key', { text: 'Long text to summarize' })
     expect(result).toBe('A short summary.')
+    expect(fetchSpy).toHaveBeenCalledWith(
+      `https://api.cloudflare.com/client/v4/accounts/account-id/ai/run/${DEFAULT_CLOUDFLARE_SUMMARY_MODEL}`,
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.stringContaining('Long text to summarize'),
+      }),
+    )
+    const body = JSON.parse(String(fetchSpy.mock.calls[0]?.[1]?.body))
+    expect(body.max_tokens).toBe(320)
+    expect(body.temperature).toBe(0.2)
+  })
+
+  it('reads the chat-completions response shape', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ result: { choices: [{ message: { content: 'A short summary.' } }] } }), { status: 200 })
+    )
+
+    const result = await summarizeWithWorkersAI('account-id', 'api-key', { text: 'Long text to summarize' })
+    expect(result).toBe('A short summary.')
+  })
+
+  it('reads top-level chat-completions responses', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ choices: [{ message: { content: 'A short summary.' } }] }), { status: 200 })
+    )
+
+    const result = await summarizeWithWorkersAI('account-id', 'api-key', { text: 'Long text to summarize' })
+    expect(result).toBe('A short summary.')
+  })
+
+  it('reads text blocks from object content without including reasoning blocks', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({
+        result: {
+          choices: [{
+            message: {
+              reasoning_content: 'Private reasoning must not be returned.',
+              content: [
+                { type: 'reasoning', text: 'Reasoning block must be ignored.' },
+                { type: 'text', text: 'A short summary.' },
+              ],
+            },
+          }],
+        },
+      }), { status: 200 })
+    )
+
+    const result = await summarizeWithWorkersAI('account-id', 'api-key', { text: 'Long text to summarize' })
+    expect(result).toBe('A short summary.')
+  })
+
+  it('reads text from a text content object', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({
+        result: { choices: [{ message: { content: { type: 'text', text: 'A short summary.' } } }] },
+      }), { status: 200 })
+    )
+
+    const result = await summarizeWithWorkersAI('account-id', 'api-key', { text: 'Long text to summarize' })
+    expect(result).toBe('A short summary.')
+  })
+
+  it('falls through empty text blocks to nested content parts', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({
+        result: {
+          choices: [{ message: { content: [{ text: '', parts: [{ type: 'text', text: 'A short summary.' }] }] } }],
+        },
+      }), { status: 200 })
+    )
+
+    const result = await summarizeWithWorkersAI('account-id', 'api-key', { text: 'Long text to summarize' })
+    expect(result).toBe('A short summary.')
+  })
+
+  it('uses chat-completion content when response is not text', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({
+        result: {
+          response: { metadata: 'not generated text' },
+          choices: [{ message: { content: 'A short summary.' } }],
+        },
+      }), { status: 200 })
+    )
+
+    const result = await summarizeWithWorkersAI('account-id', 'api-key', { text: 'Long text to summarize' })
+    expect(result).toBe('A short summary.')
+  })
+
+  it('reports response shape without logging generated text when no summary is returned', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ result: { choices: [{ message: { content: '' } }] } }), { status: 200 })
+    )
+
+    await expect(
+      summarizeWithWorkersAI('account-id', 'api-key', { text: 'Long text to summarize' })
+    ).rejects.toThrow('"contentLength":0')
   })
 
   it('throws on API error', async () => {

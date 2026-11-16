@@ -4,6 +4,9 @@ import type { AIAction } from '~/composables/useAIWriter'
 
 export type AIProvider = 'cloudflare' | 'openrouter'
 
+const DEFAULT_CLOUDFLARE_MODEL = '@cf/zai-org/glm-4.7-flash'
+const RETIRED_CLOUDFLARE_MODEL = '@cf/meta/llama-2-7b-chat-int8'
+
 export const AI_ACTIONS: { key: AIAction; label: string; description: string }[] = [
   { key: 'fix', label: 'Fix grammar', description: 'Correct grammar, spelling, and punctuation while keeping tone.' },
   { key: 'shorten', label: 'Make shorter', description: 'Condense the selected text without losing meaning.' },
@@ -15,12 +18,12 @@ export const AI_ACTIONS: { key: AIAction; label: string; description: string }[]
 
 const DEFAULT_MODELS: Record<AIProvider, Record<AIAction, string>> = {
   cloudflare: {
-    fix: '@cf/meta/llama-2-7b-chat-int8',
-    shorten: '@cf/meta/llama-2-7b-chat-int8',
-    continue: '@cf/meta/llama-2-7b-chat-int8',
-    summarize: '@cf/meta/llama-2-7b-chat-int8',
-    translate: '@cf/meta/llama-2-7b-chat-int8',
-    ask: '@cf/meta/llama-2-7b-chat-int8',
+    fix: DEFAULT_CLOUDFLARE_MODEL,
+    shorten: DEFAULT_CLOUDFLARE_MODEL,
+    continue: DEFAULT_CLOUDFLARE_MODEL,
+    summarize: DEFAULT_CLOUDFLARE_MODEL,
+    translate: DEFAULT_CLOUDFLARE_MODEL,
+    ask: DEFAULT_CLOUDFLARE_MODEL,
   },
   openrouter: {
     fix: 'mistralai/devstral-2512:free',
@@ -32,11 +35,21 @@ const DEFAULT_MODELS: Record<AIProvider, Record<AIAction, string>> = {
   },
 }
 
-function normalizeModels(value: Record<AIAction, string> | undefined, provider: AIProvider) {
-  return {
+export function normalizeModels(value: Partial<Record<AIAction, string>> | undefined, provider: AIProvider) {
+  const normalized = {
     ...DEFAULT_MODELS[provider],
     ...(value || {}),
   }
+
+  if (provider === 'cloudflare') {
+    for (const action of AI_ACTIONS) {
+      if (normalized[action.key] === RETIRED_CLOUDFLARE_MODEL) {
+        normalized[action.key] = DEFAULT_CLOUDFLARE_MODEL
+      }
+    }
+  }
+
+  return normalized
 }
 
 export function useAISettings() {

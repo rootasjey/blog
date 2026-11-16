@@ -26,8 +26,11 @@ export const aiRequestSchema = z.object({
 export type AIRequest = z.infer<typeof aiRequestSchema>
 export type AIProvider = 'cloudflare' | 'openrouter'
 
+export const DEFAULT_CLOUDFLARE_MODEL = '@cf/zai-org/glm-4.7-flash'
+export const DEFAULT_CLOUDFLARE_SUMMARY_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
+
 const DEFAULT_MODELS: Record<AIProvider, string> = {
-  cloudflare: '@cf/meta/llama-2-7b-chat-int8',
+  cloudflare: DEFAULT_CLOUDFLARE_MODEL,
   openrouter: 'mistralai/devstral-2512:free',
 }
 
@@ -115,12 +118,106 @@ export function getSummaryMaxLength(length?: AIRequest['length']) {
   return 320
 }
 
+function getSummarySentenceRange(length?: AIRequest['length']) {
+  if (length === 'short') return '2-3'
+  if (length === 'long') return '8-10'
+  return '4-6'
+}
+
+function getSummaryText(json: any) {
+  const getMessageText = (content: unknown, depth = 0): string | undefined => {
+    if (typeof content === 'string') return content
+    if (depth > 3) return undefined
+
+    if (Array.isArray(content)) {
+      const text = content
+        .filter((block): block is { type?: unknown; text?: unknown; content?: unknown; parts?: unknown } => {
+          return block !== null
+            && typeof block === 'object'
+            && (!('type' in block) || block.type === 'text' || block.type === 'output_text')
+        })
+        .map((block) => {
+          const candidates = [block.text, block.content, block.parts]
+          return candidates
+            .map(value => getMessageText(value, depth + 1))
+            .find((value): value is string => Boolean(value))
+        })
+        .filter((value): value is string => Boolean(value))
+        .join('\n')
+
+      return text || undefined
+    }
+
+    if (content && typeof content === 'object') {
+      const block = content as { type?: unknown; text?: unknown; content?: unknown; parts?: unknown }
+      if (block.type !== undefined && block.type !== 'text' && block.type !== 'output_text') return
+
+      const candidates = [block.text, block.content, block.parts]
+      return candidates
+        .map(value => getMessageText(value, depth + 1))
+        .find((value): value is string => Boolean(value))
+    }
+  }
+
+  const candidates = [
+    json?.result?.response,
+    getMessageText(json?.result?.choices?.[0]?.message?.content),
+    getMessageText(json?.result?.response?.choices?.[0]?.message?.content),
+    getMessageText(json?.choices?.[0]?.message?.content),
+    getMessageText(json?.response?.choices?.[0]?.message?.content),
+  ]
+
+  return candidates.find((value): value is string => typeof value === 'string' && value.trim().length > 0)
+}
+
+function getSummaryResponseShape(json: any) {
+  const result = json?.result
+  const choices = result?.choices
+    ?? result?.response?.choices
+    ?? json?.choices
+    ?? json?.response?.choices
+  const firstChoice = Array.isArray(choices) ? choices[0] : undefined
+  const message = firstChoice?.message
+  const resultResponse = result?.response
+
+  return {
+    resultType: Array.isArray(result) ? 'array' : typeof result,
+    hasResult: json?.result !== undefined,
+    hasRootResponse: json?.response !== undefined,
+    hasRootChoices: Array.isArray(json?.choices),
+    hasResultResponse: result?.response !== undefined,
+    hasResultChoices: Array.isArray(result?.choices),
+    resultResponseType: Array.isArray(resultResponse) ? 'array' : typeof resultResponse,
+    responseKeys: resultResponse && typeof resultResponse === 'object'
+      ? {
+          hasChoices: Array.isArray(resultResponse.choices),
+          hasResponse: typeof resultResponse.response === 'string',
+        }
+      : undefined,
+    choiceCount: Array.isArray(choices) ? choices.length : null,
+    choiceHasMessage: firstChoice?.message !== undefined,
+    messageHasContent: message?.content !== undefined,
+    messageHasReasoningContent: message?.reasoning_content !== undefined,
+    contentType: typeof message?.content,
+    contentArrayLength: Array.isArray(message?.content) ? message.content.length : null,
+    contentObjectFieldTypes: message?.content && typeof message.content === 'object' && !Array.isArray(message.content)
+      ? {
+          type: typeof message.content.type,
+          text: typeof message.content.text,
+          content: typeof message.content.content,
+          parts: Array.isArray(message.content.parts) ? 'array' : typeof message.content.parts,
+        }
+      : undefined,
+    contentLength: typeof message?.content === 'string' ? message.content.length : null,
+  }
+}
+
 export async function summarizeWithWorkersAI(
   accountId: string,
   apiKey: string,
   input: { text: string; length?: AIRequest['length']; signal?: AbortSignal },
 ) {
-  const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/facebook/bart-large-cnn`
+  const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${DEFAULT_CLOUDFLARE_SUMMARY_MODEL}`
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -128,8 +225,15 @@ export async function summarizeWithWorkersAI(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      input_text: input.text,
-      max_length: getSummaryMaxLength(input.length),
+      messages: [
+        {
+          role: 'system',
+          content: `Summarize the user-provided text into ${getSummarySentenceRange(input.length)} sentences, preserving key facts, numbers, and names. Return only the summary.`,
+        },
+        { role: 'user', content: input.text },
+      ],
+      max_tokens: getSummaryMaxLength(input.length),
+      temperature: 0.2,
     }),
     signal: input.signal,
   })
@@ -140,9 +244,9 @@ export async function summarizeWithWorkersAI(
   }
 
   const json = await res.json().catch(() => null)
-  const summary = json?.result?.summary
+  const summary = getSummaryText(json)
   if (!summary || typeof summary !== 'string') {
-    throw new Error('Workers AI summarize returned an empty response')
+    throw new Error(`Workers AI summarize returned no recognized text; response shape: ${JSON.stringify(getSummaryResponseShape(json))}`)
   }
 
   return summary as string
