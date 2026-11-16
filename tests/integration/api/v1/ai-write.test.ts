@@ -75,6 +75,21 @@ async function aiRequestRows() {
   return mocks.db()!.select().from(schema.ai_requests)
 }
 
+async function invokeAiWriteStream(body: Record<string, unknown>, apiKey: string) {
+  const { default: handler } = await import('../../../../server/api/v1/ai/write.post')
+  const event = createHandlerEvent({
+    method: 'POST',
+    path: '/api/v1/ai/write',
+    body,
+    headers: { host: 'staging.test', authorization: `Bearer ${apiKey}` },
+  })
+  const response = await handler(event) as Response
+  if (typeof response?.text !== 'function') {
+    throw new Error(`Expected a streaming Response, got status ${event.res.statusCode}: ${JSON.stringify(response)}`)
+  }
+  return { response, body: await response.text() }
+}
+
 async function createApiKey(scopes: string[], postIds: number[]) {
   const { generateApiKey } = await import('../../../../server/utils/api')
   const key = await generateApiKey()
@@ -110,6 +125,12 @@ describe('POST /api/v1/ai/write authorization gates', () => {
         cloudflareAccountId: 'test-account',
       } })),
     })
+    const nuxtApp = (await import('#app')).useNuxtApp()
+    Object.assign(nuxtApp.$config, { ai: {
+      defaultProvider: 'cloudflare',
+      cloudflareKey: 'test-key',
+      cloudflareAccountId: 'test-account',
+    } })
 
     const postUtils = await import('../../../../server/utils/post')
     Object.assign(globalThis, { getPostByIdentifier: postUtils.getPostByIdentifier })
@@ -167,5 +188,82 @@ describe('POST /api/v1/ai/write authorization gates', () => {
     expect(response.status).toBe(400)
     expect(await aiRequestRows()).toHaveLength(0)
     expect(mocks.streamAI).not.toHaveBeenCalled()
+  })
+
+  it('marks an empty provider stream as failed instead of reporting a completed AI request', async () => {
+    const apiKey = await createApiKey(['ai:run'], [1])
+    mocks.streamAI.mockResolvedValueOnce({
+      textStream: new ReadableStream<string>({ start(controller) { controller.close() } }),
+    })
+
+    const response = await invokeAiWriteStream({
+      action: 'ask',
+      content: 'Provide a short greeting.',
+      postIdentifier: '1',
+    }, apiKey.raw)
+
+    expect(response.body).toContain('event: error\ndata: empty_provider_response')
+    expect(response.body).not.toContain('event: end')
+    const [request] = await aiRequestRows()
+    expect(request?.status).toBe('failed')
+    expect(request?.error_code).toBe('empty_provider_response')
+  })
+
+  it('completes a provider stream that contains generated text', async () => {
+    const apiKey = await createApiKey(['ai:run'], [1])
+    mocks.streamAI.mockResolvedValueOnce({
+      textStream: new ReadableStream<string>({
+        start(controller) {
+          controller.enqueue('Hello.')
+          controller.close()
+        },
+      }),
+    })
+
+    const response = await invokeAiWriteStream({
+      action: 'ask',
+      content: 'Provide a short greeting.',
+      postIdentifier: '1',
+    }, apiKey.raw)
+
+    expect(response.body).toContain('data: Hello.')
+    expect(response.body).toContain('event: end')
+    const [request] = await aiRequestRows()
+    expect(request?.status).toBe('completed')
+    expect(request?.error_code).toBeNull()
+  })
+
+  it('marks a provider stream failure after partial text as failed', async () => {
+    const apiKey = await createApiKey(['ai:run'], [1])
+    mocks.streamAI.mockResolvedValueOnce({
+      textStream: {
+        getReader() {
+          let firstRead = true
+          return {
+            async read() {
+              if (firstRead) {
+                firstRead = false
+                return { done: false, value: 'Partial text.' }
+              }
+              throw new Error('provider stream failed')
+            },
+            releaseLock() {},
+          }
+        },
+      },
+    })
+
+    const response = await invokeAiWriteStream({
+      action: 'ask',
+      content: 'Provide a short greeting.',
+      postIdentifier: '1',
+    }, apiKey.raw)
+
+    expect(response.body).toContain('data: Partial text.')
+    expect(response.body).toContain('event: error\ndata: provider_stream_error')
+    expect(response.body).not.toContain('event: end')
+    const [request] = await aiRequestRows()
+    expect(request?.status).toBe('failed')
+    expect(request?.error_code).toBe('provider_stream_error')
   })
 })

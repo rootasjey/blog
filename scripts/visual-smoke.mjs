@@ -13,7 +13,7 @@ const routes = [
   { name: 'home', path: '/fr/', selector: '.site-intro' },
   { name: 'posts', path: '/fr/posts', selector: '.site-post-index' },
   { name: 'projects', path: '/fr/projects', selector: '.site-project-index' },
-  { name: 'tags', path: '/fr/tags', selector: '.site-tags-state' },
+  { name: 'tags', path: '/fr/tags', selector: '.site-tags-directory' },
   { name: 'article', path: '/fr/posts/2025-in-review', selector: '.site-post.site-dynamic-post' },
 ]
 
@@ -79,6 +79,7 @@ async function checkRoute(page, route, viewport) {
   assert.equal(response.status(), 200, `${route.name}: unexpected HTTP status`)
 
   await page.waitForSelector(route.selector, { timeout: 15_000 })
+  await new Promise(resolve => setTimeout(resolve, 700))
   await page.evaluate((theme) => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
   }, viewport.theme)

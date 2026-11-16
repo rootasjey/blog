@@ -92,14 +92,27 @@ export default defineEventHandler(async (event) => {
       async start(controller) {
         const reader = textStream.getReader()
         let failed = false
+        let generatedText = ''
         try {
           controller.enqueue(encoder.encode(':ok\n\n'))
           while (true) {
             const { done, value } = await reader.read()
             if (done) break
+            generatedText += value
             controller.enqueue(encoder.encode(encodeSseData(value)))
           }
-          controller.enqueue(encoder.encode('event: end\n\n'))
+          if (!generatedText.trim()) {
+            failed = true
+            const code = 'empty_provider_response'
+            await db.update(schema.ai_requests).set({
+              status: 'failed',
+              error_code: code,
+              duration_ms: Date.now() - startedAt,
+            }).where(eq(schema.ai_requests.id, inserted.id)).run()
+            controller.enqueue(encoder.encode(`event: error\ndata: ${code}\n\n`))
+          } else {
+            controller.enqueue(encoder.encode('event: end\n\n'))
+          }
         } catch (error) {
           failed = true
           const code = abort.signal.aborted ? 'cancelled' : 'provider_stream_error'
