@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, or } from 'drizzle-orm'
+import { getInsertedRowId } from '~~/server/utils/api'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -35,7 +36,7 @@ export default defineEventHandler(async (event) => {
       role: 'user', access_role: 'reader', avatar: '', email_verified: false,
     }).run()
 
-    const insertedId = Number((result as any)?.lastInsertRowid ?? 0)
+    const insertedId = getInsertedRowId(result)
     if (!insertedId) return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to create user')
 
     const newUser = await db.query.users.findFirst({ where: eq(schema.users.id, insertedId) })

@@ -1,3 +1,4 @@
+import { apiErrorFromException } from '~~/server/utils/api'
 import { db } from 'hub:db'
 import { z } from 'zod'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
@@ -11,7 +12,9 @@ const bodySchema = z.object({
 export default defineEventHandler(async (event) => {
   try {
     const actor = await requireWriteAccess(event)
-    const body = bodySchema.parse(await readBody(event))
+    const parsedBody = bodySchema.safeParse(await readBody(event))
+    if (!parsedBody.success) return apiError(event, 400, 'VALIDATION_ERROR', 'Invalid restore payload')
+    const body = parsedBody.data
     const post = await getPostByIdentifier(db, decodeURIComponent(getRouterParam(event, 'identifier') ?? ''))
     if (!post) return apiError(event, 404, 'NOT_FOUND', 'Post not found')
     await assertPostPermission(actor, post, 'edit')
@@ -33,6 +36,6 @@ export default defineEventHandler(async (event) => {
     if (statusCode === 403) return apiError(event, 403, 'FORBIDDEN', error.statusMessage || 'Not authorized')
     if (statusCode === 400) return apiError(event, 400, 'VALIDATION_ERROR', error.statusMessage || 'Invalid payload')
     console.error('[API v1] POST restore revision error:', error?.message || error)
-    return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to restore revision')
+    return apiErrorFromException(event, error, 'Failed to restore revision')
   }
 })

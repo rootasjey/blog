@@ -14,6 +14,7 @@ export default defineEventHandler(async (event) => {
         scopes: schema.api_keys.scopes,
         post_ids: schema.api_keys.post_ids,
         created_at: schema.api_keys.created_at,
+        expires_at: schema.api_keys.expires_at,
         last_used_at: schema.api_keys.last_used_at,
         revoked_at: schema.api_keys.revoked_at,
         user: {

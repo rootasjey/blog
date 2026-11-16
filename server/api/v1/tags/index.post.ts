@@ -2,7 +2,7 @@ import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
 import { isTagIconName } from '~~/shared/constants/tag-icons'
 import { isTagColor } from '~~/shared/constants/tag-colors'
-import { requireAdminSession } from '~~/server/utils/api'
+import { getInsertedRowId, requireAdminSession } from '~~/server/utils/api'
 
 export default defineEventHandler(async (event) => {
   await requireAdminSession(event)
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
     if (exists) return apiError(event, 409, 'CONFLICT', 'Tag already exists')
 
     const result = await db.insert(schema.tags).values({ name, category, description, icon, color }).run()
-    const insertedId = Number((result as any)?.lastInsertRowid ?? 0)
+    const insertedId = getInsertedRowId(result)
 
     const tag = insertedId
       ? await db.query.tags.findFirst({ where: eq(schema.tags.id, insertedId) })

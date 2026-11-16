@@ -1,3 +1,4 @@
+import { apiErrorFromException } from '~~/server/utils/api'
 import { db } from 'hub:db'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
 import { listPostRevisions } from '~~/server/utils/postRevisions'
@@ -14,6 +15,6 @@ export default defineEventHandler(async (event) => {
     if (statusCode === 401) return apiError(event, 401, 'UNAUTHORIZED', 'Authentication required')
     if (statusCode === 403) return apiError(event, 403, 'FORBIDDEN', error.statusMessage || 'Not authorized')
     console.error('[API v1] GET post revisions error:', error?.message || error)
-    return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to fetch revisions')
+    return apiErrorFromException(event, error, 'Failed to fetch revisions')
   }
 })

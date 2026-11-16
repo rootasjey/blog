@@ -202,6 +202,17 @@ describe('POST /api/v1/posts', () => {
     const result = await handler(mockEvent)
     expect(result).toEqual({ error: { code: 'VALIDATION_ERROR', message: 'Post name is required' } })
   })
+
+  it('preserves the forbidden response when API key scope rejects creation', async () => {
+    const { default: handler } = await import('../../../../server/api/v1/posts/index.post')
+    const forbidden = Object.assign(new Error('API key does not include the required scope'), { statusCode: 403 })
+    vi.mocked(globalThis.requireWriteAccess).mockRejectedValueOnce(forbidden)
+    const event = createHandlerEvent({ method: 'POST', body: { name: 'Forbidden by scope', language: 'en' } })
+
+    const result = await handler(event)
+
+    expect(result).toEqual({ error: { code: 'FORBIDDEN', message: 'You are not authorized to perform this action' } })
+  })
 })
 
 describe('PUT /api/v1/posts/:identifier', () => {
@@ -227,7 +238,7 @@ describe('DELETE /api/v1/posts/:identifier', () => {
     const { default: handler } = await import('../../../../server/api/v1/posts/[identifier]/index.delete')
     const mockEvent = createHandlerEvent({ method: 'DELETE', path: '/api/v1/posts/1', params: { identifier: '1' } })
     const result = await handler(mockEvent)
-    expect(result).toEqual({ data: { id: 1, deleted: true } })
+    expect(result).toMatchObject({ data: { id: 1, deleted: true, deletionScheduled: true } })
   })
 
   it('returns 404 for non-existent post', async () => {
@@ -245,5 +256,159 @@ describe('GET /api/v1/user/profile', () => {
     const result = await handler(mockEvent)
     expect(result).toHaveProperty('data')
     expect(result.data.email).toBe('admin@test.com')
+  })
+})
+
+describe('POST /api/v1/posts/:identifier/revisions/restore', () => {
+  it('returns 400 for an invalid restore payload', async () => {
+    const { default: handler } = await import('../../../../server/api/v1/posts/[identifier]/revisions/restore.post')
+    const event = createHandlerEvent({
+      method: 'POST',
+      path: '/api/v1/posts/draft-post/revisions/restore',
+      params: { identifier: 'draft-post' },
+      body: { revision: 'latest', expectedRevision: 0 },
+    })
+
+    expect(await handler(event)).toEqual({ error: { code: 'VALIDATION_ERROR', message: 'Invalid restore payload' } })
+  })
+
+  it('restores a saved revision and rejects a stale restore request', async () => {
+    const schema = await import('../../../../server/db/schema')
+    const { blob } = await import('hub:blob')
+    const seeded = state.db()!
+    const previousArticle = { type: 'doc', content: [{ type: 'paragraph' }] }
+    const currentArticle = { type: 'doc', content: [] }
+    const previousPath = 'posts/3/revisions/0.json'
+    vi.mocked(blob.get).mockImplementation(async (path: string) => {
+      const value = path === previousPath ? JSON.stringify(previousArticle) : JSON.stringify(currentArticle)
+      return { text: async () => value } as any
+    })
+    await seeded.insert(schema.post_revisions).values({
+      post_id: 3,
+      revision: 0,
+      blob_path: previousPath,
+      content_hash: 'previous',
+      media_paths: '[]',
+      source: 'editor',
+      created_by: 1,
+    }).run()
+
+    const { default: handler } = await import('../../../../server/api/v1/posts/[identifier]/revisions/restore.post')
+    const firstEvent = createHandlerEvent({
+      method: 'POST',
+      path: '/api/v1/posts/draft-post/revisions/restore',
+      params: { identifier: 'draft-post' },
+      body: { revision: 0, expectedRevision: 0 },
+    })
+    const restored = await handler(firstEvent)
+    expect(restored).toEqual({ data: { restoredRevision: 0, revision: 1 } })
+
+    const staleEvent = createHandlerEvent({
+      method: 'POST',
+      path: '/api/v1/posts/draft-post/revisions/restore',
+      params: { identifier: 'draft-post' },
+      body: { revision: 0, expectedRevision: 0 },
+    })
+    expect(await handler(staleEvent)).toHaveProperty('error.code', 'REVISION_CONFLICT')
+  })
+})
+
+describe('PUT /api/v1/posts/:identifier/article', () => {
+  it('returns 400 for an invalid article payload', async () => {
+    const { default: handler } = await import('../../../../server/api/v1/posts/[identifier]/article.put')
+    const event = createHandlerEvent({
+      method: 'PUT',
+      path: '/api/v1/posts/draft-post/article',
+      params: { identifier: 'draft-post' },
+      body: { article: { type: 'text' }, expectedRevision: 0 },
+    })
+
+    expect(await handler(event)).toEqual({ error: { code: 'VALIDATION_ERROR', message: 'Invalid article payload' } })
+  })
+})
+
+describe('GET /api/v1/posts/:identifier with a scoped API key', () => {
+  async function createApiKey(scopes: string[], postIds: number[], expiresAt = new Date(Date.now() + 60_000).toISOString()) {
+    const { raw, hash, prefix } = await (await import('../../../../server/utils/api')).generateApiKey()
+    const currentDb = state.db()!
+    const schema = await import('../../../../server/db/schema')
+    await currentDb.insert(schema.api_keys).values({
+      user_id: 1,
+      name: 'integration test',
+      hash,
+      prefix,
+      scopes: JSON.stringify(scopes),
+      post_ids: JSON.stringify(postIds),
+      expires_at: expiresAt,
+    }).run()
+    return raw
+  }
+
+  async function setArticleBlob() {
+    const { blob } = await import('hub:blob')
+    vi.mocked(blob.get).mockResolvedValue({ text: async () => JSON.stringify({ type: 'doc', content: [] }) } as any)
+  }
+
+  it('allows a posts:read key to read a draft within its post limit', async () => {
+    vi.mocked(globalThis.requireUserSession).mockRejectedValue(new Error('No session'))
+    const key = await createApiKey(['posts:read'], [3])
+    await setArticleBlob()
+    const { default: handler } = await import('../../../../server/api/v1/posts/[identifier].get')
+    const event = createHandlerEvent({
+      method: 'GET',
+      path: '/api/v1/posts/draft-post',
+      params: { identifier: 'draft-post' },
+      headers: { authorization: `bearer ${key}` },
+    })
+
+    const result = await handler(event)
+    expect(result).toHaveProperty('data.slug', 'draft-post')
+  })
+
+  it('denies a posts:read key when the draft is outside its post limit', async () => {
+    vi.mocked(globalThis.requireUserSession).mockRejectedValue(new Error('No session'))
+    const key = await createApiKey(['posts:read'], [1])
+    await setArticleBlob()
+    const { default: handler } = await import('../../../../server/api/v1/posts/[identifier].get')
+    const event = createHandlerEvent({
+      method: 'GET',
+      path: '/api/v1/posts/draft-post',
+      params: { identifier: 'draft-post' },
+      headers: { authorization: `Bearer ${key}` },
+    })
+
+    const result = await handler(event)
+    expect(result).toHaveProperty('error.code', 'FORBIDDEN')
+  })
+
+  it('denies an expired key on a private post', async () => {
+    vi.mocked(globalThis.requireUserSession).mockRejectedValue(new Error('No session'))
+    const key = await createApiKey(['posts:read'], [3], new Date(Date.now() - 60_000).toISOString())
+    await setArticleBlob()
+    const { default: handler } = await import('../../../../server/api/v1/posts/[identifier].get')
+    const event = createHandlerEvent({
+      method: 'GET',
+      path: '/api/v1/posts/draft-post',
+      params: { identifier: 'draft-post' },
+      headers: { authorization: `Bearer ${key}` },
+    })
+
+    const result = await handler(event)
+    expect(result).toHaveProperty('error.code', 'UNAUTHORIZED')
+  })
+
+  it('denies a key with a malformed expiration value', async () => {
+    vi.mocked(globalThis.requireUserSession).mockRejectedValue(new Error('No session'))
+    const key = await createApiKey(['posts:read'], [3], 'not-a-date')
+    await setArticleBlob()
+    const { default: handler } = await import('../../../../server/api/v1/posts/[identifier].get')
+    const event = createHandlerEvent({
+      method: 'GET',
+      path: '/api/v1/posts/draft-post',
+      params: { identifier: 'draft-post' },
+      headers: { authorization: `Bearer ${key}` },
+    })
+
+    expect(await handler(event)).toHaveProperty('error.code', 'UNAUTHORIZED')
   })
 })

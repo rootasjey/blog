@@ -1,3 +1,4 @@
+import { apiErrorFromException } from '~~/server/utils/api'
 import { blob } from 'hub:blob'
 import { hasPostPermission } from '~~/server/utils/postPermissions'
 import { db, schema } from 'hub:db'
@@ -55,6 +56,6 @@ export default defineEventHandler(async (event) => {
       }
     }
     console.error('[API v1] POST /posts/:id/audios error:', err?.message || err)
-    return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to upload audio')
+    return apiErrorFromException(event, err, 'Failed to upload audio')
   }
 })

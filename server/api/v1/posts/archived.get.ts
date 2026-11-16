@@ -1,3 +1,4 @@
+import { apiErrorFromException } from '~~/server/utils/api'
 import { db, schema } from 'hub:db'
 import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 
@@ -51,6 +52,6 @@ export default defineEventHandler(async (event) => {
     return apiSuccess(event, archivedPosts)
   } catch (err: any) {
     console.error('[API v1] GET /posts/archived error:', err?.message || err)
-    return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to fetch archived posts')
+    return apiErrorFromException(event, err, 'Failed to fetch archived posts')
   }
 })

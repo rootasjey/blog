@@ -2,7 +2,7 @@ import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { hasPostPermission } from '~~/server/utils/postPermissions'
-import { requireCurrentUserSession } from '~~/server/utils/api'
+import { getBearerToken, requireApiKey, requireCurrentUserSession } from '~~/server/utils/api'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -11,12 +11,21 @@ export default defineEventHandler(async (event) => {
       return apiError(event, 400, 'BAD_REQUEST', 'Post identifier is required')
     }
 
-    let actor: { id: number; role: string; authMethod: 'session' } | null = null
+    let actor: { id: number; role: string; authMethod?: 'session' | 'api_key'; apiKeyScopes?: string[]; apiKeyPostIds?: number[] } | null = null
+    let invalidBearer = false
+    const hasBearerCredentials = getBearerToken(getRequestHeader(event, 'authorization')) !== null
     try {
       const session = await requireCurrentUserSession(event)
       actor = { id: session.user.id, role: session.user.role, authMethod: 'session' }
     } catch {
-      // Published posts stay public; private posts require a current session.
+      if (hasBearerCredentials) {
+        try {
+          // A Bearer key can read private posts when its scope and post limit allow it.
+          actor = await requireApiKey(event)
+        } catch {
+          invalidBearer = true
+        }
+      }
     }
 
     const apiPost: any = await getPostByIdentifier(db, identifier)
@@ -24,8 +33,13 @@ export default defineEventHandler(async (event) => {
       return apiError(event, 404, 'NOT_FOUND', `Post "${identifier}" not found`)
     }
 
-    if (apiPost.status !== 'published' && (!actor || !(await hasPostPermission(actor, apiPost, 'read')))) {
-      return apiError(event, 403, 'FORBIDDEN', 'You are not authorized to view this post')
+    if (apiPost.status !== 'published') {
+      if (!actor && invalidBearer) {
+        return apiError(event, 401, 'UNAUTHORIZED', 'Invalid or expired API key')
+      }
+      if (!actor || !(await hasPostPermission(actor, apiPost, 'read'))) {
+        return apiError(event, 403, 'FORBIDDEN', 'You are not authorized to view this post')
+      }
     }
 
     const tagRows = await db

@@ -1,3 +1,4 @@
+import { apiErrorFromException } from '~~/server/utils/api'
 import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
 import { hasPostPermission } from '~~/server/utils/postPermissions'
@@ -32,6 +33,6 @@ export default defineEventHandler(async (event) => {
     })
   } catch (err: any) {
     console.error('[API v1] DELETE /posts/:id error:', err?.message || err)
-    return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to delete post')
+    return apiErrorFromException(event, err, 'Failed to delete post')
   }
 })

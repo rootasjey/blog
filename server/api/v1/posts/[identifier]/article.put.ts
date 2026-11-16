@@ -1,3 +1,4 @@
+import { apiErrorFromException } from '~~/server/utils/api'
 import { db } from 'hub:db'
 import { z } from 'zod'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
@@ -15,7 +16,9 @@ export default defineEventHandler(async (event) => {
     const identifier = decodeURIComponent(getRouterParam(event, 'identifier') ?? '')
     if (!identifier) return apiError(event, 400, 'BAD_REQUEST', 'Post identifier is required')
 
-    const body = bodySchema.parse(await readBody(event))
+    const parsedBody = bodySchema.safeParse(await readBody(event))
+    if (!parsedBody.success) return apiError(event, 400, 'VALIDATION_ERROR', 'Invalid article payload')
+    const body = parsedBody.data
     const post = await getPostByIdentifier(db, identifier)
     if (!post) return apiError(event, 404, 'NOT_FOUND', 'Post not found')
     await assertPostPermission(actor, post, 'edit')
@@ -35,6 +38,6 @@ export default defineEventHandler(async (event) => {
     if (statusCode === 403) return apiError(event, 403, 'FORBIDDEN', error.statusMessage || 'Not authorized')
     if (statusCode === 400) return apiError(event, 400, 'VALIDATION_ERROR', error.statusMessage || 'Invalid article payload')
     console.error('[API v1] PUT /posts/:id/article error:', error?.message || error)
-    return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to update article')
+    return apiErrorFromException(event, error, 'Failed to update article')
   }
 })

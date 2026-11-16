@@ -161,6 +161,7 @@ export const api_keys = sqliteTable('api_keys', {
   scopes: text('scopes').notNull().default('["*"]'),
   post_ids: text('post_ids').notNull().default('[]'),
   created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+  expires_at: text('expires_at'),
   last_used_at: text('last_used_at'),
   revoked_at: text('revoked_at'),
 })

@@ -1,3 +1,4 @@
+import { apiErrorFromException } from '~~/server/utils/api'
 import { hasPostPermission } from '~~/server/utils/postPermissions'
 import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
@@ -30,6 +31,6 @@ export default defineEventHandler(async (event) => {
     return apiSuccess(event, { id: record.id, deleted: true, deletionScheduled: true, deleteAfter: deletion.deleteAfter })
   } catch (err: any) {
     console.error('[API v1] DELETE /posts/:id/audios error:', err?.message || err)
-    return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to delete audio')
+    return apiErrorFromException(event, err, 'Failed to delete audio')
   }
 })

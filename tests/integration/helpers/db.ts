@@ -14,6 +14,11 @@ export type TestDb = {
 export function createTestDb(): TestDb {
   const sqlite = new Database(':memory:')
   const db = drizzle(sqlite, { schema })
+  const batchDb = db as any
+  batchDb.batch = async (queries: any[]) => sqlite.transaction(() => queries.map((query) => {
+    const result = query.run()
+    return { ...result, rowsAffected: result.changes, meta: { changes: result.changes } }
+  }))()
   return { sqlite, db, schema }
 }
 
@@ -31,6 +36,7 @@ export function applyMigrations(sqlite: Database.Database, migrationsDir: string
 export function seedTestData(t: TestDb) {
   t.sqlite.exec(`INSERT INTO users (id, email, name, password, role, slug)
     VALUES (1, 'admin@test.com', 'Admin', 'hashed_pw', 'admin', 'admin')`)
+  t.sqlite.exec(`UPDATE users SET access_role = 'admin' WHERE id = 1`)
 
   t.sqlite.exec(`INSERT INTO tags (id, name, category) VALUES (1, 'vue', 'framework')`)
   t.sqlite.exec(`INSERT INTO tags (id, name, category) VALUES (2, 'nuxt', 'framework')`)

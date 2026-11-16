@@ -13,7 +13,7 @@ const routes = [
   { name: 'home', path: '/fr/', selector: '.site-intro' },
   { name: 'posts', path: '/fr/posts', selector: '.site-post-index' },
   { name: 'projects', path: '/fr/projects', selector: '.site-project-index' },
-  { name: 'tags', path: '/fr/tags', selector: '.site-tags-directory' },
+  { name: 'tags', path: '/fr/tags', selector: '.site-tags-state' },
   { name: 'article', path: '/fr/posts/2025-in-review', selector: '.site-post.site-dynamic-post' },
 ]
 

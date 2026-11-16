@@ -45,7 +45,7 @@ export default defineNuxtConfig({
     cache: usesCloudflarePreset
       ? { driver: 'cloudflare-kv-binding', binding: 'CACHE' }
       : true,
-    db: 'sqlite',
+    db: usesCloudflarePreset ? { dialect: 'sqlite', driver: 'd1' } : 'sqlite',
     kv: true,
   },
 

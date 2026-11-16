@@ -2,6 +2,7 @@ import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { upsertPostTags } from '~~/server/utils/tags'
+import { getInsertedRowId, apiErrorFromException} from '~~/server/utils/api'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -36,7 +37,7 @@ export default defineEventHandler(async (event) => {
         slug: postData.slug, user_id: postData.user_id, status: postData.status,
       }).run()
 
-      const insertedId = Number((result as any)?.lastInsertRowid ?? 0)
+      const insertedId = getInsertedRowId(result)
       if (!insertedId) continue
 
       const article = p.article || createArticle()
@@ -57,6 +58,6 @@ export default defineEventHandler(async (event) => {
     return apiSuccess(event, { count: created.length, posts: created })
   } catch (err: any) {
     console.error('[API v1] POST /posts/import error:', err?.message || err)
-    return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to import posts')
+    return apiErrorFromException(event, err, 'Failed to import posts')
   }
 })

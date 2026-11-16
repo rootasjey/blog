@@ -1,3 +1,4 @@
+import { apiErrorFromException } from '~~/server/utils/api'
 import { db, schema } from 'hub:db'
 import { and, eq, ne, sql } from 'drizzle-orm'
 import { upsertPostTags } from '~~/server/utils/tags'
@@ -64,6 +65,6 @@ export default defineEventHandler(async (event) => {
     return apiSuccess(event, post)
   } catch (err: any) {
     console.error('[API v1] PUT /posts/:id error:', err?.message || err)
-    return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to update post')
+    return apiErrorFromException(event, err, 'Failed to update post')
   }
 })

@@ -1,3 +1,4 @@
+import { apiErrorFromException } from '~~/server/utils/api'
 import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
@@ -152,6 +153,6 @@ export default defineEventHandler(async (event) => {
     return apiCreated(event, post)
   } catch (err: any) {
     console.error('[API v1] POST /posts/:identifier/duplicate error:', err?.message || err)
-    return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to duplicate post')
+    return apiErrorFromException(event, err, 'Failed to duplicate post')
   }
 })

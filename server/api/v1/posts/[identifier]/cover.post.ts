@@ -1,3 +1,4 @@
+import { apiErrorFromException } from '~~/server/utils/api'
 import { blob } from 'hub:blob'
 import { hasPostPermission } from '~~/server/utils/postPermissions'
 import { db, schema } from 'hub:db'
@@ -69,6 +70,6 @@ export default defineEventHandler(async (event) => {
     return apiCreated(event, { alt: fileName, src: originalPath, ext: extension })
   } catch (err: any) {
     console.error('[API v1] POST /posts/:id/cover error:', err?.message || err)
-    return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to upload cover')
+    return apiErrorFromException(event, err, 'Failed to upload cover')
   }
 })

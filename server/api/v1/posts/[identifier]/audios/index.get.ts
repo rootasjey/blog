@@ -1,3 +1,4 @@
+import { apiErrorFromException } from '~~/server/utils/api'
 import { db, schema } from 'hub:db'
 import { hasPostPermission } from '~~/server/utils/postPermissions'
 import { desc, eq } from 'drizzle-orm'
@@ -21,6 +22,6 @@ export default defineEventHandler(async (event) => {
     return apiSuccess(event, rows)
   } catch (err: any) {
     console.error('[API v1] GET /posts/:id/audios error:', err?.message || err)
-    return apiError(event, 500, 'INTERNAL_ERROR', 'Failed to fetch audios')
+    return apiErrorFromException(event, err, 'Failed to fetch audios')
   }
 })

@@ -19,6 +19,13 @@ export type AuthenticatedUser = {
   apiKeyPostIds?: number[]
 }
 
+export function getInsertedRowId(result: unknown): number {
+  const insertResult = result as { lastInsertRowid?: number | string; meta?: { last_row_id?: number | string } } | null
+  const rawId = insertResult?.lastInsertRowid ?? insertResult?.meta?.last_row_id
+  const id = Number(rawId)
+  return Number.isSafeInteger(id) && id > 0 ? id : 0
+}
+
 export function apiSuccess<T>(event: any, data: T, meta?: ApiMeta) {
   setResponseStatus(event, 200)
   setResponseHeader(event, 'content-type', 'application/json')
@@ -37,6 +44,24 @@ export function apiError(event: any, statusCode: number, code: string, message: 
   return { error: { code, message } }
 }
 
+export function apiErrorFromException(event: any, error: unknown, fallbackMessage: string) {
+  const statusCode = Number((error as { statusCode?: unknown } | null)?.statusCode)
+  if (statusCode >= 400 && statusCode < 500) {
+    const errors: Record<number, { code: string; message: string }> = {
+      400: { code: 'BAD_REQUEST', message: 'Request could not be processed' },
+      401: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+      403: { code: 'FORBIDDEN', message: 'You are not authorized to perform this action' },
+      404: { code: 'NOT_FOUND', message: 'Resource not found' },
+      409: { code: 'CONFLICT', message: 'Request conflicts with the current resource state' },
+      422: { code: 'VALIDATION_ERROR', message: 'Request validation failed' },
+    }
+    const response = errors[statusCode] ?? { code: 'REQUEST_ERROR', message: 'Request could not be processed' }
+    return apiError(event, statusCode, response.code, response.message)
+  }
+
+  return apiError(event, 500, 'INTERNAL_ERROR', fallbackMessage)
+}
+
 export function parsePagination(query: any, maxLimit = 50) {
   let page = Number.parseInt(query.page as string || '1', 10)
   let limit = Number.parseInt(query.limit as string || '25', 10)
@@ -52,6 +77,12 @@ export function buildMeta(page: number, limit: number, total: number): ApiMeta {
 }
 
 const API_KEY_PREFIX = 'ene_'
+
+export function getBearerToken(header: string | undefined): string | null {
+  if (!header) return null
+  const match = header.match(/^Bearer\s+(.+)$/i)
+  return match?.[1]?.trim() || null
+}
 
 function hex(bytes: Uint8Array): string {
   return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('')
@@ -83,6 +114,10 @@ export async function verifyApiKey(rawKey: string): Promise<{ valid: boolean; us
 
   const row = rows[0] as any
   if (row.api_keys.revoked_at) return { valid: false }
+  if (row.api_keys.expires_at) {
+    const expiresAt = Date.parse(row.api_keys.expires_at)
+    if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) return { valid: false }
+  }
 
   await db
     .update(schema.api_keys)
@@ -107,14 +142,14 @@ export async function verifyApiKey(rawKey: string): Promise<{ valid: boolean; us
 
 export async function requireApiKey(event: any): Promise<AuthenticatedUser> {
   const header = getRequestHeader(event, 'authorization')
-  if (!header || !header.startsWith('Bearer ')) {
+  const rawKey = getBearerToken(header)
+  if (!rawKey) {
     throw createError({
       statusCode: 401,
       message: JSON.stringify({ code: 'UNAUTHORIZED', message: 'Missing or invalid Authorization header' }),
     })
   }
 
-  const rawKey = header.slice(7)
   const result = await verifyApiKey(rawKey)
   if (!result.valid || !result.user) {
     throw createError({
