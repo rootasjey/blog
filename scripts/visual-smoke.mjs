@@ -144,9 +144,25 @@ await mkdir(outputDir, { recursive: true })
 const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH
   || (existsSync(macChromePath) ? macChromePath : puppeteer.executablePath())
 
-assert.ok(existsSync(executablePath), 'Install Puppeteer Chrome or set PUPPETEER_EXECUTABLE_PATH')
+assert.ok(
+  existsSync(executablePath),
+  `Browser executable not found at "${executablePath}". Install Puppeteer Chrome or set PUPPETEER_EXECUTABLE_PATH.`,
+)
 
-const browser = await puppeteer.launch({ headless: true, executablePath })
+let browser
+try {
+  browser = await puppeteer.launch({ headless: true, executablePath })
+} catch (error) {
+  const detail = error instanceof Error ? error.message : String(error)
+  const macOSHint = process.platform === 'darwin'
+    ? 'On macOS, launch failures can come from sandbox restrictions or an incomplete browser install. If running in a sandboxed Codex context, retry in an approved unsandboxed context; if the error mentions a missing Framework, repair Puppeteer Chrome or set PUPPETEER_EXECUTABLE_PATH to a complete browser.'
+    : 'Check that the browser binary is complete and that this environment permits launching it.'
+
+  throw new Error(
+    `Unable to launch Puppeteer browser at "${executablePath}" (${process.platform}/${process.arch}). ${macOSHint}\n${detail}`,
+    { cause: error },
+  )
+}
 
 try {
   const page = await browser.newPage()
