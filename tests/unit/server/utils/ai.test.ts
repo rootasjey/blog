@@ -78,6 +78,24 @@ describe('aiRequestSchema', () => {
     expect(result.success).toBe(true)
   })
 
+  it('accepts Cloudflare model identifiers with a leading at sign', () => {
+    const result = aiRequestSchema.safeParse({
+      action: 'fix',
+      content: 'hello',
+      model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects an at sign in the middle of a model identifier', () => {
+    const result = aiRequestSchema.safeParse({
+      action: 'fix',
+      content: 'hello',
+      model: 'cf@meta/model',
+    })
+    expect(result.success).toBe(false)
+  })
+
   it('rejects empty content', () => {
     const result = aiRequestSchema.safeParse({ action: 'fix', content: '' })
     expect(result.success).toBe(false)

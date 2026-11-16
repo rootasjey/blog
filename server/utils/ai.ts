@@ -12,7 +12,7 @@ export const aiRequestSchema = z.object({
   targetLanguage: z.string().optional(),
   sourceLanguage: z.string().optional(),
   provider: z.enum(['cloudflare', 'openrouter']).optional(),
-  model: z.string().trim().min(1).max(160).regex(/^[\w./:-]+$/).optional(),
+  model: z.string().trim().min(1).max(160).regex(/^@?[\w./:-]+$/).optional(),
 }).superRefine((val, ctx) => {
   if (val.action === 'translate' && !val.targetLanguage) {
     ctx.addIssue({
