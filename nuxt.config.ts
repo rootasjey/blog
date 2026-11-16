@@ -107,8 +107,6 @@ export default defineNuxtConfig({
     // Secret key used to authorize clearing the OG cache via GET endpoint
     ogCacheResetKey: process.env.NUXT_OG_CACHE_RESET_KEY || '',
     ai: {
-      cloudflareKey: process.env.NUXT_AI_CLOUDFLARE_KEY || '',
-      cloudflareAccountId: process.env.NUXT_AI_CLOUDFLARE_ACCOUNT_ID || '',
       defaultProvider: process.env.NUXT_AI_DEFAULT_AI_PROVIDER === 'openrouter' ? 'openrouter' : 'cloudflare',
       openrouterKey: process.env.NUXT_AI_OPENROUTER_KEY || '',
       openrouterBaseUrl: process.env.NUXT_AI_OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1',

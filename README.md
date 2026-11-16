@@ -144,9 +144,11 @@ Create a `.env` file:
 
 ```bash
 # AI Writer (optional)
-NUXT_AI_CLOUDFLARE_ACCOUNT_ID=your_account_id
-NUXT_AI_CLOUDFLARE_KEY=your_api_key
 NUXT_PUBLIC_FEATURE_AI_WRITER=true
+
+# Local node-server development: use OpenRouter; Workers AI is a Cloudflare binding.
+NUXT_AI_DEFAULT_AI_PROVIDER=openrouter
+NUXT_AI_OPENROUTER_KEY=your_api_key
 
 # Site URL
 NUXT_PUBLIC_SITE_URL=http://localhost:3000

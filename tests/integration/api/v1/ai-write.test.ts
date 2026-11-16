@@ -4,7 +4,6 @@ import { eq } from 'drizzle-orm'
 import { createHandlerEvent } from '../../helpers/handler'
 import { createTestDbSeeded, type TestDb } from '../../helpers/db'
 import * as schema from '../../../../server/db/schema'
-import { WorkersAIHttpError } from '../../../../server/utils/ai'
 
 const mocks = vi.hoisted(() => {
   let testDb: TestDb | null = null
@@ -63,6 +62,7 @@ async function invokeAiWrite(body: Record<string, unknown>, apiKey?: string) {
       ...(apiKey ? { authorization: `Bearer ${apiKey}` } : {}),
     },
   })
+  Object.assign(event.context, { cloudflare: { env: { AI: { run: vi.fn() } } } })
 
   try {
     const result = await handler(event)
@@ -76,7 +76,21 @@ async function aiRequestRows() {
   return mocks.db()!.select().from(schema.ai_requests)
 }
 
-async function invokeAiWriteStream(body: Record<string, unknown>, apiKey: string) {
+async function waitForAiRequestStatus(status: string) {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const [request] = await aiRequestRows()
+    if (request?.status === status) return request
+    await new Promise(resolve => setTimeout(resolve, 5))
+  }
+
+  return (await aiRequestRows())[0]
+}
+
+async function invokeAiWriteStream(
+  body: Record<string, unknown>,
+  apiKey: string,
+  options: { signal?: AbortSignal; beforeConsume?: () => void; cancelBody?: boolean } = {},
+) {
   const { default: handler } = await import('../../../../server/api/v1/ai/write.post')
   const event = createHandlerEvent({
     method: 'POST',
@@ -84,9 +98,16 @@ async function invokeAiWriteStream(body: Record<string, unknown>, apiKey: string
     body,
     headers: { host: 'staging.test', authorization: `Bearer ${apiKey}` },
   })
+  Object.assign(event.context, { cloudflare: { env: { AI: { run: vi.fn() } } } })
+  if (options.signal) Object.assign(event, { web: { request: { signal: options.signal } } })
   const response = await handler(event) as Response
   if (typeof response?.text !== 'function') {
     throw new Error(`Expected a streaming Response, got status ${event.res.statusCode}: ${JSON.stringify(response)}`)
+  }
+  options.beforeConsume?.()
+  if (options.cancelBody) {
+    await response.body?.cancel()
+    return { response, body: '' }
   }
   return { response, body: await response.text() }
 }
@@ -122,15 +143,11 @@ describe('POST /api/v1/ai/write authorization gates', () => {
       requireWriteAccess: (await import('../../../../server/utils/api')).requireWriteAccess,
       useRuntimeConfig: vi.fn(() => ({ ai: {
         defaultProvider: 'cloudflare',
-        cloudflareKey: 'test-key',
-        cloudflareAccountId: 'test-account',
       } })),
     })
     const nuxtApp = (await import('#app')).useNuxtApp()
     Object.assign(nuxtApp.$config, { ai: {
       defaultProvider: 'cloudflare',
-      cloudflareKey: 'test-key',
-      cloudflareAccountId: 'test-account',
     } })
 
     const postUtils = await import('../../../../server/utils/post')
@@ -210,12 +227,12 @@ describe('POST /api/v1/ai/write authorization gates', () => {
     expect(request?.error_code).toBe('empty_provider_response')
   })
 
-  it('preserves a Workers AI HTTP status in the audit row and SSE error event', async () => {
+  it('records provider failures in the audit row and SSE error event', async () => {
     const apiKey = await createApiKey(['ai:run'], [1])
     mocks.streamAI.mockResolvedValueOnce({
       textStream: new ReadableStream<string>({
         start(controller) {
-          controller.error(new WorkersAIHttpError(403))
+          controller.error(new Error('Workers AI unavailable'))
         },
       }),
     })
@@ -226,11 +243,10 @@ describe('POST /api/v1/ai/write authorization gates', () => {
       postIdentifier: '1',
     }, apiKey.raw)
 
-    expect(response.body).toContain('event: error\ndata: provider_http_403')
-    expect(response.body).not.toContain('test-key')
+    expect(response.body).toContain('event: error\ndata: provider_stream_error')
     const [request] = await aiRequestRows()
     expect(request?.status).toBe('failed')
-    expect(request?.error_code).toBe('provider_http_403')
+    expect(request?.error_code).toBe('provider_stream_error')
   })
 
   it('completes a provider stream that contains generated text', async () => {
@@ -289,5 +305,51 @@ describe('POST /api/v1/ai/write authorization gates', () => {
     const [request] = await aiRequestRows()
     expect(request?.status).toBe('failed')
     expect(request?.error_code).toBe('provider_stream_error')
+  })
+
+  it('marks a gracefully closed stream as cancelled after the request is aborted', async () => {
+    const apiKey = await createApiKey(['ai:run'], [1])
+    const abort = new AbortController()
+    mocks.streamAI.mockResolvedValueOnce({
+      textStream: new ReadableStream<string>({
+        start(controller) {
+          controller.enqueue('Partial text.')
+          controller.close()
+        },
+      }),
+    })
+
+    const response = await invokeAiWriteStream({
+      action: 'ask',
+      content: 'Provide a short greeting.',
+      postIdentifier: '1',
+    }, apiKey.raw, { signal: abort.signal, beforeConsume: () => abort.abort() })
+
+    expect(response.body).toContain('event: error\ndata: cancelled')
+    expect(response.body).not.toContain('event: end')
+    const request = await waitForAiRequestStatus('cancelled')
+    expect(request?.status).toBe('cancelled')
+    expect(request?.error_code).toBe('cancelled')
+  })
+
+  it('marks an explicitly cancelled response body as cancelled', async () => {
+    const apiKey = await createApiKey(['ai:run'], [1])
+    mocks.streamAI.mockResolvedValueOnce({
+      textStream: new ReadableStream<string>({
+        start(controller) {
+          controller.enqueue('Partial text.')
+        },
+      }),
+    })
+
+    await invokeAiWriteStream({
+      action: 'ask',
+      content: 'Provide a short greeting.',
+      postIdentifier: '1',
+    }, apiKey.raw, { cancelBody: true })
+
+    const request = await waitForAiRequestStatus('cancelled')
+    expect(request?.status).toBe('cancelled')
+    expect(request?.error_code).toBe('cancelled')
   })
 })

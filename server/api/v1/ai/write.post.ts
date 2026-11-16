@@ -1,19 +1,11 @@
 import { and, eq } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
-import { aiRequestSchema, DEFAULT_CLOUDFLARE_MODEL, DEFAULT_CLOUDFLARE_SUMMARY_MODEL, getPrompt, resolveModel, streamAI, summarizeWithWorkersAI, translateWithWorkersAI, WorkersAIHttpError } from '~~/server/utils/ai'
-import type { AIProvider } from '~~/server/utils/ai'
+import { aiRequestSchema, DEFAULT_CLOUDFLARE_MODEL, DEFAULT_CLOUDFLARE_SUMMARY_MODEL, getPrompt, resolveModel, streamAI, summarizeWithWorkersAI, translateWithWorkersAI } from '~~/server/utils/ai'
+import type { AIProvider, WorkersAIBinding } from '~~/server/utils/ai'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
 
 function encodeSseData(text: string) {
   return text.replace(/\r\n/g, '\n').split('\n').map(line => `data: ${line}`).join('\n') + '\n\n'
-}
-
-function getProviderErrorCode(error: unknown, fallback: string) {
-  if (error instanceof WorkersAIHttpError) {
-    return `provider_http_${error.status}`
-  }
-
-  return fallback
 }
 
 export default defineEventHandler(async (event) => {
@@ -33,6 +25,9 @@ export default defineEventHandler(async (event) => {
   const provider: AIProvider = request.action === 'translate' || request.action === 'summarize'
     ? 'cloudflare'
     : requestedProvider
+  const cloudflareBinding = (event.context as typeof event.context & {
+    cloudflare?: { env?: { AI?: WorkersAIBinding } }
+  }).cloudflare?.env?.AI
   const model = request.action === 'translate'
     ? '@cf/meta/m2m100-1.2b'
     : request.action === 'summarize'
@@ -42,7 +37,7 @@ export default defineEventHandler(async (event) => {
   if (provider === 'openrouter' && !config.ai?.openrouterKey) {
     return apiError(event, 503, 'AI_NOT_CONFIGURED', 'OpenRouter is not configured')
   }
-  if (provider === 'cloudflare' && (!config.ai?.cloudflareKey || !config.ai?.cloudflareAccountId)) {
+  if (provider === 'cloudflare' && !cloudflareBinding) {
     return apiError(event, 503, 'AI_NOT_CONFIGURED', 'Workers AI is not configured')
   }
 
@@ -59,13 +54,18 @@ export default defineEventHandler(async (event) => {
   if (!inserted) return apiError(event, 500, 'AI_REQUEST_LOG_FAILED', 'Could not create AI request record')
 
   const abort = new AbortController()
-  const requestSignal = (event as any).web?.request?.signal ?? (event as any).req?.signal
-  requestSignal?.addEventListener?.('abort', () => abort.abort(), { once: true })
+  const requestSignal = (event as any).web?.request?.signal
+  if (requestSignal?.aborted) {
+    abort.abort()
+  } else {
+    requestSignal?.addEventListener?.('abort', () => abort.abort(), { once: true })
+  }
 
   try {
     let textStream: ReadableStream<string>
     if (request.action === 'translate') {
-      const result = await translateWithWorkersAI(config.ai.cloudflareAccountId, config.ai.cloudflareKey, {
+      if (!cloudflareBinding) throw new Error('Workers AI is not configured')
+      const result = await translateWithWorkersAI(cloudflareBinding, {
         text: request.content,
         targetLanguage: request.targetLanguage!,
         sourceLanguage: request.sourceLanguage || request.language,
@@ -73,7 +73,8 @@ export default defineEventHandler(async (event) => {
       })
       textStream = new ReadableStream({ start(controller) { controller.enqueue(result); controller.close() } })
     } else if (request.action === 'summarize') {
-      const result = await summarizeWithWorkersAI(config.ai.cloudflareAccountId, config.ai.cloudflareKey, {
+      if (!cloudflareBinding) throw new Error('Workers AI is not configured')
+      const result = await summarizeWithWorkersAI(cloudflareBinding, {
         text: request.content,
         length: request.length,
         signal: abort.signal,
@@ -82,8 +83,7 @@ export default defineEventHandler(async (event) => {
     } else {
       const response = await streamAI({
         provider,
-        cloudflareAccountId: config.ai?.cloudflareAccountId,
-        cloudflareApiKey: config.ai?.cloudflareKey,
+        cloudflareBinding,
         openrouterKey: config.ai?.openrouterKey,
         openrouterBaseUrl: config.ai?.openrouterBaseUrl,
         model: request.model,
@@ -96,20 +96,31 @@ export default defineEventHandler(async (event) => {
     }
 
     const encoder = new TextEncoder()
+    let streamReader: ReadableStreamDefaultReader<string> | undefined
+    let outputCancelled = false
     const output = new ReadableStream<Uint8Array>({
       async start(controller) {
         const reader = textStream.getReader()
+        streamReader = reader
         let failed = false
         let generatedText = ''
         try {
-          controller.enqueue(encoder.encode(':ok\n\n'))
+          if (!outputCancelled) controller.enqueue(encoder.encode(':ok\n\n'))
           while (true) {
             const { done, value } = await reader.read()
             if (done) break
             generatedText += value
-            controller.enqueue(encoder.encode(encodeSseData(value)))
+            if (!outputCancelled) controller.enqueue(encoder.encode(encodeSseData(value)))
           }
-          if (!generatedText.trim()) {
+          if (abort.signal.aborted) {
+            failed = true
+            await db.update(schema.ai_requests).set({
+              status: 'cancelled',
+              error_code: 'cancelled',
+              duration_ms: Date.now() - startedAt,
+            }).where(eq(schema.ai_requests.id, inserted.id)).run()
+            if (!outputCancelled) controller.enqueue(encoder.encode('event: error\ndata: cancelled\n\n'))
+          } else if (!generatedText.trim()) {
             failed = true
             const code = 'empty_provider_response'
             await db.update(schema.ai_requests).set({
@@ -123,15 +134,15 @@ export default defineEventHandler(async (event) => {
           }
         } catch (error) {
           failed = true
-          const code = abort.signal.aborted
-            ? 'cancelled'
-            : getProviderErrorCode(error, 'provider_stream_error')
+          const code = abort.signal.aborted ? 'cancelled' : 'provider_stream_error'
           await db.update(schema.ai_requests).set({
             status: abort.signal.aborted ? 'cancelled' : 'failed',
             error_code: code,
             duration_ms: Date.now() - startedAt,
           }).where(eq(schema.ai_requests.id, inserted.id)).run()
-          controller.enqueue(encoder.encode(`event: error\ndata: ${code}\n\n`))
+          if (!abort.signal.aborted && !outputCancelled) {
+            controller.enqueue(encoder.encode(`event: error\ndata: ${code}\n\n`))
+          }
         } finally {
           try { reader.releaseLock() } catch {}
           if (!failed) {
@@ -140,8 +151,13 @@ export default defineEventHandler(async (event) => {
               duration_ms: Date.now() - startedAt,
             }).where(eq(schema.ai_requests.id, inserted.id)).run()
           }
-          controller.close()
+          if (!outputCancelled) controller.close()
         }
+      },
+      async cancel(reason) {
+        outputCancelled = true
+        abort.abort()
+        await streamReader?.cancel(reason)
       },
     })
 
@@ -152,9 +168,7 @@ export default defineEventHandler(async (event) => {
       'X-Accel-Buffering': 'no',
     } })
   } catch (error: any) {
-    const code = abort.signal.aborted
-      ? 'cancelled'
-      : getProviderErrorCode(error, 'provider_request_error')
+    const code = abort.signal.aborted ? 'cancelled' : 'provider_request_error'
     await db.update(schema.ai_requests).set({
       status: abort.signal.aborted ? 'cancelled' : 'failed',
       error_code: code,

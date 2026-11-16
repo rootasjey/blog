@@ -25,57 +25,33 @@ export const aiRequestSchema = z.object({
 
 export type AIRequest = z.infer<typeof aiRequestSchema>
 export type AIProvider = 'cloudflare' | 'openrouter'
+export type WorkersAIBinding = NonNullable<Parameters<typeof createWorkersAI>[0]['binding']>
 
 export const DEFAULT_CLOUDFLARE_MODEL = '@cf/zai-org/glm-4.7-flash'
 export const DEFAULT_CLOUDFLARE_SUMMARY_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
-
-export class WorkersAIHttpError extends Error {
-  constructor(public readonly status: number) {
-    super(`Workers AI request failed with HTTP ${status}`)
-    this.name = 'WorkersAIHttpError'
-  }
-}
 
 const DEFAULT_MODELS: Record<AIProvider, string> = {
   cloudflare: DEFAULT_CLOUDFLARE_MODEL,
   openrouter: 'mistralai/devstral-2512:free',
 }
 
-export function getCFClient(accountId: string, apiKey: string) {
-  return createWorkersAI({
-    binding: {
-      async run(model: string, input: Record<string, unknown>) {
-        const response = await fetch(
-          `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model}`,
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${apiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(input),
-          },
-        )
+export function getCFClient(binding: WorkersAIBinding) {
+  return createWorkersAI({ binding })
+}
 
-        if (!response.ok) {
-          throw new WorkersAIHttpError(response.status)
-        }
+function getAbortableWorkersAIBinding(binding: WorkersAIBinding, signal?: AbortSignal) {
+  if (!signal) return binding
 
-        if (input.stream === true) {
-          if (!response.body) {
-            throw new Error('Workers AI returned no response body')
-          }
-          return response.body
-        }
+  const run = (...args: Parameters<WorkersAIBinding['run']>) => {
+    const [model, input, runOptions] = args
+    return binding.run(model, input, { ...runOptions, signal })
+  }
 
-        const payload = await response.json().catch(() => null)
-        if (!payload || typeof payload !== 'object' || !('result' in payload)) {
-          throw new Error('Workers AI returned an invalid response')
-        }
-
-        return payload.result
-      },
-    } as unknown as NonNullable<Parameters<typeof createWorkersAI>[0]['binding']>,
+  return new Proxy(binding, {
+    get(target, property, receiver) {
+      if (property === 'run') return run
+      return Reflect.get(target, property, receiver)
+    },
   })
 }
 
@@ -119,37 +95,21 @@ export function getPrompt(req: AIRequest) {
 }
 
 export async function translateWithWorkersAI(
-  accountId: string,
-  apiKey: string,
+  binding: WorkersAIBinding,
   input: { text: string; targetLanguage: string; sourceLanguage?: string; signal?: AbortSignal },
 ) {
-  const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/meta/m2m100-1.2b`
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      text: input.text,
-      target_lang: input.targetLanguage,
-      ...(input.sourceLanguage ? { source_lang: input.sourceLanguage } : {}),
-    }),
-    signal: input.signal,
-  })
+  const response = await binding.run('@cf/meta/m2m100-1.2b', {
+    text: input.text,
+    target_lang: input.targetLanguage,
+    ...(input.sourceLanguage ? { source_lang: input.sourceLanguage } : {}),
+  }, { signal: input.signal })
 
-  if (!res.ok) {
-    const msg = await res.text().catch(() => '')
-    throw new Error(`Workers AI translate failed: ${res.status} ${res.statusText} ${msg}`)
-  }
-
-  const json = await res.json().catch(() => null)
-  const translated = json?.result?.translated_text
+  const translated = (response as { translated_text?: unknown } | null)?.translated_text
   if (!translated || typeof translated !== 'string') {
     throw new Error('Workers AI translate returned an empty response')
   }
 
-  return translated as string
+  return translated
 }
 
 export function getSummaryMaxLength(length?: AIRequest['length']) {
@@ -205,6 +165,7 @@ function getSummaryText(json: any) {
 
   const candidates = [
     json?.result?.response,
+    json?.response,
     getMessageText(json?.result?.choices?.[0]?.message?.content),
     getMessageText(json?.result?.response?.choices?.[0]?.message?.content),
     getMessageText(json?.choices?.[0]?.message?.content),
@@ -257,40 +218,24 @@ function getSummaryResponseShape(json: any) {
 }
 
 export async function summarizeWithWorkersAI(
-  accountId: string,
-  apiKey: string,
+  binding: WorkersAIBinding,
   input: { text: string; length?: AIRequest['length']; signal?: AbortSignal },
 ) {
-  const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${DEFAULT_CLOUDFLARE_SUMMARY_MODEL}`
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      messages: [
-        {
-          role: 'system',
-          content: getSummaryInstruction(getSummarySentenceRange(input.length)),
-        },
-        { role: 'user', content: JSON.stringify(input.text) },
-      ],
-      max_tokens: getSummaryMaxLength(input.length),
-      temperature: 0.2,
-    }),
-    signal: input.signal,
-  })
+  const response = await binding.run(DEFAULT_CLOUDFLARE_SUMMARY_MODEL, {
+    messages: [
+      {
+        role: 'system',
+        content: getSummaryInstruction(getSummarySentenceRange(input.length)),
+      },
+      { role: 'user', content: JSON.stringify(input.text) },
+    ],
+    max_tokens: getSummaryMaxLength(input.length),
+    temperature: 0.2,
+  }, { signal: input.signal })
 
-  if (!res.ok) {
-    const msg = await res.text().catch(() => '')
-    throw new Error(`Workers AI summarize failed: ${res.status} ${res.statusText} ${msg}`)
-  }
-
-  const json = await res.json().catch(() => null)
-  const summary = getSummaryText(json)
+  const summary = getSummaryText(response)
   if (!summary || typeof summary !== 'string') {
-    throw new Error(`Workers AI summarize returned no recognized text; response shape: ${JSON.stringify(getSummaryResponseShape(json))}`)
+    throw new Error(`Workers AI summarize returned no recognized text; response shape: ${JSON.stringify(getSummaryResponseShape(response))}`)
   }
 
   return summary as string
@@ -313,8 +258,7 @@ export function toSSEStreamFromText(text: string) {
 
 export async function streamAI(options: {
   provider: AIProvider
-  cloudflareAccountId?: string
-  cloudflareApiKey?: string
+  cloudflareBinding?: WorkersAIBinding
   openrouterKey?: string
   openrouterBaseUrl?: string
   model?: string
@@ -338,11 +282,11 @@ export async function streamAI(options: {
     })
   }
 
-  if (!options.cloudflareAccountId || !options.cloudflareApiKey) {
+  if (!options.cloudflareBinding) {
     throw new Error('Workers AI not configured')
   }
 
-  const provider = getCFClient(options.cloudflareAccountId, options.cloudflareApiKey)
+  const provider = getCFClient(getAbortableWorkersAIBinding(options.cloudflareBinding, options.signal))
   let providerError: unknown
   const response = streamText({
     model: provider(model, { safePrompt: true }),
