@@ -10,11 +10,8 @@
     <!-- Image specific actions -->
     <template v-if="imageSelected">
       <div class="flex items-center gap-2">
-        <button type="button" @click="setImageDisplay('center')" :class="{ 'is-active': currentImageDisplay === 'center' }" title="Center image" aria-label="Center image">
-          <span class="i-lucide-align-center" />
-        </button>
-        <button type="button" @click="setImageDisplay('full-bleed')" :class="{ 'is-active': currentImageDisplay === 'full-bleed' }" title="Full width (bleed)" aria-label="Full width (bleed)">
-          <span class="i-lucide-maximize-2" />
+        <button type="button" @click="toggleImageDisplay" :title="imageDisplayLabel" :aria-label="imageDisplayLabel">
+          <span :class="currentImageDisplay === 'full-bleed' ? 'i-lucide-minimize-2' : 'i-lucide-maximize-2'" />
         </button>
 
         <button type="button" @click="downloadSelectedImage" title="Download image">
@@ -30,6 +27,13 @@
           <span class="i-lucide-trash" />
         </button>
         <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFilePicked" />
+      </div>
+    </template>
+    <template v-else-if="gallerySelected">
+      <div class="flex items-center gap-2">
+        <button type="button" @click="toggleGalleryDisplay" :title="galleryDisplayLabel" :aria-label="galleryDisplayLabel">
+          <span :class="currentGalleryDisplay === 'full-bleed' ? 'i-lucide-minimize-2' : 'i-lucide-maximize-2'" />
+        </button>
       </div>
     </template>
     <!-- Audio specific actions -->
@@ -304,6 +308,11 @@ const imageSelected = computed(() => {
   return !!sel && !!sel.node && sel.node.type?.name === 'image'
 })
 
+const gallerySelected = computed(() => {
+  const sel = props.editor?.state.selection as any | undefined
+  return !!sel && !!sel.node && sel.node.type?.name === 'imageGallery'
+})
+
 // Check if an audio node is selected
 const audioSelected = computed(() => {
   const sel = props.editor?.state.selection as any | undefined
@@ -355,9 +364,18 @@ function setCodeBlockLanguage(language: string | null) {
 const copied = ref(false)
 
 const currentImageDisplay = computed(() => props.editor?.getAttributes('image')?.display || 'center')
-function setImageDisplay(mode: 'center' | 'full-bleed') {
+const imageDisplayLabel = computed(() => currentImageDisplay.value === 'full-bleed' ? 'Center image' : 'Expand image')
+const currentGalleryDisplay = computed(() => props.editor?.getAttributes('imageGallery')?.display || 'center')
+const galleryDisplayLabel = computed(() => currentGalleryDisplay.value === 'full-bleed' ? 'Center gallery' : 'Expand gallery')
+
+function toggleImageDisplay() {
   if (!props.editor) return
-  props.editor.chain().focus().updateAttributes('image', { display: mode }).run()
+  props.editor.commands.updateAttributes('image', { display: currentImageDisplay.value === 'full-bleed' ? 'center' : 'full-bleed' })
+}
+
+function toggleGalleryDisplay() {
+  if (!props.editor) return
+  props.editor.commands.updateAttributes('imageGallery', { display: currentGalleryDisplay.value === 'full-bleed' ? 'center' : 'full-bleed' })
 }
 
 // Current separator dashed attribute helper

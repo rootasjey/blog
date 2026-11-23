@@ -1,5 +1,5 @@
 <template>
-  <NodeViewWrapper :class="['image-gallery', galleryClass, selected ? 'is-selected' : '']">
+  <NodeViewWrapper :class="['image-gallery', galleryClass, displayClass, selected ? 'is-selected' : '']">
     <div ref="gridRef" class="gallery-grid relative" :style="galleryStyle">
       <div
         v-for="(img, idx) in images"
@@ -85,6 +85,7 @@ const galleryClass = computed(() => {
   if (count > 3) return 'image-gallery--grid'
   return ''
 })
+const displayClass = computed(() => `image-gallery--${props.node.attrs?.display === 'full-bleed' ? 'full-bleed' : 'center'}`)
 
 const minHeight = 120
 const isResizing = ref(false)
@@ -302,10 +303,9 @@ onBeforeUnmount(() => {
 }
 
 .image-gallery.is-selected {
-  outline: 2px solid var(--site-color-focus-ring, #737378);
-  outline-offset: 4px;
-  border-radius: 0.75rem;
+  outline: none;
 }
+.image-gallery--full-bleed { width: 100vw; max-width: none; margin-inline: calc(50% - 50vw); padding-inline: 16px; box-sizing: border-box; }
 
 .gallery-grid {
   display: grid;

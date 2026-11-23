@@ -148,5 +148,10 @@ function forwardEditor(ed: any) { emit('editor-ready', ed) }
 .site-shell .site-post-content .post-content img { border-radius: var(--site-radius-inline-media); }
 .post-content figure.image-figure--full-bleed { width: 100vw; max-width: none; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); padding-inline: 16px; box-sizing: border-box; }
 .post-content figure.image-figure--full-bleed img { width: 100%; max-width: none; margin: 0; border-radius: 0; }
+.post-content .image-gallery--full-bleed { width: 100vw; max-width: none; margin-inline: calc(50% - 50vw); padding-inline: 16px; box-sizing: border-box; }
+.post-content--editor .ProseMirror:focus,
+.post-content--editor .ProseMirror:focus-visible { border: 0; outline: none; box-shadow: none; }
+.post-content--editor .ProseMirror :is(figure.image-figure.is-selected, .image-gallery.is-selected),
+.post-content--editor .ProseMirror img.ProseMirror-selectednode { outline: none; box-shadow: none; }
 }
 </style>

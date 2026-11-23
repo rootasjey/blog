@@ -79,6 +79,23 @@
   color: var(--site-color-text);
 }
 
+.site-shell .site-post-editor .site-editor-feedback {
+  position: fixed;
+  z-index: 60;
+  top: 16px;
+  left: 50%;
+  max-width: min(560px, calc(100vw - 32px));
+  padding: 10px 14px;
+  transform: translateX(-50%);
+  border: 1px solid var(--site-color-border);
+  border-radius: var(--site-radius-control);
+  background: var(--site-color-surface);
+  color: var(--site-color-text);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 24%);
+  font-size: 13px;
+}
+.site-shell .site-post-editor .site-editor-feedback.is-error { border-color: color-mix(in srgb, #ef4444 42%, var(--site-color-border)); }
+
 .site-shell .site-post-editor .site-editor-toolbar-back,
 .site-shell .site-post-editor .site-editor-tool-button,
 .site-shell .site-post-editor .site-editor-action {
@@ -200,6 +217,8 @@
 
 .site-shell .site-post-editor .site-editor-canvas .post-content--editor > .ProseMirror {
   border: 0;
+  outline: none;
+  box-shadow: none;
 }
 
 .site-shell .site-post-editor .post-content--editor .ProseMirror {

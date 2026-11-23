@@ -1,5 +1,8 @@
 <template>
   <div v-if="post" class="min-h-screen site-post site-dynamic-post site-post-editor site-post-editor--post">
+    <div v-if="error || successMessage" class="site-editor-feedback" :class="{ 'is-error': error }" :role="error ? 'alert' : 'status'">
+      {{ error || successMessage }}
+    </div>
     <!-- Floating action bar -->
     <PostEditorToolbar
       :status="status"

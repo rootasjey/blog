@@ -1,6 +1,6 @@
 {
   "name": "eneide",
-  "version": "5.1.5",
+  "version": "5.2.0",
   "type": "module",
   "private": true,
   "workspaces": [
@@ -123,6 +123,7 @@
     "@unocss/transformer-variant-group": "66.12.0",
     "@unocss/vite": "66.12.0",
     "@unocss/webpack": "66.12.0",
+    "prosemirror-model": "1.25.12",
     "unocss": "66.12.0"
   }
 }

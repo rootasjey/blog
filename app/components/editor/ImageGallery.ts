@@ -28,6 +28,7 @@ export const ImageGallery = Node.create({
           }
         },
       },
+      display: { default: 'center' },
     }
   },
 
@@ -54,9 +55,10 @@ export const ImageGallery = Node.create({
       return ['img', { src, alt }]
     })
 
+    const display = attrs.display === 'full-bleed' ? 'full-bleed' : 'center'
     const merged = mergeAttributes(attrs, {
       'data-type': 'image-gallery',
-      class: `image-gallery ${className}`.trim(),
+      class: `image-gallery ${className} image-gallery--${display}`.trim(),
     })
 
     return ['div', merged, ...children]

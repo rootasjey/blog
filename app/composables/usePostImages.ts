@@ -30,19 +30,44 @@ export function usePostImages(identifier: () => string | number, post: () => Pos
 
   const triggerFileInput = () => fileInput.value?.click()
 
+  const prepareCoverFile = async (file: File): Promise<File> => {
+    const supportedTypes = ['image/jpeg', 'image/png', 'image/bmp', 'image/tiff', 'image/gif']
+    if (supportedTypes.includes(file.type)) return file
+    if (!['image/webp', 'image/avif'].includes(file.type)) {
+      throw new Error('Choose a JPEG, PNG, GIF, BMP, TIFF, WebP, or AVIF image.')
+    }
+
+    const bitmap = await createImageBitmap(file)
+    try {
+      const canvas = document.createElement('canvas')
+      canvas.width = bitmap.width
+      canvas.height = bitmap.height
+      const context = canvas.getContext('2d')
+      if (!context) throw new Error('This image could not be prepared for upload.')
+      context.fillStyle = '#fff'
+      context.fillRect(0, 0, canvas.width, canvas.height)
+      context.drawImage(bitmap, 0, 0)
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((result) => result ? resolve(result) : reject(new Error('This image could not be prepared for upload.')), 'image/jpeg', 0.92)
+      })
+      return new File([blob], `${file.name.replace(/\.[^.]+$/, '')}.jpg`, { type: 'image/jpeg' })
+    } finally {
+      bitmap.close()
+    }
+  }
+
   const handleFileChange = async (event: Event): Promise<void> => {
     const input = event.target as HTMLInputElement
-    const file = input.files?.[0]
-    if (!file || !post()) return
-
-    // Create an object URL for immediate preview (optimistic)
-    revokePreview()
-    previewSrc.value = URL.createObjectURL(file)
+    const selectedFile = input.files?.[0]
+    if (!selectedFile || !post()) return
 
     uploadingCover.value = true
     uploadProgress.value = 0
 
     try {
+      const file = await prepareCoverFile(selectedFile)
+      revokePreview()
+      previewSrc.value = URL.createObjectURL(file)
       const res = await uploadCoverFile(String(identifier()), file, (p) => (uploadProgress.value = p))
       if (res?.success && res.image) {
         const current = post()
@@ -56,7 +81,6 @@ export function usePostImages(identifier: () => string | number, post: () => Pos
       // On success, revoke local preview (server image will be used)
       revokePreview()
     } catch (e) {
-      // On failure, revoke preview and rethrow so caller can show an error
       revokePreview()
       throw e
     } finally {
