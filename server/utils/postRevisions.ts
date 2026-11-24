@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, notExists, sql } from 'drizzle-orm'
+import { and, asc, count, eq, inArray, notExists, sql } from 'drizzle-orm'
 import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 
@@ -205,17 +205,27 @@ async function cleanupUnreferencedRevisionBlob(postId: number, blobPath: string)
   if (!revision) await blob.del(blobPath).catch(() => {})
 }
 
-export async function listPostRevisions(postId: number) {
-  return db.select({
-    id: schema.post_revisions.id,
-    revision: schema.post_revisions.revision,
-    source: schema.post_revisions.source,
-    created_by: schema.post_revisions.created_by,
-    created_at: schema.post_revisions.created_at,
-    content_hash: schema.post_revisions.content_hash,
-  }).from(schema.post_revisions)
-    .where(eq(schema.post_revisions.post_id, postId))
-    .orderBy(sql`${schema.post_revisions.revision} DESC`)
+export async function listPostRevisions(postId: number, limit: number, offset: number) {
+  const where = eq(schema.post_revisions.post_id, postId)
+  const [items, totalRows] = await Promise.all([
+    db.select({
+      id: schema.post_revisions.id,
+      revision: schema.post_revisions.revision,
+      source: schema.post_revisions.source,
+      created_by: schema.post_revisions.created_by,
+      created_at: schema.post_revisions.created_at,
+      content_hash: schema.post_revisions.content_hash,
+    }).from(schema.post_revisions)
+      .where(where)
+      .orderBy(sql`${schema.post_revisions.revision} DESC`)
+      .limit(limit)
+      .offset(offset),
+    db.select({ total: count() })
+      .from(schema.post_revisions)
+      .where(where),
+  ])
+
+  return { items, total: Number(totalRows[0]?.total ?? 0) }
 }
 
 export async function getPostRevision(postId: number, revision: number) {
