@@ -1,6 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { TAG_ICON_OPTIONS } from './shared/constants/tag-icons'
 import { isLayeredNuxtStylesheet } from './scripts/nuxt-style-injection'
 
@@ -31,6 +32,10 @@ export default defineNuxtConfig({
     }
   },
   compatibilityDate: '2025-12-31',
+  // Cloudflare's browser condition selects Jimp's empty stub; use its ESM implementation.
+  alias: {
+    jimp: fileURLToPath(new URL('./node_modules/jimp/dist/esm/index.js', import.meta.url)),
+  },
   devtools: { enabled: true },
   css: ['@/styles/main.css', 'uno.css'],
   future: {
