@@ -100,15 +100,23 @@
 .site-shell .site-post-editor .site-editor-add-tag:hover,
 .site-shell .site-post-editor .site-editor-add-tag-button:hover { background: var(--site-color-hover-background); color: var(--site-color-heading); }
 .site-shell .site-post-editor .site-editor-add-tag-button {
-  width: 28px;
-  height: 28px;
+  width: auto;
+  min-width: 28px;
   min-height: 28px;
-  padding: 0;
+  padding: 3px 10px;
+  white-space: nowrap;
+  border-radius: var(--site-radius-tag);
   border-color: var(--site-color-border);
-  border-radius: var(--site-radius-icon);
   background: var(--site-color-surface);
   color: var(--site-color-text);
   font-weight: 500;
+}
+.site-shell .site-post-editor .site-editor-add-tag-button--icon-only {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-color: var(--site-color-border);
+  border-radius: var(--site-radius-icon);
 }
 .site-shell .site-post-editor .site-editor-add-tag-button:hover { border-color: var(--site-color-heading); }
 .site-shell .site-post-editor :is(.site-editor-tag-remove, .site-editor-add-tag, .site-editor-add-tag-button):focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 3px; }

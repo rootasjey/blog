@@ -91,6 +91,7 @@
                 size="xs"
                 btn="ghost-gray"
                 class="site-editor-add-tag-button"
+                :class="{ 'site-editor-add-tag-button--icon-only': localTags.length > 0 }"
                 @click="startNewTag"
                 :aria-label="$ts('editor.postMetadataEditor.addTag')"
               >
