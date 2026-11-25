@@ -62,7 +62,7 @@ const activeIndex = ref(0)
 const { data } = await useFetch<Post[]>('/api/posts', {
   query: { limit: 50, language: $getLocale() },
 })
-const { settings: settingsData } = await useSiteSettings()
+const { settings: settingsData, updateSettings } = await useSiteSettings()
 const sectionsContent = computed(() => settingsData.value?.homePostSections ?? DEFAULT_HOME_POST_SECTIONS)
 const sectionConfig = computed(() => sectionsContent.value.featuredPosts)
 
@@ -98,7 +98,7 @@ const posts = computed(() => {
 })
 
 function saveSections(content: HomePostSectionsContent) {
-  if (settingsData.value) settingsData.value.homePostSections = content
+  updateSettings({ homePostSections: content })
 }
 
 function scroll(direction: 'left' | 'right') {

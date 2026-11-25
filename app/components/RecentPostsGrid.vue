@@ -100,7 +100,7 @@ const { enhancePost } = usePost()
 const { data: items, pending, error } = await useFetch<Post[]>('/api/posts', {
   query: { limit: 50 },
 })
-const { settings: settingsData } = await useSiteSettings()
+const { settings: settingsData, updateSettings } = await useSiteSettings()
 const sectionsContent = computed(() => settingsData.value?.homePostSections ?? DEFAULT_HOME_POST_SECTIONS)
 const sectionConfig = computed(() => sectionsContent.value.recentPosts)
 
@@ -110,7 +110,7 @@ const enhancedPosts = computed(() => {
 })
 
 function saveSections(content: HomePostSectionsContent) {
-  if (settingsData.value) settingsData.value.homePostSections = content
+  updateSettings({ homePostSections: content })
 }
 
 const demoPosts = computed(() => {

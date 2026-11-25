@@ -51,7 +51,7 @@ import useSiteSettings from '~/composables/useSiteSettings'
 
 const { $getLocale, $ts } = useI18n()
 const props = withDefaults(defineProps<{ showHeading?: boolean; editable?: boolean; isAdmin?: boolean; isEditMode?: boolean }>(), { showHeading: true, editable: false, isAdmin: false, isEditMode: false })
-const { settings: settingsData } = await useSiteSettings()
+const { settings: settingsData, updateSettings } = await useSiteSettings()
 const recommendationsContent = computed(() => settingsData.value?.recommendationsContent || DEFAULT_RECOMMENDATIONS_CONTENT)
 const heading = computed(() => {
   const translated = $ts('components.homeRecommendations.heading')
@@ -68,7 +68,7 @@ const recommendations = computed(() => {
 })
 
 function saveRecommendations(content: RecommendationsContent) {
-  if (settingsData.value) settingsData.value.recommendationsContent = content
+  updateSettings({ recommendationsContent: content })
 }
 </script>
 

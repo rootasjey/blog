@@ -18,7 +18,8 @@
             <div v-if="success" class="text-sm text-green-600 dark:text-green-400">{{ success }}</div>
 
             <SocialsEditor
-              v-model="localSocials"
+              :open="isOpen"
+              :model-value="localSocials"
               :saving="saving"
               @save="handleSave"
               @cancel="close"
@@ -46,7 +47,8 @@
             <div v-if="success" class="text-sm text-green-600 dark:text-green-400">{{ success }}</div>
 
             <SocialsEditor
-              v-model="localSocials"
+              :open="isOpen"
+              :model-value="localSocials"
               :saving="saving"
               @save="handleSave"
               @cancel="close"

@@ -54,7 +54,7 @@ const mobileIndex = computed(() => {
 const ogImageUrl = `${config.public.siteUrl}/og/home/default.png`
 
 const { $ts, $getLocale } = useI18n()
-const { settings: settingsData } = await useSiteSettings()
+const { settings: settingsData, updateSettings } = await useSiteSettings()
 const homeIdentity = computed(() => settingsData.value?.homeIdentity || DEFAULT_HOME_IDENTITY)
 const localizedIdentity = computed(() => homeIdentity.value[$getLocale() === 'en' ? 'en' : 'fr'])
 const homeIntroParagraphs = computed(() => localizedIdentity.value.description.split(/\n\s*\n/).filter(Boolean))
@@ -81,7 +81,7 @@ onMounted(() => window.addEventListener(PUBLIC_PAGE_EDIT_REQUEST_EVENT, onPublic
 onUnmounted(() => window.removeEventListener(PUBLIC_PAGE_EDIT_REQUEST_EVENT, onPublicPageEditRequest))
 
 function saveIdentity(identity: HomeIdentity) {
-  if (settingsData.value) settingsData.value.homeIdentity = identity
+  updateSettings({ homeIdentity: identity })
 }
 
 const { website } = useJsonld()

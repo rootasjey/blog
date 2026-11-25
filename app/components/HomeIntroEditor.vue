@@ -83,8 +83,8 @@
       </div>
 
       <footer class="home-intro-editor__footer">
-        <NButton btn="ghost-gray" size="sm" :disabled="saving || uploading" @click="close">{{ labels.cancel }}</NButton>
-        <NButton btn="solid-black" size="sm" :loading="saving || uploading" :disabled="saving || uploading" @click="save">
+        <NButton v-if="isDirty" btn="ghost-gray" size="sm" :disabled="saving || uploading" @click="close">{{ labels.cancel }}</NButton>
+        <NButton v-if="isDirty" btn="solid-black" size="sm" :loading="saving || uploading" :disabled="saving || uploading" @click="save">
           {{ saving ? labels.saving : uploading ? labels.uploading : labels.save }}
         </NButton>
       </footer>
@@ -99,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, toRaw, watch } from 'vue'
 import type { HomeIdentity } from '~~/shared/types/home-identity'
 import { PUBLIC_PAGE_EDIT_REQUEST_EVENT } from '~/utils/publicPageEditRequests'
 import { useEditorPanelMaximize } from '~/composables/useEditorPanelMaximize'
@@ -131,6 +131,8 @@ const open = ref(false)
 const panel = ref<HTMLElement | null>(null)
 const activeLanguage = ref<'fr' | 'en'>('fr')
 const draft = ref<HomeIdentity>(structuredClone(props.identity))
+const savedDraft = ref<HomeIdentity>(structuredClone(props.identity))
+const isDirty = computed(() => JSON.stringify(draft.value) !== JSON.stringify(savedDraft.value))
 const localAvatarPreview = ref('')
 const nameInput = ref<HTMLInputElement | null>(null)
 const avatarFileInput = ref<HTMLInputElement | null>(null)
@@ -151,6 +153,7 @@ const avatarPreview = computed(() => localAvatarPreview.value || draft.value.ava
 function openEditor() {
   prepareForOpen()
   draft.value = structuredClone(props.identity)
+  savedDraft.value = structuredClone(props.identity)
   activeLanguage.value = locale.value
   success.value = ''
   error.value = ''
@@ -190,7 +193,15 @@ function stopDrag() {
 }
 
 function onKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape' && open.value) close()
+  if (!open.value) return
+
+  if (event.key === 'Enter' && (event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey && !event.isComposing) {
+    event.preventDefault()
+    if (isDirty.value && !saving.value && !uploading.value) void save()
+    return
+  }
+
+  if (event.key === 'Escape') close()
 }
 
 function onPublicPageEditRequest(event: Event) {
@@ -278,12 +289,15 @@ function clearLocalAvatarPreview() {
 }
 
 async function save() {
+  if (!isDirty.value || saving.value || uploading.value) return
+
   saving.value = true
   success.value = ''
   error.value = ''
   try {
     await $fetch('/api/admin/site-settings', { method: 'PUT', body: { homeIdentity: draft.value } })
-    emit('saved', structuredClone(draft.value))
+    emit('saved', structuredClone(toRaw(draft.value)))
+    savedDraft.value = structuredClone(toRaw(draft.value))
     success.value = labels.value.saved
   } catch {
     error.value = labels.value.saveError

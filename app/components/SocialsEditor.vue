@@ -24,8 +24,8 @@
     <div class="flex items-center gap-2">
       <NButton @click="addRow" btn="soft" size="xs" class="px-6 font-600" :label="$ts('components.socialsEditor.addSocialLink')" leading="i-ph-plus-bold" />
       <div class="ml-auto flex items-center gap-2">
-        <NButton @click="emitCancel" btn="ghost-gray" size="xs" :disabled="saving" class="font-600">{{ $ts('common.cancel') }}</NButton>
-        <NButton @click="emitSave" :disabled="saving" btn="soft-pink" size="xs">
+        <NButton v-if="isDirty" @click="emitCancel" btn="ghost-gray" size="xs" :disabled="saving" class="font-600">{{ $ts('common.cancel') }}</NButton>
+        <NButton v-if="isDirty" @click="emitSave" :disabled="saving" btn="soft-pink" size="xs">
           <NIcon :name="saving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': saving }" />
           <span class="ml-2 font-600">{{ $ts('common.save') }}</span>
         </NButton>
@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 
 export type SocialLink = {
   platform: string
@@ -47,25 +47,43 @@ export type SocialLink = {
 
 const { $ts } = useI18n()
 const props = defineProps({
+  open: { type: Boolean, default: false },
   modelValue: { type: Array as () => SocialLink[], default: () => [] },
   saving: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['update:modelValue', 'save', 'cancel'])
+const emit = defineEmits(['save', 'cancel'])
 
-const draft = ref<SocialLink[]>([...props.modelValue])
-let syncingFromModel = false
+const cloneSocials = (socials: SocialLink[]) => socials.map(social => ({ ...social }))
+const draft = ref<SocialLink[]>(cloneSocials(props.modelValue))
+const savedDraft = ref<SocialLink[]>(cloneSocials(props.modelValue))
 
 watch(() => props.modelValue, (v) => {
-  syncingFromModel = true
-  draft.value = [...v]
-  nextTick(() => { syncingFromModel = false })
+  draft.value = cloneSocials(v)
+  savedDraft.value = cloneSocials(v)
 }, { deep: true })
 
-watch(draft, (v) => {
-  if (syncingFromModel) return
-  emit('update:modelValue', v)
-}, { deep: true })
+const sanitizeSocials = (socials: SocialLink[]) => socials
+  .map((social, index) => ({
+    platform: social.platform?.trim() || '',
+    url: social.url?.trim() || '',
+    label: social.label?.trim() || undefined,
+    order: social.order ?? index,
+    enabled: social.enabled !== false,
+  }))
+  .filter(social => social.platform || social.url)
+
+const sanitized = computed(() => sanitizeSocials(draft.value))
+const isDirty = computed(() => JSON.stringify(sanitized.value) !== JSON.stringify(sanitizeSocials(savedDraft.value)))
+
+function onKeydown(event: KeyboardEvent) {
+  if (!props.open || event.key !== 'Enter' || (!event.metaKey && !event.ctrlKey) || event.altKey || event.shiftKey || event.isComposing) return
+  event.preventDefault()
+  if (isDirty.value && !props.saving) emitSave()
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 function addRow() {
   draft.value.push({ platform: '', url: '', enabled: true, order: draft.value.length })
@@ -95,19 +113,8 @@ function platformIcon(platform?: string) {
   return 'i-lucide-link'
 }
 
-const sanitized = computed(() =>
-  draft.value
-    .map((s, idx) => ({
-      platform: s.platform?.trim() || '',
-      url: s.url?.trim() || '',
-      label: s.label?.trim() || undefined,
-      order: s.order ?? idx,
-      enabled: s.enabled !== false,
-    }))
-    .filter((s) => s.platform || s.url)
-)
-
 function emitSave() {
+  if (!isDirty.value || props.saving) return
   emit('save', sanitized.value)
 }
 

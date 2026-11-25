@@ -110,8 +110,8 @@
       </div>
 
       <footer class="home-post-section-editor__footer">
-        <NButton btn="ghost-gray" size="sm" :disabled="saving" @click="close">{{ labels.cancel }}</NButton>
-        <NButton btn="solid-black" size="sm" :loading="saving" :disabled="saving" @click="save">{{ saving ? labels.saving : labels.save }}</NButton>
+        <NButton v-if="isDirty" btn="ghost-gray" size="sm" :disabled="saving" @click="close">{{ labels.cancel }}</NButton>
+        <NButton v-if="isDirty" btn="solid-black" size="sm" :loading="saving" :disabled="saving" @click="save">{{ saving ? labels.saving : labels.save }}</NButton>
       </footer>
       <EditorPanelResizeHandle
         v-if="!isMaximized"
@@ -124,7 +124,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, toRaw, watch } from 'vue'
 import { useEditorPanelMaximize } from '~/composables/useEditorPanelMaximize'
 import type { HomePostSectionConfig, HomePostSectionKey, HomePostSectionsContent } from '~~/shared/types/home-post-sections'
 import { PUBLIC_PAGE_EDIT_REQUEST_EVENT } from '~/utils/publicPageEditRequests'
@@ -179,6 +179,8 @@ const activeOptionId = computed(() => {
 const open = ref(false)
 const activeLanguage = ref<'fr' | 'en'>('fr')
 const draft = ref<HomePostSectionConfig>(structuredClone(props.content[props.section]))
+const savedDraft = ref<HomePostSectionConfig>(structuredClone(props.content[props.section]))
+const isDirty = computed(() => JSON.stringify(draft.value) !== JSON.stringify(savedDraft.value))
 const panel = ref<HTMLElement | null>(null)
 const titleInput = ref<HTMLInputElement | null>(null)
 const saving = ref(false)
@@ -193,6 +195,7 @@ const { isMaximized, panelStyle: positionStyle, panelClasses, prepareForOpen, ca
 function openEditor() {
   prepareForOpen()
   draft.value = structuredClone(props.content[props.section])
+  savedDraft.value = structuredClone(props.content[props.section])
   tagSearch.value = { include: '', exclude: '' }
   activePicker.value = null
   activeOptionIndex.value = -1
@@ -313,7 +316,15 @@ function onPublicPageEditRequest(event: Event) {
 }
 
 function onKeydown(event: KeyboardEvent) {
-  if (event.key !== 'Escape' || !open.value) return
+  if (!open.value) return
+
+  if (event.key === 'Enter' && (event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey && !event.isComposing) {
+    event.preventDefault()
+    if (isDirty.value && !saving.value) void save()
+    return
+  }
+
+  if (event.key !== 'Escape') return
   if (activePicker.value) {
     activePicker.value = null
     return
@@ -322,13 +333,16 @@ function onKeydown(event: KeyboardEvent) {
 }
 
 async function save() {
+  if (!isDirty.value || saving.value) return
+
   saving.value = true
   error.value = ''
   success.value = ''
   try {
-    const content = { ...props.content, [props.section]: structuredClone(draft.value) }
+    const content = { ...props.content, [props.section]: structuredClone(toRaw(draft.value)) }
     await $fetch('/api/admin/site-settings', { method: 'PUT', body: { homePostSections: content } })
     emit('saved', content)
+    savedDraft.value = structuredClone(toRaw(draft.value))
     success.value = labels.value.saved
   } catch {
     error.value = labels.value.saveError

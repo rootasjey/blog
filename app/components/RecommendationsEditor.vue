@@ -70,8 +70,8 @@
       </div>
 
       <footer class="recommendations-editor__footer">
-        <NButton btn="ghost-gray" size="sm" :disabled="saving" @click="close">{{ labels.cancel }}</NButton>
-        <NButton btn="solid-black" size="sm" :loading="saving" :disabled="saving" @click="save">{{ saving ? labels.saving : labels.save }}</NButton>
+        <NButton v-if="isDirty" btn="ghost-gray" size="sm" :disabled="saving" @click="close">{{ labels.cancel }}</NButton>
+        <NButton v-if="isDirty" btn="solid-black" size="sm" :loading="saving" :disabled="saving" @click="save">{{ saving ? labels.saving : labels.save }}</NButton>
       </footer>
       <EditorPanelResizeHandle
         v-if="!isMaximized"
@@ -84,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, toRaw, watch } from 'vue'
 import { useEditorPanelMaximize } from '~/composables/useEditorPanelMaximize'
 import type { RecommendationsContent, SupportedContentLocale } from '~~/shared/types/public-page-content'
 import { PUBLIC_PAGE_EDIT_REQUEST_EVENT } from '~/utils/publicPageEditRequests'
@@ -108,6 +108,8 @@ const languages: { code: SupportedContentLocale; label: string }[] = [{ code: 'f
 const activeLanguage = ref<SupportedContentLocale>('fr')
 const open = ref(false)
 const draft = ref<RecommendationsContent>(structuredClone(props.content))
+const savedDraft = ref<RecommendationsContent>(structuredClone(props.content))
+const isDirty = computed(() => JSON.stringify(draft.value) !== JSON.stringify(savedDraft.value))
 const editorPanel = ref<HTMLElement | null>(null)
 const pageTitleInput = ref<HTMLInputElement | null>(null)
 const saving = ref(false)
@@ -122,6 +124,7 @@ const { isMaximized, panelStyle: positionStyle, panelClasses, prepareForOpen, ca
 function openEditor() {
   prepareForOpen()
   draft.value = structuredClone(props.content)
+  savedDraft.value = structuredClone(props.content)
   activeLanguage.value = locale.value === 'en' ? 'en' : 'fr'
   success.value = ''
   error.value = ''
@@ -176,7 +179,15 @@ function moveItem(index: number, direction: -1 | 1) {
 }
 
 function onKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape' && open.value) close()
+  if (!open.value) return
+
+  if (event.key === 'Enter' && (event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey && !event.isComposing) {
+    event.preventDefault()
+    if (isDirty.value && !saving.value) void save()
+    return
+  }
+
+  if (event.key === 'Escape') close()
 }
 
 function onPublicPageEditRequest(event: Event) {
@@ -186,12 +197,15 @@ function onPublicPageEditRequest(event: Event) {
 }
 
 async function save() {
+  if (!isDirty.value || saving.value) return
+
   saving.value = true
   success.value = ''
   error.value = ''
   try {
     await $fetch('/api/admin/site-settings', { method: 'PUT', body: { recommendationsContent: draft.value } })
-    emit('saved', structuredClone(draft.value))
+    emit('saved', structuredClone(toRaw(draft.value)))
+    savedDraft.value = structuredClone(toRaw(draft.value))
     success.value = labels.value.saved
   } catch {
     error.value = labels.value.saveError

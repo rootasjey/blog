@@ -37,6 +37,10 @@ export default async function useSiteSettings() {
   const loading = computed(() => refreshing.value || saving.value)
   const error = computed(() => operationError.value || requestError.value?.message || null)
 
+  function updateSettings(patch: Partial<PublicSiteSettings>) {
+    settings.value = { ...settings.value, ...patch }
+  }
+
   async function fetchSettings() {
     refreshing.value = true
     operationError.value = null
@@ -59,7 +63,7 @@ export default async function useSiteSettings() {
         method: 'PUT',
         body: { socials },
       })
-      settings.value.socials = socials
+      updateSettings({ socials })
     } catch (caught: any) {
       operationError.value = caught?.data?.message || caught?.message || 'Failed to update site settings'
       throw caught
@@ -77,7 +81,7 @@ export default async function useSiteSettings() {
         method: 'PUT',
         body: { siteBrandName: normalizedName },
       })
-      settings.value.siteBrandName = normalizedName
+      updateSettings({ siteBrandName: normalizedName })
     } catch (caught: any) {
       operationError.value = caught?.data?.message || caught?.message || 'Failed to update site title'
       throw caught
@@ -88,6 +92,7 @@ export default async function useSiteSettings() {
 
   return {
     settings,
+    updateSettings,
     socials: computed(() => settings.value.socials),
     loading,
     error,

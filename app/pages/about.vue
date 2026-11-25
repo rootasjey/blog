@@ -76,7 +76,7 @@ import useSiteSettings from '~/composables/useSiteSettings'
 
 const { $ts, $getLocale } = useI18n()
 const config = useRuntimeConfig()
-const { settings: settingsData } = await useSiteSettings()
+const { settings: settingsData, updateSettings } = await useSiteSettings()
 const locale = computed(() => $getLocale())
 const activeContentLocale = computed<SupportedContentLocale>(() => locale.value === 'fr' ? 'fr' : 'en')
 const aboutPageContent = computed(() => settingsData.value?.aboutPageContent || DEFAULT_ABOUT_PAGE_CONTENT)
@@ -125,7 +125,7 @@ const displayedContent = computed(() => {
 })
 
 function saveAboutPageContent(content: AboutPageContent) {
-  if (settingsData.value) settingsData.value.aboutPageContent = content
+  updateSettings({ aboutPageContent: content })
 }
 const accordionItemUna = {
   accordionItem: 'border-[var(--site-color-border)]',

@@ -13,10 +13,10 @@
         <p v-if="error" class="site-brand-editor__error" role="alert">{{ error }}</p>
 
         <NDialogFooter class="site-brand-editor__footer">
-          <NButton btn="ghost-gray" size="sm" type="button" :disabled="saving" @click="dialogOpen = false">
+          <NButton v-if="isDirty" btn="ghost-gray" size="sm" type="button" :disabled="saving" @click="dialogOpen = false">
             {{ labels.cancel }}
           </NButton>
-          <NButton btn="solid-black" size="sm" type="submit" :loading="saving" :disabled="!draft.trim() || saving">
+          <NButton v-if="isDirty" btn="solid-black" size="sm" type="submit" :loading="saving" :disabled="!draft.trim() || saving">
             {{ labels.save }}
           </NButton>
         </NDialogFooter>
@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps<{ open: boolean; brandName: string; saving: boolean; error: string }>()
 const emit = defineEmits<{
@@ -40,6 +40,7 @@ const dialogOpen = computed({
   set: (open: boolean) => emit('update:open', open),
 })
 const draft = ref(props.brandName)
+const isDirty = computed(() => draft.value.trim() !== props.brandName.trim())
 const labels = computed(() => $getLocale() === 'fr'
   ? { title: 'Modifier le nom du site', field: 'Nom du site', cancel: 'Annuler', save: 'Enregistrer' }
   : { title: 'Edit site title', field: 'Site title', cancel: 'Cancel', save: 'Save' })
@@ -47,6 +48,15 @@ const labels = computed(() => $getLocale() === 'fr'
 watch(() => props.open, (isOpen) => {
   if (isOpen) draft.value = props.brandName
 })
+
+function onKeydown(event: KeyboardEvent) {
+  if (!dialogOpen.value || event.key !== 'Enter' || (!event.metaKey && !event.ctrlKey) || event.altKey || event.shiftKey || event.isComposing) return
+  event.preventDefault()
+  if (isDirty.value && !props.saving) submit()
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 function submit() {
   const brandName = draft.value.trim()
