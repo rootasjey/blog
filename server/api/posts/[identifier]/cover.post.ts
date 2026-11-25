@@ -2,6 +2,8 @@
 import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+// Jimp's package root resolves to an empty browser stub in the Cloudflare bundle.
+import { Jimp } from '../../../../node_modules/jimp/dist/esm/index.js'
 import type { ApiPost } from '~~/shared/types/post'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
 
@@ -49,7 +51,6 @@ export default defineEventHandler(async (event) => {
   const coverFolder = `posts/${post.id}/cover`
 
   // Process the original image with Jimp
-  const { Jimp } = await import('jimp')
   const originalImage = await Jimp.fromBuffer(file)
 
   const sizes = [
