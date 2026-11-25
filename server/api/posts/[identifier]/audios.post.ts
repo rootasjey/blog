@@ -5,6 +5,7 @@ import { db, schema } from 'hub:db'
 import type { ApiPost } from '~~/shared/types/post'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
 import { cleanUpFailedPostUpload } from '~~/server/utils/postMediaGc'
+import { getSerializableInsertId } from '~~/server/utils/insertResultId'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -69,8 +70,7 @@ export default defineEventHandler(async (event) => {
       in_use: false,
     }).run()
     metadataPersisted = true
-    const rawId = insertResult?.lastInsertRowid ?? insertResult?.meta?.last_row_id ?? null
-    const audioRowId = rawId !== null ? Number(rawId) : null
+    const audioRowId = getSerializableInsertId(insertResult)
 
     return {
       success: true,

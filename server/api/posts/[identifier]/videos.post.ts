@@ -5,6 +5,7 @@ import { db, schema } from 'hub:db'
 import type { ApiPost } from '~~/shared/types/post'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
 import { cleanUpFailedPostUpload } from '~~/server/utils/postMediaGc'
+import { getSerializableInsertId } from '~~/server/utils/insertResultId'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   const userId = session.user.id
@@ -98,8 +99,7 @@ export default defineEventHandler(async (event) => {
     metadataPersisted = true
 
     // The DB client may return numeric IDs as BigInt; ensure the response is JSON-serializable.
-    const rawId = insertResult?.lastInsertRowid ?? insertResult?.meta?.last_row_id ?? null
-    const videoRowId = rawId !== null ? Number(rawId) : null
+    const videoRowId = getSerializableInsertId(insertResult)
 
     return {
       success: true,
