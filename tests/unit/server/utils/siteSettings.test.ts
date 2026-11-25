@@ -29,7 +29,9 @@ vi.mock('hub:db', () => {
   return { db: dbMock, schema }
 })
 
-import { getSettingValue, setSettingValue } from '../../../../server/utils/siteSettings'
+import { aboutPageContentSchema, getSettingValue, homeIdentitySchema, setSettingValue } from '../../../../server/utils/siteSettings'
+import { DEFAULT_ABOUT_PAGE_CONTENT } from '../../../../shared/types/public-page-content'
+import { DEFAULT_HOME_IDENTITY } from '../../../../shared/types/home-identity'
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -76,5 +78,27 @@ describe('setSettingValue', () => {
 
     expect(dbMock.update).toHaveBeenCalled()
     expect(dbMock.insert).not.toHaveBeenCalled()
+  })
+})
+
+describe('static rich text settings', () => {
+  it('keeps accepting existing plain text settings', () => {
+    expect(homeIdentitySchema.safeParse(DEFAULT_HOME_IDENTITY).success).toBe(true)
+    expect(aboutPageContentSchema.safeParse(DEFAULT_ABOUT_PAGE_CONTENT).success).toBe(true)
+  })
+
+  it('accepts formatted text documents and rejects unsafe links', () => {
+    const content = structuredClone(DEFAULT_HOME_IDENTITY)
+    content.fr.description = {
+      type: 'doc',
+      content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Un texte', marks: [{ type: 'bold' }] }] }],
+    }
+    expect(homeIdentitySchema.safeParse(content).success).toBe(true)
+
+    content.fr.description = {
+      type: 'doc',
+      content: [{ type: 'paragraph', content: [{ type: 'text', text: 'lien', marks: [{ type: 'link', attrs: { href: 'javascript:alert(1)' } }] }] }],
+    }
+    expect(homeIdentitySchema.safeParse(content).success).toBe(false)
   })
 })

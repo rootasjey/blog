@@ -15,8 +15,8 @@
 
     <div class="site-about-content">
       <section class="site-about-introduction">
-        <p>{{ displayedContent.intro }}</p>
-        <p>{{ displayedContent.description }}</p>
+        <StaticRichText :content="displayedContent.intro" />
+        <StaticRichText :content="displayedContent.description" />
         <p class="site-about-links">
           <NuxtLink class="site-editorial-link" :to="localizedPath('/posts', $getLocale())">
             {{ $ts('pages.about.browsePosts') }}
@@ -35,7 +35,7 @@
 
       <section class="site-about-section">
         <h2>{{ displayedContent.openSourceHeading }}</h2>
-        <p>{{ displayedContent.openSourceText }}</p>
+        <StaticRichText :content="displayedContent.openSourceText" />
       </section>
 
       <section class="site-about-section site-about-faq">
@@ -54,14 +54,14 @@
             :una="accordionItemUna"
             :_accordion-trigger="accordionTriggerUna"
           >
-            <template #content><p>{{ item.answer }}</p></template>
+            <template #content><StaticRichText :content="item.answer" /></template>
           </NAccordionItem>
         </NAccordion>
       </section>
 
       <section class="site-about-section site-about-contact">
         <h2>{{ displayedContent.contactHeading }}</h2>
-        <p>{{ displayedContent.contactText }}</p>
+        <StaticRichText :content="displayedContent.contactText" />
       </section>
     </div>
 
@@ -96,8 +96,8 @@ const displayedContent = computed(() => {
     const content = aboutPageContent.value[activeContentLocale.value]
     return {
       ...content,
-      intro: content.intro.replaceAll('**', ''),
-      openSourceText: content.openSourceText.replaceAll('**', ''),
+      intro: content.intro,
+      openSourceText: content.openSourceText,
       faq: content.faq.map(item => ({
         id: item.id,
         question: item.question[activeContentLocale.value],
@@ -109,10 +109,10 @@ const displayedContent = computed(() => {
   return {
     heading: $ts('pages.about.heading'),
     mainTitle: $ts('pages.about.mainTitle'),
-    intro: $ts('pages.about.intro').replaceAll('**', ''),
+    intro: $ts('pages.about.intro'),
     description: $ts('pages.about.description'),
     openSourceHeading: $ts('pages.about.openSourceHeading'),
-    openSourceText: $ts('pages.about.openSourceText').replaceAll('**', ''),
+    openSourceText: $ts('pages.about.openSourceText'),
     faqHeading: $ts('pages.about.faqHeading'),
     faq: legacyFaqKeys.map(([questionKey, answerKey], index) => ({
       id: `legacy-q${index + 1}`,

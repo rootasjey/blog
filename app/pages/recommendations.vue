@@ -14,6 +14,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { DEFAULT_RECOMMENDATIONS_CONTENT, type RecommendationsContent } from '~~/shared/types/public-page-content'
+import { staticRichTextToPlainText } from '~~/shared/types/static-rich-text'
 import useSiteSettings from '~/composables/useSiteSettings'
 
 const { $getLocale } = useI18n()
@@ -27,7 +28,7 @@ const isContentEditMode = computed(() => isAdmin.value && siteEditMode.value)
 
 useSeoMeta({
   title: () => `${copy.value.title} - Corpinot`,
-  description: () => copy.value.description,
+  description: () => staticRichTextToPlainText(copy.value.description),
 })
 </script>
 

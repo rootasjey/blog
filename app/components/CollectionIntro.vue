@@ -1,16 +1,20 @@
 <template>
   <section class="site-collection-intro">
     <img class="site-collection-avatar" src="/images/presentation/jc-pp.jpg" alt="Jérémie Corpinot" width="100" height="100">
-    <SlidingCopy v-if="animateCopy" :title="title" :description="description" />
+    <SlidingCopy v-if="animateCopy" :title="title" :description="plainDescription" />
     <template v-else>
       <h1>{{ title }}</h1>
-      <p>{{ description }}</p>
+      <StaticRichText :content="description" />
     </template>
   </section>
 </template>
 
 <script setup lang="ts">
-withDefaults(defineProps<{ title: string; description: string; animateCopy?: boolean }>(), { animateCopy: false })
+import type { StaticRichTextValue } from '~~/shared/types/static-rich-text'
+import { staticRichTextToPlainText } from '~~/shared/types/static-rich-text'
+
+const props = withDefaults(defineProps<{ title: string; description: StaticRichTextValue; animateCopy?: boolean }>(), { animateCopy: false })
+const plainDescription = computed(() => staticRichTextToPlainText(props.description))
 </script>
 
 <style>

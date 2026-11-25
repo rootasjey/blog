@@ -4,7 +4,7 @@
       <HomeIntroEditor :identity="identity" :is-admin="isAdmin" :is-edit-mode="isEditMode" @saved="emit('saved', $event)" />
       <img class="site-intro-mark" :src="identity.avatar" :alt="localizedIdentity.name" width="100" height="100">
       <h1>{{ localizedIdentity.name }}</h1>
-      <p v-for="(paragraph, index) in paragraphs" :key="index">{{ paragraph }}</p>
+      <StaticRichText class="site-intro-copy" :content="localizedIdentity.description" />
       <a class="site-interactive-hover site-outline-action site-intro-subscribe" href="#newsletter">{{ $ts('common.subscribe') }}</a>
     </section>
 
@@ -32,5 +32,4 @@ const { $getLocale, $ts } = useI18n()
 const props = defineProps<{ identity: HomeIdentity; isAdmin: boolean; isEditMode: boolean }>()
 const emit = defineEmits<{ saved: [identity: HomeIdentity] }>()
 const localizedIdentity = computed(() => props.identity[$getLocale() === 'en' ? 'en' : 'fr'])
-const paragraphs = computed(() => localizedIdentity.value.description.split(/\n\s*\n/).filter(Boolean))
 </script>

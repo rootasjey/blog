@@ -1,7 +1,9 @@
+import type { StaticRichTextValue } from './static-rich-text'
+
 export type HomeIdentity = {
   avatar: string
-  fr: { name: string; description: string }
-  en: { name: string; description: string }
+  fr: { name: string; description: StaticRichTextValue }
+  en: { name: string; description: StaticRichTextValue }
 }
 
 export const DEFAULT_HOME_IDENTITY: HomeIdentity = {

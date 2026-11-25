@@ -31,7 +31,7 @@
         </label>
         <label>
           <span>{{ labels.pageDescription }}</span>
-          <textarea v-model="draft[activeLanguage].description" rows="4" maxlength="2000" />
+          <StaticRichTextEditor v-model="draft[activeLanguage].description" :label="labels.pageDescription" :max-length="2000" />
         </label>
 
         <div class="recommendations-editor__list-heading">
@@ -65,13 +65,17 @@
           <img v-if="item.icon" class="recommendations-editor__icon-preview" :src="item.icon" alt="" width="32" height="32" loading="lazy">
         </fieldset>
 
-        <p v-if="error" class="recommendations-editor__message recommendations-editor__message--error" role="alert">{{ error }}</p>
-        <p v-if="success" class="recommendations-editor__message" role="status">{{ success }}</p>
       </div>
 
-      <footer class="recommendations-editor__footer">
-        <NButton v-if="isDirty" btn="ghost-gray" size="sm" :disabled="saving" @click="close">{{ labels.cancel }}</NButton>
-        <NButton v-if="isDirty" btn="solid-black" size="sm" :loading="saving" :disabled="saving" @click="save">{{ saving ? labels.saving : labels.save }}</NButton>
+      <footer v-if="isDirty || success || error" class="recommendations-editor__footer">
+        <div class="recommendations-editor__feedback">
+          <p v-if="error" class="recommendations-editor__message recommendations-editor__message--error" role="alert">{{ error }}</p>
+          <p v-else-if="success" class="recommendations-editor__message" role="status">{{ success }}</p>
+        </div>
+        <div class="recommendations-editor__footer-actions">
+          <NButton v-if="isDirty" btn="ghost-gray" size="sm" :disabled="saving" @click="close">{{ labels.cancel }}</NButton>
+          <NButton v-if="isDirty" btn="solid-black" size="sm" :loading="saving" :disabled="saving" @click="save">{{ saving ? labels.saving : labels.save }}</NButton>
+        </div>
       </footer>
       <EditorPanelResizeHandle
         v-if="!isMaximized"
@@ -97,12 +101,12 @@ const labels = computed(() => locale.value === 'fr' ? {
   title: 'Modifier les recommandations', close: 'Fermer', maximize: 'Agrandir', restore: 'Restaurer', resize: 'Redimensionner le panneau. Utilise les flèches ou fais glisser.', languages: 'Langue du contenu',
   pageTitle: 'Titre de la page', pageDescription: 'Introduction', cards: 'Cartes', addCard: 'Ajouter une carte', untitled: 'Sans titre',
   name: 'Nom', description: 'Description', url: 'Lien', icon: 'Icône (URL d’image)', moveUp: 'Monter', moveDown: 'Descendre', removeCard: 'Supprimer la carte',
-  cancel: 'Annuler', save: 'Enregistrer', saving: 'Enregistrement…', saved: 'Modifications enregistrées', saveError: 'Enregistrement impossible',
+  cancel: 'Annuler', save: 'Enregistrer', saving: 'Enregistrement…', saved: 'Modifications enregistrées', saveError: 'Échec de l’enregistrement. Modifications non enregistrées.',
 } : {
   title: 'Edit recommendations', close: 'Close', maximize: 'Maximize', restore: 'Restore', resize: 'Resize editor panel. Use arrow keys or drag to resize.', languages: 'Content language',
   pageTitle: 'Page title', pageDescription: 'Introduction', cards: 'Cards', addCard: 'Add card', untitled: 'Untitled',
   name: 'Name', description: 'Description', url: 'Link', icon: 'Icon (image URL)', moveUp: 'Move up', moveDown: 'Move down', removeCard: 'Remove card',
-  cancel: 'Cancel', save: 'Save', saving: 'Saving…', saved: 'Changes saved', saveError: 'Could not save changes',
+  cancel: 'Cancel', save: 'Save', saving: 'Saving…', saved: 'Changes saved', saveError: 'Save failed. Changes were not saved.',
 })
 const languages: { code: SupportedContentLocale; label: string }[] = [{ code: 'fr', label: 'FR' }, { code: 'en', label: 'EN' }]
 const activeLanguage = ref<SupportedContentLocale>('fr')
@@ -115,6 +119,9 @@ const pageTitleInput = ref<HTMLInputElement | null>(null)
 const saving = ref(false)
 const success = ref('')
 const error = ref('')
+watch(isDirty, (dirty) => {
+  if (dirty) success.value = ''
+})
 const x = ref(0)
 const y = ref(0)
 let dragOffsetX = 0
@@ -309,7 +316,9 @@ onUnmounted(() => {
   align-items: center;
   gap: var(--site-space-1);
 }
-.recommendations-editor__footer { padding-right: 42px; border-top: 1px solid var(--site-color-border); }
+.recommendations-editor__footer { display: flex; align-items: center; justify-content: space-between; gap: var(--site-space-3); min-height: 56px; padding: var(--site-space-2) var(--site-space-4); padding-right: 42px; border-top: 1px solid var(--site-color-border); }
+.recommendations-editor__feedback { min-width: 0; }
+.recommendations-editor__footer-actions { display: flex; flex: 0 0 auto; justify-content: flex-end; gap: var(--site-space-2); }
 @media (prefers-reduced-motion: reduce) {
   .recommendations-editor.editor-panel--transition-ready { transition-duration: 0.01ms; }
   .recommendations-editor.editor-panel--spring-expanding,

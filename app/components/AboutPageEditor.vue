@@ -16,10 +16,10 @@
 
         <label><span>{{ labels.heading }}</span><input ref="headingInput" v-model="draft[activeLanguage].heading" maxlength="120"></label>
         <label><span>{{ labels.mainTitle }}</span><textarea v-model="draft[activeLanguage].mainTitle" rows="2" maxlength="500" /></label>
-        <label><span>{{ labels.intro }}</span><textarea v-model="draft[activeLanguage].intro" rows="4" maxlength="4000" /></label>
-        <label><span>{{ labels.description }}</span><textarea v-model="draft[activeLanguage].description" rows="4" maxlength="4000" /></label>
+        <label><span>{{ labels.intro }}</span><StaticRichTextEditor v-model="draft[activeLanguage].intro" :label="labels.intro" :max-length="4000" /></label>
+        <label><span>{{ labels.description }}</span><StaticRichTextEditor v-model="draft[activeLanguage].description" :label="labels.description" :max-length="4000" /></label>
         <label><span>{{ labels.openSourceHeading }}</span><input v-model="draft[activeLanguage].openSourceHeading" maxlength="200"></label>
-        <label><span>{{ labels.openSourceText }}</span><textarea v-model="draft[activeLanguage].openSourceText" rows="4" maxlength="4000" /></label>
+        <label><span>{{ labels.openSourceText }}</span><StaticRichTextEditor v-model="draft[activeLanguage].openSourceText" :label="labels.openSourceText" :max-length="4000" /></label>
         <label><span>{{ labels.faqHeading }}</span><input v-model="draft[activeLanguage].faqHeading" maxlength="120"></label>
 
         <div class="about-page-editor__list-heading">
@@ -35,18 +35,22 @@
             <NButton btn="ghost-gray" size="xs" icon label="i-ph-trash" :aria-label="labels.removeQuestion" @click="removeFaq(index)" />
           </div>
           <label><span>{{ labels.question }}</span><input v-model="item.question[activeLanguage]" maxlength="1000"></label>
-          <label><span>{{ labels.answer }}</span><textarea v-model="item.answer[activeLanguage]" rows="4" maxlength="1000" /></label>
+          <label><span>{{ labels.answer }}</span><StaticRichTextEditor v-model="item.answer[activeLanguage]" :label="labels.answer" :max-length="1000" /></label>
         </fieldset>
 
         <label><span>{{ labels.contactHeading }}</span><input v-model="draft[activeLanguage].contactHeading" maxlength="200"></label>
-        <label><span>{{ labels.contactText }}</span><textarea v-model="draft[activeLanguage].contactText" rows="3" maxlength="2000" /></label>
-        <p v-if="error" class="about-page-editor__message about-page-editor__message--error" role="alert">{{ error }}</p>
-        <p v-if="success" class="about-page-editor__message" role="status">{{ success }}</p>
+        <label><span>{{ labels.contactText }}</span><StaticRichTextEditor v-model="draft[activeLanguage].contactText" :label="labels.contactText" :max-length="2000" /></label>
       </div>
 
-      <footer class="about-page-editor__footer">
-        <NButton v-if="isDirty" btn="ghost-gray" size="sm" :disabled="saving" @click="close">{{ labels.cancel }}</NButton>
-        <NButton v-if="isDirty" btn="solid-black" size="sm" :loading="saving" :disabled="saving" @click="save">{{ saving ? labels.saving : labels.save }}</NButton>
+      <footer v-if="isDirty || success || error" class="about-page-editor__footer">
+        <div class="about-page-editor__feedback">
+          <p v-if="error" class="about-page-editor__message about-page-editor__message--error" role="alert">{{ error }}</p>
+          <p v-else-if="success" class="about-page-editor__message" role="status">{{ success }}</p>
+        </div>
+        <div class="about-page-editor__footer-actions">
+          <NButton v-if="isDirty" btn="ghost-gray" size="sm" :disabled="saving" @click="close">{{ labels.cancel }}</NButton>
+          <NButton v-if="isDirty" btn="solid-black" size="sm" :loading="saving" :disabled="saving" @click="save">{{ saving ? labels.saving : labels.save }}</NButton>
+        </div>
       </footer>
       <EditorPanelResizeHandle
         v-if="!isMaximized"
@@ -74,14 +78,14 @@ const labels = computed(() => locale.value === 'fr' ? {
   openSourceText: 'Texte open source', faqHeading: 'Titre de la FAQ', faq: 'Questions fréquentes', addQuestion: 'Ajouter une question', untitled: 'Sans titre',
   question: 'Question', answer: 'Réponse', moveUp: 'Monter', moveDown: 'Descendre', removeQuestion: 'Supprimer la question',
   contactHeading: 'Titre du contact', contactText: 'Texte du contact', cancel: 'Annuler', save: 'Enregistrer', saving: 'Enregistrement…',
-  saved: 'Modifications enregistrées', saveError: 'Enregistrement impossible',
+  saved: 'Modifications enregistrées', saveError: 'Échec de l’enregistrement. Modifications non enregistrées.',
 } : {
   title: 'Edit About page', close: 'Close', maximize: 'Maximize', restore: 'Restore', resize: 'Resize editor panel. Use arrow keys or drag to resize.', languages: 'Content language',
   heading: 'Heading', mainTitle: 'Lead', intro: 'Introduction', description: 'Description', openSourceHeading: 'Open source heading',
   openSourceText: 'Open source text', faqHeading: 'FAQ heading', faq: 'Frequently asked questions', addQuestion: 'Add question', untitled: 'Untitled',
   question: 'Question', answer: 'Answer', moveUp: 'Move up', moveDown: 'Move down', removeQuestion: 'Remove question',
   contactHeading: 'Contact heading', contactText: 'Contact text', cancel: 'Cancel', save: 'Save', saving: 'Saving…',
-  saved: 'Changes saved', saveError: 'Could not save changes',
+  saved: 'Changes saved', saveError: 'Save failed. Changes were not saved.',
 })
 const languages: { code: SupportedContentLocale; label: string }[] = [{ code: 'fr', label: 'FR' }, { code: 'en', label: 'EN' }]
 const activeLanguage = ref<SupportedContentLocale>('fr')
@@ -94,6 +98,9 @@ const headingInput = ref<HTMLInputElement | null>(null)
 const saving = ref(false)
 const success = ref('')
 const error = ref('')
+watch(isDirty, (dirty) => {
+  if (dirty) success.value = ''
+})
 const x = ref(0)
 const y = ref(0)
 let dragOffsetX = 0
@@ -272,7 +279,9 @@ onUnmounted(() => {
 .about-page-editor__footer { padding: var(--site-space-4); }
 .about-page-editor__header-actions { display: flex; align-items: center; gap: var(--site-space-1); }
 .about-page-editor__header { border-bottom: 1px solid var(--site-color-border); cursor: move; touch-action: none; user-select: none; -webkit-user-select: none; }
-.about-page-editor__footer { padding-right: 42px; border-top: 1px solid var(--site-color-border); }
+.about-page-editor__footer { display: flex; align-items: center; justify-content: space-between; gap: var(--site-space-3); min-height: 56px; padding: var(--site-space-2) var(--site-space-4); padding-right: 42px; border-top: 1px solid var(--site-color-border); }
+.about-page-editor__feedback { min-width: 0; }
+.about-page-editor__footer-actions { display: flex; flex: 0 0 auto; justify-content: flex-end; gap: var(--site-space-2); }
 .about-page-editor__header h2,
 .about-page-editor__list-heading h3 { margin: 0; color: var(--site-color-heading); font-size: 1rem; font-weight: 550; }
 .about-page-editor__body { display: grid; gap: var(--site-space-4); padding: var(--site-space-4); overflow-y: auto; }

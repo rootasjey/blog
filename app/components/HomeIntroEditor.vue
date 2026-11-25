@@ -35,7 +35,7 @@
         </label>
         <label>
           <span>{{ labels.description }}</span>
-          <textarea v-model="draft[activeLanguage].description" rows="7" maxlength="4000" />
+          <StaticRichTextEditor v-model="draft[activeLanguage].description" :label="labels.description" :max-length="4000" />
         </label>
         <div class="home-intro-editor__avatar-field">
           <span class="home-intro-editor__field-label">{{ labels.avatar }}</span>
@@ -78,15 +78,19 @@
             >
           </div>
         </div>
-        <p v-if="error" class="home-intro-editor__message home-intro-editor__message--error" role="alert">{{ error }}</p>
-        <p v-if="success" class="home-intro-editor__message" role="status">{{ success }}</p>
       </div>
 
-      <footer class="home-intro-editor__footer">
-        <NButton v-if="isDirty" btn="ghost-gray" size="sm" :disabled="saving || uploading" @click="close">{{ labels.cancel }}</NButton>
-        <NButton v-if="isDirty" btn="solid-black" size="sm" :loading="saving || uploading" :disabled="saving || uploading" @click="save">
-          {{ saving ? labels.saving : uploading ? labels.uploading : labels.save }}
-        </NButton>
+      <footer v-if="isDirty || success || error" class="home-intro-editor__footer">
+        <div class="home-intro-editor__feedback">
+          <p v-if="error" class="home-intro-editor__message home-intro-editor__message--error" role="alert">{{ error }}</p>
+          <p v-else-if="success" class="home-intro-editor__message" role="status">{{ success }}</p>
+        </div>
+        <div class="home-intro-editor__footer-actions">
+          <NButton v-if="isDirty" btn="ghost-gray" size="sm" :disabled="saving || uploading" @click="close">{{ labels.cancel }}</NButton>
+          <NButton v-if="isDirty" btn="solid-black" size="sm" :loading="saving || uploading" :disabled="saving || uploading" @click="save">
+            {{ saving ? labels.saving : uploading ? labels.uploading : labels.save }}
+          </NButton>
+        </div>
       </footer>
       <EditorPanelResizeHandle
         v-if="!isMaximized"
@@ -117,14 +121,14 @@ const labels = computed(() => locale.value === 'en' ? {
   name: 'Name', description: 'Description', avatar: 'Profile image', currentImage: 'Current profile photo', changeImage: 'Change image', replaceImage: 'Replace image', cancel: 'Cancel', save: 'Save',
   saving: 'Saving…', uploading: 'Uploading…', saved: 'Changes saved', uploadError: 'Image upload failed',
   dropImage: 'Drop an image to replace the current photo', invalidImageType: 'Choose a JPEG, PNG, or WebP image.', imageTooLarge: 'Image must be 8 MB or smaller.',
-  saveError: 'Could not save changes',
+  saveError: 'Save failed. Changes were not saved.',
 } : {
   title: 'Modifier l’introduction', languages: 'Langue du contenu', close: 'Fermer', maximize: 'Agrandir', restore: 'Restaurer',
   resize: 'Redimensionner le panneau. Utilise les flèches ou fais glisser.',
   name: 'Nom', description: 'Description', avatar: 'Photo de profil', currentImage: 'Photo actuelle', changeImage: 'Changer l’image', replaceImage: 'Remplacer l’image', cancel: 'Annuler', save: 'Enregistrer',
   saving: 'Enregistrement…', uploading: 'Envoi…', saved: 'Modifications enregistrées', uploadError: 'Envoi de la photo impossible',
   dropImage: 'Dépose l’image pour remplacer la photo actuelle', invalidImageType: 'Choisis une image JPEG, PNG ou WebP.', imageTooLarge: 'L’image doit faire 8 Mo ou moins.',
-  saveError: 'Enregistrement impossible',
+  saveError: 'Échec de l’enregistrement. Modifications non enregistrées.',
 })
 const languages = [{ code: 'fr' as const, label: 'FR' }, { code: 'en' as const, label: 'EN' }]
 const open = ref(false)
@@ -141,6 +145,9 @@ const saving = ref(false)
 const uploading = ref(false)
 const success = ref('')
 const error = ref('')
+watch(isDirty, (dirty) => {
+  if (dirty) success.value = ''
+})
 const isAvatarDragOver = ref(false)
 const x = ref(0)
 const y = ref(0)
@@ -565,11 +572,22 @@ onUnmounted(() => {
 
 .home-intro-editor__footer {
   display: flex;
-  justify-content: flex-end;
-  gap: var(--site-space-2);
-  padding: var(--site-space-3) var(--site-space-4);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--site-space-3);
+  min-height: 56px;
+  padding: var(--site-space-2) var(--site-space-4);
   padding-right: 42px;
   border-top: 1px solid var(--site-color-border);
+}
+
+.home-intro-editor__feedback { min-width: 0; }
+
+.home-intro-editor__footer-actions {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  gap: var(--site-space-2);
 }
 
 @media (max-width: 640px) {

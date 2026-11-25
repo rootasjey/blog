@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { DEFAULT_HOME_IDENTITY, type HomeIdentity } from '~~/shared/types/home-identity'
 import { DEFAULT_HOME_POST_SECTIONS, type HomePostSectionsContent } from '~~/shared/types/home-post-sections'
 import { DEFAULT_SITE_BRAND_NAME } from '~~/shared/types/site-settings'
+import { isSafeStaticRichTextHref, type StaticRichTextNode } from '~~/shared/types/static-rich-text'
 import {
   DEFAULT_ABOUT_PAGE_CONTENT,
   DEFAULT_RECOMMENDATIONS_CONTENT,
@@ -20,10 +21,47 @@ export const RECOMMENDATIONS_CONTENT_KEY = 'recommendationsContent'
 export const ABOUT_PAGE_CONTENT_KEY = 'aboutPageContent'
 export const siteBrandNameSchema = z.string().trim().min(1).max(80)
 
+function isValidStaticRichText(value: unknown, maxLength: number): value is StaticRichTextNode {
+  if (!value || typeof value !== 'object') return false
+  let textLength = 0
+  let nodeCount = 0
+  const visit = (node: unknown, depth: number): boolean => {
+    if (!node || typeof node !== 'object' || depth > 12 || ++nodeCount > 200) return false
+    const current = node as Record<string, unknown>
+    const allowed = ['doc', 'paragraph', 'text', 'hardBreak', 'bulletList', 'orderedList', 'listItem']
+    if (typeof current.type !== 'string' || !allowed.includes(current.type)) return false
+    if (current.type === 'text') {
+      if (typeof current.text !== 'string') return false
+      textLength += current.text.length
+      if (current.marks !== undefined) {
+        if (!Array.isArray(current.marks)) return false
+        for (const mark of current.marks) {
+          if (!mark || typeof mark !== 'object') return false
+          const typedMark = mark as Record<string, unknown>
+          if (!['bold', 'italic', 'strike', 'link'].includes(String(typedMark.type))) return false
+          if (typedMark.type === 'link' && (!typedMark.attrs || typeof typedMark.attrs !== 'object' || !isSafeStaticRichTextHref((typedMark.attrs as Record<string, unknown>).href))) return false
+        }
+      }
+    }
+    if (current.content !== undefined) {
+      if (!Array.isArray(current.content) || !current.content.every(child => visit(child, depth + 1))) return false
+    }
+    return true
+  }
+  return (value as Record<string, unknown>).type === 'doc' && visit(value, 0) && textLength <= maxLength
+}
+
+function staticRichTextSchema(maxLength: number) {
+  return z.union([
+    z.string().max(maxLength),
+    z.custom<StaticRichTextNode>(value => isValidStaticRichText(value, maxLength), 'Invalid rich text content'),
+  ])
+}
+
 export const homeIdentitySchema = z.object({
   avatar: z.string().max(500).refine(value => value.startsWith('/') || /^https:\/\//i.test(value), 'Invalid avatar URL'),
-  fr: z.object({ name: z.string().trim().min(1).max(100), description: z.string().max(4000) }),
-  en: z.object({ name: z.string().trim().min(1).max(100), description: z.string().max(4000) }),
+  fr: z.object({ name: z.string().trim().min(1).max(100), description: staticRichTextSchema(4000) }),
+  en: z.object({ name: z.string().trim().min(1).max(100), description: staticRichTextSchema(4000) }),
 }).strict()
 
 const homePostSectionSchema = z.object({
@@ -45,7 +83,7 @@ const localizedTextSchema = z.object({
 
 const localizedRecommendationSchema = z.object({
   title: z.string().trim().min(1).max(100),
-  description: z.string().trim().min(1).max(2000),
+  description: staticRichTextSchema(2000),
 }).strict()
 
 const idSchema = z.string().regex(/^[a-z0-9][a-z0-9-]{0,49}$/)
@@ -72,18 +110,18 @@ export const recommendationsContentSchema = z.object({
 const aboutLocaleSchema = z.object({
   heading: z.string().trim().min(1).max(120),
   mainTitle: z.string().trim().min(1).max(500),
-  intro: z.string().trim().min(1).max(4000),
-  description: z.string().trim().min(1).max(4000),
+  intro: staticRichTextSchema(4000),
+  description: staticRichTextSchema(4000),
   openSourceHeading: z.string().trim().min(1).max(200),
-  openSourceText: z.string().trim().min(1).max(4000),
+  openSourceText: staticRichTextSchema(4000),
   faqHeading: z.string().trim().min(1).max(120),
   faq: z.array(z.object({
     id: idSchema,
     question: localizedTextSchema,
-    answer: localizedTextSchema,
+    answer: z.object({ fr: staticRichTextSchema(1000), en: staticRichTextSchema(1000) }).strict(),
   }).strict()).max(20),
   contactHeading: z.string().trim().min(1).max(200),
-  contactText: z.string().trim().min(1).max(2000),
+  contactText: staticRichTextSchema(2000),
 }).strict()
 
 export const aboutPageContentSchema = z.object({

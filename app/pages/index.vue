@@ -23,7 +23,7 @@
         />
         <img class="site-intro-mark" :src="homeIdentity.avatar" :alt="localizedIdentity.name" width="100" height="100">
         <h1>{{ localizedIdentity.name }}</h1>
-        <p v-for="(paragraph, index) in homeIntroParagraphs" :key="index">{{ paragraph }}</p>
+        <StaticRichText class="site-intro-copy" :content="localizedIdentity.description" />
         <a class="site-interactive-hover site-outline-action site-intro-subscribe" href="#newsletter">{{ $ts('common.subscribe') }}</a>
       </section>
       <div class="animate-entrance"><FeaturedPostsGrid :is-admin="isAdmin" :is-edit-mode="isContentEditMode" /></div>
@@ -57,7 +57,6 @@ const { $ts, $getLocale } = useI18n()
 const { settings: settingsData, updateSettings } = await useSiteSettings()
 const homeIdentity = computed(() => settingsData.value?.homeIdentity || DEFAULT_HOME_IDENTITY)
 const localizedIdentity = computed(() => homeIdentity.value[$getLocale() === 'en' ? 'en' : 'fr'])
-const homeIntroParagraphs = computed(() => localizedIdentity.value.description.split(/\n\s*\n/).filter(Boolean))
 const { user, loggedIn } = useUserSession()
 const isAdmin = computed(() => !!(loggedIn.value && user.value?.role === 'admin'))
 const siteEditMode = usePublicPageEditMode()

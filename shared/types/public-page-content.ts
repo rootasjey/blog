@@ -1,3 +1,5 @@
+import type { StaticRichTextValue } from './static-rich-text'
+
 export type SupportedContentLocale = 'fr' | 'en'
 
 export type LocalizedText = Record<SupportedContentLocale, string>
@@ -11,41 +13,41 @@ export type RecommendationItem = {
 }
 
 export type RecommendationsContent = {
-  fr: { title: string; description: string }
-  en: { title: string; description: string }
+  fr: { title: string; description: StaticRichTextValue }
+  en: { title: string; description: StaticRichTextValue }
   items: RecommendationItem[]
 }
 
 export type AboutFaqItem = {
   id: string
   question: LocalizedText
-  answer: LocalizedText
+  answer: Record<SupportedContentLocale, StaticRichTextValue>
 }
 
 export type AboutPageContent = {
   fr: {
     heading: string
     mainTitle: string
-    intro: string
-    description: string
+    intro: StaticRichTextValue
+    description: StaticRichTextValue
     openSourceHeading: string
-    openSourceText: string
+    openSourceText: StaticRichTextValue
     faqHeading: string
     faq: AboutFaqItem[]
     contactHeading: string
-    contactText: string
+    contactText: StaticRichTextValue
   }
   en: {
     heading: string
     mainTitle: string
-    intro: string
-    description: string
+    intro: StaticRichTextValue
+    description: StaticRichTextValue
     openSourceHeading: string
-    openSourceText: string
+    openSourceText: StaticRichTextValue
     faqHeading: string
     faq: AboutFaqItem[]
     contactHeading: string
-    contactText: string
+    contactText: StaticRichTextValue
   }
 }
 
