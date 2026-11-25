@@ -9,7 +9,20 @@
       class="static-rich-text-editor__bubble"
       @pointerdown="preserveSelection"
     >
-      <div class="static-rich-text-editor__tools" role="toolbar" :aria-label="labels.toolbar">
+      <form
+        v-if="linkFormOpen"
+        class="static-rich-text-editor__link-form"
+        :aria-label="labels.linkUrl"
+        @submit.prevent="applyLink"
+        @keydown.esc.stop.prevent="closeLinkForm"
+      >
+        <input ref="linkInput" v-model="linkHref" type="url" :aria-label="labels.linkUrl" placeholder="https://…">
+        <button type="submit">{{ labels.apply }}</button>
+        <button type="button" :aria-label="labels.closeLinkForm" :title="labels.closeLinkForm" @click="closeLinkForm">
+          <NIcon name="i-lucide-x" aria-hidden="true" />
+        </button>
+      </form>
+      <div v-else class="static-rich-text-editor__tools" role="toolbar" :aria-label="labels.toolbar">
         <button type="button" :class="{ 'is-active': editor.isActive('bold') }" :aria-label="labels.bold" :title="labels.bold" @click="runToolbarAction($event, toggleBold)"><strong>B</strong></button>
         <button type="button" :class="{ 'is-active': editor.isActive('italic') }" :aria-label="labels.italic" :title="labels.italic" @click="runToolbarAction($event, toggleItalic)"><em>I</em></button>
         <button type="button" :class="{ 'is-active': editor.isActive('strike') }" :aria-label="labels.strike" :title="labels.strike" @click="runToolbarAction($event, toggleStrike)"><s>S</s></button>
@@ -27,17 +40,13 @@
         >
           <NIcon :name="editor.isActive('link') ? 'i-tabler-link-minus' : 'i-tabler-link-plus'" aria-hidden="true" />
         </button>
-        <form v-if="linkFormOpen" class="static-rich-text-editor__link-form" @submit.prevent="applyLink">
-          <input v-model="linkHref" type="url" :aria-label="labels.linkUrl" placeholder="https://…" @keydown.esc="linkFormOpen = false">
-          <button type="submit">{{ labels.apply }}</button>
-        </form>
       </div>
     </BubbleMenu>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3/menus'
 import StarterKit from '@tiptap/starter-kit'
@@ -48,10 +57,11 @@ const props = defineProps<{ modelValue: StaticRichTextValue; label: string; maxL
 const emit = defineEmits<{ 'update:modelValue': [value: StaticRichTextValue] }>()
 const { $getLocale } = useI18n()
 const labels = computed(() => $getLocale() === 'en'
-  ? { toolbar: 'Text formatting', bold: 'Bold', italic: 'Italic', strike: 'Strikethrough', bullets: 'Bulleted list', orderedList: 'Ordered list', link: 'Add link', removeLink: 'Remove link', linkUrl: 'Link URL', apply: 'Apply' }
-  : { toolbar: 'Mise en forme du texte', bold: 'Gras', italic: 'Italique', strike: 'Barré', bullets: 'Liste à puces', orderedList: 'Liste ordonnée', link: 'Ajouter un lien', removeLink: 'Retirer le lien', linkUrl: 'Adresse du lien', apply: 'Appliquer' })
+  ? { toolbar: 'Text formatting', bold: 'Bold', italic: 'Italic', strike: 'Strikethrough', bullets: 'Bulleted list', orderedList: 'Ordered list', link: 'Add link', removeLink: 'Remove link', linkUrl: 'Link URL', apply: 'Apply', closeLinkForm: 'Close link field' }
+  : { toolbar: 'Mise en forme du texte', bold: 'Gras', italic: 'Italique', strike: 'Barré', bullets: 'Liste à puces', orderedList: 'Liste ordonnée', link: 'Ajouter un lien', removeLink: 'Retirer le lien', linkUrl: 'Adresse du lien', apply: 'Appliquer', closeLinkForm: 'Fermer le champ du lien' })
 const linkFormOpen = ref(false)
 const linkHref = ref('')
+const linkInput = ref<HTMLInputElement | null>(null)
 const editor = useEditor({
   content: normalizeStaticRichText(props.modelValue),
   extensions: [
@@ -68,6 +78,17 @@ const editor = useEditor({
     handlePaste: (view, event) => {
       const pastedText = event.clipboardData?.getData('text/plain') || ''
       return pastedText ? exceedsLimit(view.state.doc.textContent.length - (view.state.selection.to - view.state.selection.from) + pastedText.length) : false
+    },
+    handleKeyDown: (_view, event) => {
+      const isLinkShortcut = (event.metaKey || event.ctrlKey)
+        && event.key.toLowerCase() === 'k'
+        && !event.altKey
+        && !event.shiftKey
+      if (!isLinkShortcut) return false
+
+      event.preventDefault()
+      handleLinkAction()
+      return true
     },
   },
   onUpdate: ({ editor: current }) => emit('update:modelValue', current.getJSON() as StaticRichTextValue),
@@ -86,6 +107,11 @@ watch(() => props.modelValue, (value) => {
   if (!current) return
   const normalized = normalizeStaticRichText(value)
   if (JSON.stringify(current.getJSON()) !== JSON.stringify(normalized)) current.commands.setContent(normalized, { emitUpdate: false })
+})
+
+watch(linkFormOpen, (isOpen) => {
+  if (!isOpen) return
+  void nextTick(() => linkInput.value?.focus())
 })
 
 function preserveSelection(event: PointerEvent) {
@@ -151,6 +177,10 @@ function applyLink() {
   linkFormOpen.value = false
 }
 
+function closeLinkForm() {
+  linkFormOpen.value = false
+}
+
 onBeforeUnmount(() => editor.value?.destroy())
 </script>
 
@@ -167,7 +197,10 @@ onBeforeUnmount(() => editor.value?.destroy())
   .static-rich-text-editor__tools { display: flex; align-items: center; gap: 3px; }
   .static-rich-text-editor__tools > button { display: grid; min-width: 30px; height: 30px; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--site-color-text); cursor: pointer; }
   .static-rich-text-editor__tools > button:hover, .static-rich-text-editor__tools > button.is-active { background: var(--site-color-hover-background); color: var(--site-color-heading); }
-  .static-rich-text-editor__link-form { display: flex; gap: 4px; padding-inline: 4px; }
-  .static-rich-text-editor__link-form input { width: 180px; min-width: 0; }
+  .static-rich-text-editor__link-form { display: flex; width: min(280px, calc(100vw - 32px)); min-width: 0; box-sizing: border-box; align-items: center; gap: 4px; }
+  .static-rich-text-editor__link-form input { flex: 1 1 auto; width: 0; min-width: 0; height: 30px; box-sizing: border-box; padding: 0 8px; border: 1px solid var(--site-color-border); border-radius: 6px; background: var(--site-color-background); color: var(--site-color-text); }
+  .static-rich-text-editor__link-form > button { display: grid; min-width: 30px; height: 30px; flex: 0 0 auto; place-items: center; padding-inline: 8px; border: 0; border-radius: 6px; background: var(--site-color-hover-background); color: var(--site-color-text); cursor: pointer; }
+  .static-rich-text-editor__link-form > button:last-child { width: 30px; padding: 0; background: transparent; }
+  .static-rich-text-editor__link-form > button:hover { color: var(--site-color-heading); }
 }
 </style>

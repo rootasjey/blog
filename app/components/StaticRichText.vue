@@ -18,7 +18,11 @@ function renderNode(node: StaticRichTextNode, key: number | string): VNodeChild 
 
 function renderMark(child: VNodeChild, mark: StaticRichTextMark): VNodeChild {
   if (mark.type === 'link') return isSafeStaticRichTextHref(mark.attrs?.href)
-    ? h('a', { href: mark.attrs.href, rel: /^https?:/i.test(mark.attrs.href) ? 'noopener noreferrer' : undefined }, [child])
+    ? h('a', {
+        href: mark.attrs.href,
+        class: 'site-editorial-link',
+        rel: /^https?:/i.test(mark.attrs.href) ? 'noopener noreferrer' : undefined,
+      }, [child])
     : child
   const tag = mark.type === 'bold' ? 'strong' : mark.type === 'italic' ? 'em' : 's'
   return h(tag, [child])
