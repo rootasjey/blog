@@ -78,7 +78,8 @@
     "signin": "Sign in",
     "about": "About",
     "credits": "Credits",
-    "gitHubRepository": "GitHub repository"
+    "gitHubRepository": "GitHub repository",
+    "version": "Version"
   },
   "mobileNav": {
     "home": "Home",

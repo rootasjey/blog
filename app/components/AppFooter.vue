@@ -11,6 +11,7 @@
         © {{ currentYear }}
         <NuxtLink class="site-footer-author-link" to="https://github.com/rootasjey" external target="_blank">Jérémie CORPINOT</NuxtLink> •
         {{ $ts('nav.tagline') }}
+        <span class="site-footer-version">{{ $ts('footer.version') }} v{{ appVersion }}</span>
       </div>
     </div>
   </footer>
@@ -21,6 +22,8 @@ import { localizedPath } from '~/utils/presentationPosts'
 
 const currentYear = new Date().getFullYear()
 const { $getLocale, $ts } = useI18n()
+const config = useRuntimeConfig()
+const appVersion = config.public.appVersion || '0.0.0'
 </script>
 
 <style>
@@ -89,6 +92,10 @@ const { $getLocale, $ts } = useI18n()
   font-size: 13px;
   line-height: 32px;
   font-weight: 500;
+}
+.site-shell .site-footer-version {
+  margin-inline-start: 8px;
+  white-space: nowrap;
 }
 .site-shell .site-footer-copyright a {
   color: inherit;
