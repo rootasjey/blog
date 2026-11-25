@@ -2,7 +2,6 @@
 import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
-import { Jimp } from 'jimp'
 import type { ApiPost } from '~~/shared/types/post'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
 
@@ -48,65 +47,40 @@ export default defineEventHandler(async (event) => {
 
   const extension = type.split('/')[1]
   const coverFolder = `posts/${post.id}/cover`
+  let stage = 'store-original'
+  let originalPath: string
 
-  // Process the original image with Jimp
-  const originalImage = await Jimp.fromBuffer(file)
+  try {
+    const fileBlob = new Blob([new Uint8Array(file)], { type })
+    const originalBlob = await hb.put(`${coverFolder}/original.${extension}`, fileBlob, {
+      addRandomSuffix: false,
+    })
+    originalPath = `/${originalBlob.pathname.replace(/^\/+/, '')}`
 
-  const sizes = [
-    { width: 160, suffix: 'xxs' },
-    { width: 320, suffix: 'xs' },
-    { width: 640, suffix: 'sm' },
-    { width: 1024, suffix: 'md' },
-    { width: 1920, suffix: 'lg' },
-    // Original size will be stored as 'original'
-  ]
-  
-  // Store all generated pathnames
-  const generatedVariants = []
-
-  // Upload original image
-  const fileBlob = new Blob([new Uint8Array(file)], { type })
-  const originalBlob = await hb.put(`original.${extension}`, fileBlob, {
-    prefix: coverFolder,
-  })
-
-  generatedVariants.push({
-    size: 'original',
-    width: originalImage.width,
-    height: originalImage.height,
-    pathname: originalBlob.pathname
-  })
-
-  // Generate and upload resized versions
-  for (const size of sizes) {
-    const resized = originalImage.clone().resize({ w: size.width })
-    const buffer = await resized.getBuffer(type)
-    const resizedBlob = new Blob([new Uint8Array(buffer)], { type })
-    const response = await hb
-      .put(`${coverFolder}/${size.suffix}.${extension}`, resizedBlob, {
-        addRandomSuffix: false,
+    stage = 'save-post-metadata'
+    await database.update(schema.posts)
+      .set({
+        image_src: originalPath,
+        image_alt: fileName,
+        image_ext: extension,
+        updated_at: new Date().toISOString(),
       })
-
-    generatedVariants.push({
-      size: size.suffix,
-      width: resized.width,
-      height: resized.height,
-      pathname: response.pathname
+      .where(eq(schema.posts.id, post.id))
+      .run()
+  } catch (error) {
+    console.error('[cover.post] Upload failed', {
+      postId: post.id,
+      stage,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Failed to upload cover image',
+      message: 'Failed to upload cover image',
+      cause: error,
     })
   }
-
-  // Persist the canonical image path (point to the original variant)
-  const originalPath = `/${originalBlob.pathname.replace(/^\/+/, '')}`
-
-  await database.update(schema.posts)
-    .set({
-      image_src: originalPath,
-      image_alt: fileName,
-      image_ext: extension,
-      updated_at: new Date().toISOString(),
-    })
-    .where(eq(schema.posts.id, post.id))
-    .run()
 
   // Invalidate any legacy OG blobs for this post, then trigger immediate regeneration
   try {
