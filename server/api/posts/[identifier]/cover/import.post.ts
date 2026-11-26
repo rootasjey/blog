@@ -3,7 +3,7 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import type { ApiPost } from '~~/shared/types/post'
 import { MAX_COVER_FILE_BYTES } from '~~/shared/utils/cover-media'
-import { fetchRemoteCover } from '~~/server/utils/fetchRemoteCover'
+import { fetchRemoteCover, getSameSiteImageBlobSource, inspectRemoteCover } from '~~/server/utils/fetchRemoteCover'
 import { assertPostPermission } from '~~/server/utils/postPermissions'
 
 export default defineEventHandler(async (event) => {
@@ -22,7 +22,17 @@ export default defineEventHandler(async (event) => {
 
   let remoteCover
   try {
-    remoteCover = await fetchRemoteCover(url)
+    const sameSiteSource = getSameSiteImageBlobSource(url, useRuntimeConfig().public.siteUrl)
+    if (sameSiteSource) {
+      const source = await blob.get(sameSiteSource.blobPath)
+      if (!source) throw new Error('The cover URL could not be downloaded.')
+      if (source.size > MAX_COVER_FILE_BYTES) throw new Error('The cover file exceeds the 25 MB limit.')
+
+      const bytes = new Uint8Array(await source.arrayBuffer())
+      remoteCover = inspectRemoteCover(bytes, source.type, sameSiteSource.fileName)
+    } else {
+      remoteCover = await fetchRemoteCover(url)
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'The cover URL could not be imported.'
     const statusCode = message.includes('25 MB') ? 413 : 400
