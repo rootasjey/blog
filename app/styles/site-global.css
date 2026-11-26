@@ -1,5 +1,14 @@
 /* Global foundations and patterns shared across multiple routes. */
 
+@layer reset {
+  .site-shell .site-editorial-link:not(:has(img, picture, video, audio, iframe, canvas, object, embed)),
+  .site-shell .post-content a:not(.auto-link-preview__link):not(:has(img, picture, video, audio, iframe, canvas, object, embed)),
+  .site-shell :is(p, blockquote, figcaption, h1, h2, h3, h4, h5, h6, .site-credits-list) a:not(.auto-link-preview__link):not(.home-trending-tags-heading):not(:has(img, picture, video, audio, iframe, canvas, object, embed)) {
+    /* Uno's reset is imported into this layer; suppress its inherited link decoration. */
+    text-decoration: none !important;
+  }
+}
+
 @layer base {
 :focus:not(:focus-visible) {
   outline: none;
@@ -128,8 +137,9 @@ body {
 }
 
 @layer components {
-  .site-shell .site-editorial-link,
-  .site-shell .post-content .ProseMirror a:not(.auto-link-preview__link) {
+  .site-shell .site-editorial-link:not(:has(img, picture, video, audio, iframe, canvas, object, embed)),
+  .site-shell .post-content a:not(.auto-link-preview__link):not(:has(img, picture, video, audio, iframe, canvas, object, embed)),
+  .site-shell :is(p, blockquote, figcaption, h1, h2, h3, h4, h5, h6, .site-credits-list) a:not(.auto-link-preview__link):not(.home-trending-tags-heading):not(:has(img, picture, video, audio, iframe, canvas, object, embed)) {
     color: color-mix(in srgb, var(--site-color-text) 78%, var(--site-color-accent));
     text-decoration: none;
     background-image: linear-gradient(currentColor, currentColor);
@@ -141,37 +151,72 @@ body {
     transition: color 180ms ease, background-size 220ms ease;
   }
 
-  .site-shell .site-editorial-link:hover,
-  .site-shell .site-editorial-link:focus-visible,
-  .site-shell .post-content .ProseMirror a:not(.auto-link-preview__link):hover,
-  .site-shell .post-content .ProseMirror a:not(.auto-link-preview__link):focus-visible {
+  .site-shell .site-editorial-link:not(:has(img, picture, video, audio, iframe, canvas, object, embed)):hover,
+  .site-shell .site-editorial-link:not(:has(img, picture, video, audio, iframe, canvas, object, embed)):focus-visible,
+  .site-shell .post-content a:not(.auto-link-preview__link):not(:has(img, picture, video, audio, iframe, canvas, object, embed)):hover,
+  .site-shell .post-content a:not(.auto-link-preview__link):not(:has(img, picture, video, audio, iframe, canvas, object, embed)):focus-visible,
+  .site-shell :is(p, blockquote, figcaption, h1, h2, h3, h4, h5, h6, .site-credits-list) a:not(.auto-link-preview__link):not(.home-trending-tags-heading):not(:has(img, picture, video, audio, iframe, canvas, object, embed)):hover,
+  .site-shell :is(p, blockquote, figcaption, h1, h2, h3, h4, h5, h6, .site-credits-list) a:not(.auto-link-preview__link):not(.home-trending-tags-heading):not(:has(img, picture, video, audio, iframe, canvas, object, embed)):focus-visible {
     color: var(--site-color-accent);
     background-size: 100% 1px;
   }
 
-  .site-shell .site-editorial-link[target="_blank"]::after,
-  .site-shell .post-content .ProseMirror a[target="_blank"]:not(.auto-link-preview__link)::after {
+  .site-shell .site-editorial-link:not(:has(img, picture, video, audio, iframe, canvas, object, embed))::after,
+  .site-shell .post-content a:not(.auto-link-preview__link):not(:has(img, picture, video, audio, iframe, canvas, object, embed))::after,
+  .site-shell :is(p, blockquote, figcaption, h1, h2, h3, h4, h5, h6, .site-credits-list) a:not(.auto-link-preview__link):not(.home-trending-tags-heading):not(:has(img, picture, video, audio, iframe, canvas, object, embed))::after {
     content: "";
     display: inline-block;
-    width: 0.32em;
-    height: 0.32em;
-    margin-inline-start: 0.08em;
-    position: relative;
-    top: 0.5em;
-    border-top: 1px solid currentColor;
-    border-right: 1px solid currentColor;
+    width: 0;
+    height: 0.82em;
+    margin-inline-start: 0;
+    vertical-align: -0.11em;
+    transform: translateY(0.5em);
+    overflow: visible;
+    background-color: currentColor;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
     opacity: 0;
-    transform: rotate(45deg) scale(0.7);
-    transition: opacity 140ms ease, transform 140ms ease;
+    transition: width 220ms ease, opacity 140ms ease;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M0 10H18M11 3L18 10L11 17' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M0 10H18M11 3L18 10L11 17' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 
-  .site-shell .site-editorial-link[target="_blank"]:hover::after,
-  .site-shell .site-editorial-link[target="_blank"]:focus-visible::after,
-  .site-shell .post-content .ProseMirror a[target="_blank"]:not(.auto-link-preview__link):hover::after,
-  .site-shell .post-content .ProseMirror a[target="_blank"]:not(.auto-link-preview__link):focus-visible::after {
+  .site-shell .site-editorial-link:not(:has(img, picture, video, audio, iframe, canvas, object, embed))[href^="http" i],
+  .site-shell .post-content a[href^="http" i]:not(.auto-link-preview__link):not(:has(img, picture, video, audio, iframe, canvas, object, embed)),
+  .site-shell :is(p, blockquote, figcaption, h1, h2, h3, h4, h5, h6, .site-credits-list) a[href^="http" i]:not(.auto-link-preview__link):not(.home-trending-tags-heading):not(:has(img, picture, video, audio, iframe, canvas, object, embed)) {
+    background-image: linear-gradient(currentColor, currentColor);
+  }
+
+  .site-shell .site-editorial-link:not(:has(img, picture, video, audio, iframe, canvas, object, embed))[href^="http" i]::after,
+  .site-shell .post-content a[href^="http" i]:not(.auto-link-preview__link):not(:has(img, picture, video, audio, iframe, canvas, object, embed))::after,
+  .site-shell :is(p, blockquote, figcaption, h1, h2, h3, h4, h5, h6, .site-credits-list) a[href^="http" i]:not(.auto-link-preview__link):not(.home-trending-tags-heading):not(:has(img, picture, video, audio, iframe, canvas, object, embed))::after {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M0 10H7L17 2M10 2H17V9' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M0 10H7L17 2M10 2H17V9' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+
+  .site-shell .site-editorial-link:not(:has(img, picture, video, audio, iframe, canvas, object, embed)):hover::after,
+  .site-shell .site-editorial-link:not(:has(img, picture, video, audio, iframe, canvas, object, embed)):focus-visible::after,
+  .site-shell .post-content a:not(.auto-link-preview__link):not(:has(img, picture, video, audio, iframe, canvas, object, embed)):hover::after,
+  .site-shell .post-content a:not(.auto-link-preview__link):not(:has(img, picture, video, audio, iframe, canvas, object, embed)):focus-visible::after,
+  .site-shell :is(p, blockquote, figcaption, h1, h2, h3, h4, h5, h6, .site-credits-list) a:not(.auto-link-preview__link):not(.home-trending-tags-heading):not(:has(img, picture, video, audio, iframe, canvas, object, embed)):hover::after,
+  .site-shell :is(p, blockquote, figcaption, h1, h2, h3, h4, h5, h6, .site-credits-list) a:not(.auto-link-preview__link):not(.home-trending-tags-heading):not(:has(img, picture, video, audio, iframe, canvas, object, embed)):focus-visible::after {
+    width: 0.82em;
     opacity: 1;
-    transform: rotate(45deg) scale(1);
-    transition-delay: 150ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-shell .site-editorial-link:not(:has(img, picture, video, audio, iframe, canvas, object, embed)),
+    .site-shell .post-content a:not(.auto-link-preview__link):not(:has(img, picture, video, audio, iframe, canvas, object, embed)),
+    .site-shell :is(p, blockquote, figcaption, h1, h2, h3, h4, h5, h6, .site-credits-list) a:not(.auto-link-preview__link):not(.home-trending-tags-heading):not(:has(img, picture, video, audio, iframe, canvas, object, embed)),
+    .site-shell .site-editorial-link:not(:has(img, picture, video, audio, iframe, canvas, object, embed))::after,
+    .site-shell .post-content a:not(.auto-link-preview__link):not(:has(img, picture, video, audio, iframe, canvas, object, embed))::after,
+    .site-shell :is(p, blockquote, figcaption, h1, h2, h3, h4, h5, h6, .site-credits-list) a:not(.auto-link-preview__link):not(.home-trending-tags-heading):not(:has(img, picture, video, audio, iframe, canvas, object, embed))::after {
+      transition: none;
+    }
   }
 }
 
