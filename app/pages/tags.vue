@@ -74,7 +74,6 @@
               :search-label="$ts('pages.tags.iconSearchPlaceholder')"
               :loading-label="$ts('pages.tags.iconLoading')"
               :empty-label="$ts('pages.tags.iconNoResults')"
-              :load-more-label="$ts('pages.tags.iconLoadMore')"
               :error-label="$ts('pages.tags.iconLoadError')"
               :retry-label="$ts('pages.tags.iconRetry')"
               @update:icon="tagIcon = $event"

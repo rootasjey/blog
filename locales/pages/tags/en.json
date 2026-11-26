@@ -29,7 +29,6 @@
       "iconSearchPlaceholderWithCount": "Search among {count} Tabler icons",
       "iconLoading": "Loading Tabler icons…",
       "iconNoResults": "No icons match your search.",
-      "iconLoadMore": "Load more icons",
       "iconLoadError": "Could not load the icon catalogue.",
       "iconRetry": "Retry",
       "colorLabel": "Tag color",
