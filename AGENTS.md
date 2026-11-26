@@ -54,6 +54,11 @@ bun run version <patch|minor|major>
 git push origin v<version>
 ```
 
+## Browser verification
+
+- Use Ego Browser as the default browser for visual verification. If it fails in the sandbox, retry with the narrow Full Access escalation documented by its skill or diagnose the Ego installation; do not silently switch to Zen, Chrome, Brave, or another browser. Use another browser only when the user explicitly asks.
+- When the needed page is authenticated, check that state in Ego Browser. If Ego does not have the session, report that specific limitation and ask the user to make the session available in Ego before claiming visual verification.
+
 ## CSS cascade and visual regression checks
 
 - Treat the global CSS layer order as an explicit project contract. Do not remove, relocate, or reorder its declaration or change how global styles are injected without documenting why the change is intentional and checking the resulting cascade.
