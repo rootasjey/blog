@@ -1,7 +1,7 @@
 <template>
   <section class="site-page site-author-detail">
     <div class="site-author-container">
-      <NuxtLink :to="localizedPath('/authors', $getLocale())" class="site-author-back">{{ $ts('pages.authors.backToAuthors') }}</NuxtLink>
+      <NuxtLink :to="localizedPath('/authors', $getLocale())" class="site-author-back site-editorial-link">{{ $ts('pages.authors.backToAuthors') }}</NuxtLink>
 
       <header class="site-author-profile">
         <NuxtImg
@@ -65,6 +65,8 @@
                 v-if="post.image?.src"
                 :src="post.image.src"
                 :alt="post.image.alt || post.name"
+                :ext="post.image.ext"
+                :loop="post.image.loop"
                 loading="lazy"
               />
               <NIcon v-else name="i-lucide-file-text" aria-hidden="true" />
@@ -184,8 +186,7 @@ useHead({
 
 .site-shell .site-author-detail { padding-block: 40px 64px; }
 .site-shell .site-author-container { width: min(700px, calc(100% - 32px)); margin-inline: auto; }
-.site-shell .site-author-back { display: inline-flex; align-items: center; margin-bottom: 36px; color: var(--site-color-muted); font-size: 13px; text-decoration: none; transition: color 180ms ease; }
-.site-shell .site-author-back:hover { color: var(--site-color-heading); }
+.site-shell .site-author-back { display: inline-flex; align-items: center; margin-bottom: 36px; font-size: 13px; }
 .site-shell .site-author-back:focus-visible,
 .site-shell .site-author-socials a:focus-visible,
 .site-shell .site-author-post:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 4px; border-radius: 4px; }
@@ -195,8 +196,7 @@ useHead({
 .site-shell .site-author-role { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; color: var(--site-color-muted); font-size: 14px; line-height: 20px; }
 .site-shell .site-author-biography { max-width: 660px; margin: 0; color: var(--site-color-text); font-size: 16px; line-height: 1.6; }
 .site-shell .site-author-socials { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; }
-.site-shell .site-author-socials a { display: inline-flex; align-items: center; gap: 6px; color: var(--site-color-muted); font-size: 13px; text-decoration: none; transition: color 180ms ease; }
-.site-shell .site-author-socials a:hover { color: var(--site-color-heading); }
+.site-shell .site-author-socials a { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
 .site-shell .site-author-posts-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
 .site-shell .site-author-posts-heading h2 { margin: 0; color: var(--site-color-muted); font-size: 14px; font-weight: 500; line-height: 20px; }
 .site-shell .site-author-posts-heading > span { color: var(--site-color-muted); font-size: 12px; line-height: 18px; }

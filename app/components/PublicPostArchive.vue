@@ -16,6 +16,8 @@
             v-if="post.image?.src"
             :src="post.image.src"
             :alt="post.image.alt || post.name"
+            :ext="post.image.ext"
+            :loop="post.image.loop"
             class="site-public-post-image"
             loading="lazy"
           />

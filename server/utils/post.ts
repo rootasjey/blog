@@ -32,6 +32,7 @@ export const createPostData = (body: any, userId: number) => {
     description: body?.description ?? "",
     image_src: "",
     image_alt: "",
+    image_loop: true,
     language: "en",
     links: JSON.stringify([]),
     metrics_comments: 0,
@@ -161,6 +162,7 @@ export function convertApiToPost(
     image: {
       alt: apiPost.image_alt ?? "",
       ext: apiPost.image_ext ?? "",
+      loop: apiPost.image_loop ?? true,
       src: apiPost.image_src ?? "",
     },
     language: apiPost.language,

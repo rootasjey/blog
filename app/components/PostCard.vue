@@ -28,7 +28,7 @@
     >
       <article class="h-full flex flex-col items-stretch relative">
         <div v-if="post.image?.src" class="w-full overflow-hidden flex-shrink-0">
-          <PostImage :src="post.image.src" :alt="post.image.alt || post.name" class="w-full h-full object-cover aspect-[16/10] transition-transform duration-500 group-hover:scale-110" />
+          <PostImage :src="post.image.src" :alt="post.image.alt || post.name" :ext="post.image.ext" :loop="post.image.loop" class="w-full h-full object-cover aspect-[16/10] transition-transform duration-500 group-hover:scale-110" />
         </div>
 
         <div class="flex-1 p-6 flex flex-col">

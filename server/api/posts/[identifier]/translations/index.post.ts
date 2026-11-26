@@ -53,6 +53,7 @@ export default defineEventHandler(async (event) => {
     image_src: source.image_src ?? '',
     image_alt: source.image_alt ?? '',
     image_ext: source.image_ext ?? '',
+    image_loop: source.image_loop ?? true,
     language: targetLanguage,
     links: source.links ?? JSON.stringify([]),
     metrics_comments: 0,

@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
 
     await database
       .update(schema.posts)
-      .set({ image_src: '', image_alt: '', image_ext: '', updated_at: new Date().toISOString() })
+      .set({ image_src: '', image_alt: '', image_ext: '', image_loop: true, updated_at: new Date().toISOString() })
       .where(eq(schema.posts.id, post.id))
       .run()
 

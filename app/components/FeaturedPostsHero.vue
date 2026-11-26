@@ -22,7 +22,7 @@
               :to="post.slug ? localizedPath(`/posts/${post.slug}`, $getLocale()) : '#'"
               class="block h-[82vh] overflow-hidden rounded-[32px] border border-white/10 bg-slate-900"
             >
-              <PostImage v-if="post.image?.src" :src="post.image.src" :alt="post.image.alt || post.name" class="absolute inset-0 h-full w-full object-cover" format="webp" loading="lazy" />
+              <PostImage v-if="post.image?.src" :src="post.image.src" :alt="post.image.alt || post.name" :ext="post.image.ext" :loop="post.image.loop" class="absolute inset-0 h-full w-full object-cover" format="webp" loading="lazy" />
               <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-black/15 to-black/70" />
               <div class="absolute inset-0 bg-[linear-gradient(120deg,rgba(15,23,42,0.55)_0%,rgba(15,23,42,0.15)_40%,transparent_70%)]" />
 

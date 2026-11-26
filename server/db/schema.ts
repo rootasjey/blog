@@ -28,6 +28,7 @@ export const posts = sqliteTable('posts', {
   description: text('description'),
   image_alt: text('image_alt'),
   image_ext: text('image_ext'),
+  image_loop: integer('image_loop', { mode: 'boolean' }).notNull().default(true),
   image_src: text('image_src'),
   language: text('language').notNull().default('en'),
   links: text('links').notNull().default('{}'),

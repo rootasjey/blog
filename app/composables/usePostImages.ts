@@ -1,9 +1,11 @@
 import { ref, onUnmounted } from 'vue'
 import type { Post } from '~~/shared/types/post'
 import { usePostsApi } from '~/composables/usePostsApi'
+import { MAX_COVER_FILE_BYTES, MAX_COVER_VIDEO_DURATION_SECONDS, detectCoverMedia } from '~~/shared/utils/cover-media'
 
 export function usePostImages(identifier: () => string | number, post: () => Post | null) {
   const { uploadCoverFile, deleteCover } = usePostsApi()
+  const { $ts } = useI18n()
 
   const fileInput = ref<HTMLInputElement | null>(null)
   const uploadingCover = ref(false)
@@ -11,6 +13,7 @@ export function usePostImages(identifier: () => string | number, post: () => Pos
 
   // Transient preview URL for optimistic preview before server responds
   const previewSrc = ref<string | null>(null)
+  const previewExt = ref('')
 
   const revokePreview = () => {
     if (previewSrc.value) {
@@ -20,6 +23,7 @@ export function usePostImages(identifier: () => string | number, post: () => Pos
         // ignore
       }
       previewSrc.value = null
+      previewExt.value = ''
     }
   }
 
@@ -31,10 +35,23 @@ export function usePostImages(identifier: () => string | number, post: () => Pos
   const triggerFileInput = () => fileInput.value?.click()
 
   const prepareCoverFile = async (file: File): Promise<File> => {
-    const supportedTypes = ['image/jpeg', 'image/png', 'image/bmp', 'image/tiff', 'image/gif']
-    if (supportedTypes.includes(file.type)) return file
-    if (!['image/webp', 'image/avif'].includes(file.type)) {
-      throw new Error('Choose a JPEG, PNG, GIF, BMP, TIFF, WebP, or AVIF image.')
+    if (file.size > MAX_COVER_FILE_BYTES) {
+      throw new Error($ts('pages.postEditor.coverTooLarge'))
+    }
+
+    const bytes = new Uint8Array(await file.arrayBuffer())
+    const media = detectCoverMedia(file.type, bytes, file.name)
+    if (!media) throw new Error($ts('pages.postEditor.coverTypeUnsupported'))
+
+    if (media.kind === 'video') {
+      await validateVideoDuration(file)
+      previewExt.value = media.extension
+      return file
+    }
+
+    if (media.extension !== 'webp' && media.extension !== 'avif') {
+      previewExt.value = media.extension
+      return file
     }
 
     const bitmap = await createImageBitmap(file)
@@ -50,9 +67,32 @@ export function usePostImages(identifier: () => string | number, post: () => Pos
       const blob = await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob((result) => result ? resolve(result) : reject(new Error('This image could not be prepared for upload.')), 'image/jpeg', 0.92)
       })
+      previewExt.value = 'jpg'
       return new File([blob], `${file.name.replace(/\.[^.]+$/, '')}.jpg`, { type: 'image/jpeg' })
     } finally {
       bitmap.close()
+    }
+  }
+
+  const validateVideoDuration = async (file: File): Promise<void> => {
+    const objectUrl = URL.createObjectURL(file)
+    const video = document.createElement('video')
+    video.preload = 'metadata'
+
+    try {
+      const duration = await new Promise<number>((resolve, reject) => {
+        video.onloadedmetadata = () => resolve(video.duration)
+        video.onerror = () => reject(new Error($ts('pages.postEditor.videoDurationUnavailable')))
+        video.src = objectUrl
+      })
+
+      if (!Number.isFinite(duration) || duration > MAX_COVER_VIDEO_DURATION_SECONDS) {
+        throw new Error($ts('pages.postEditor.videoTooLong', { seconds: MAX_COVER_VIDEO_DURATION_SECONDS }))
+      }
+    } finally {
+      video.removeAttribute('src')
+      video.load()
+      URL.revokeObjectURL(objectUrl)
     }
   }
 
@@ -68,13 +108,16 @@ export function usePostImages(identifier: () => string | number, post: () => Pos
       const file = await prepareCoverFile(selectedFile)
       revokePreview()
       previewSrc.value = URL.createObjectURL(file)
-      const res = await uploadCoverFile(String(identifier()), file, (p) => (uploadProgress.value = p))
+      const currentLoop = post()?.image?.loop !== false
+      const res = await uploadCoverFile(String(identifier()), file, currentLoop, (p) => (uploadProgress.value = p))
       if (res?.success && res.image) {
         const current = post()
         if (current) {
           if (!current.image) current.image = { alt: '', ext: '', src: '' }
           current.image.src = res.image.src ?? ''
           current.image.alt = res.image.alt ?? ''
+          current.image.ext = res.image.ext ?? previewExt.value
+          current.image.loop = res.image.loop ?? currentLoop
         }
       }
 
@@ -107,6 +150,7 @@ export function usePostImages(identifier: () => string | number, post: () => Pos
     uploadingCover,
     uploadProgress,
     previewSrc,
+    previewExt,
     clearPreview,
     triggerFileInput,
     handleFileChange,

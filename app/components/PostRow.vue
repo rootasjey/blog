@@ -19,7 +19,7 @@
 
     <NLink :to="link" @click="(e: MouseEvent) => $emit('post-click', e, post)" :class="['site-post-row-link group block bg-background border border-border rounded-lg overflow-hidden hover:shadow transition-all duration-200 transform active:scale-99 flex items-start gap-4 p-4', { 'site-post-row-link--compact': compact }]" :aria-busy="duplicatingPosts.has(post.slug)">
       <div v-if="post.image?.src" class="site-post-row-thumb w-36 h-24 overflow-hidden flex-shrink-0 rounded">
-        <PostImage :src="post.image.src" :alt="post.image.alt || post.name" class="w-full h-full object-cover" />
+        <PostImage :src="post.image.src" :alt="post.image.alt || post.name" :ext="post.image.ext" :loop="post.image.loop" class="w-full h-full object-cover" />
       </div>
       <span v-else-if="compact" class="site-post-row-thumb site-post-row-thumb--empty" aria-hidden="true" />
 

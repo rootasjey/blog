@@ -2,6 +2,7 @@ import { joinURL } from 'ufo'
 
 export function serveImageUrl(src?: string | null): string | undefined {
   if (!src) return undefined
+  if (/\.(mp4|webm)(?:$|\?)/i.test(src)) return undefined
 
   const baseURL = useRuntimeConfig().public.siteUrl
   console.log('[serveImageUrl] Input:', src, '| baseURL:', baseURL)

@@ -56,6 +56,7 @@ describe('convertApiToPost', () => {
     description: 'A test post',
     image_alt: 'Test image',
     image_ext: 'jpg',
+    image_loop: true,
     image_src: '/images/test.jpg',
     language: 'en',
     links: JSON.stringify([{ href: 'https://example.com', name: 'Example' }]),
@@ -90,6 +91,7 @@ describe('convertApiToPost', () => {
     expect(post.image).toEqual({
       alt: 'Test image',
       ext: 'jpg',
+      loop: true,
       src: '/images/test.jpg',
     })
   })

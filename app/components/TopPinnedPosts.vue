@@ -34,7 +34,7 @@
           <NuxtLink :to="localizedPath(`/posts/${post.slug}`, $getLocale())" class="flex gap-3 md:gap-4 items-start">
             <!-- Image on Left (smaller) -->
             <div v-if="post.image?.src" class="relative overflow-hidden rounded-xl w-24 h-24 md:w-28 md:h-28 xl:w-24 xl:h-24 flex-shrink-0">
-              <PostImage :src="post.image.src" :alt="post.image.alt || post.name" class="w-full h-full object-cover" />
+              <PostImage :src="post.image.src" :alt="post.image.alt || post.name" :ext="post.image.ext" :loop="post.image.loop" class="w-full h-full object-cover" />
             </div>
 
             <!-- Content on Right -->

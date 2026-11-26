@@ -2,7 +2,7 @@ import type { Post } from '~~/shared/types/post'
 
 interface UploadCoverResult {
   success?: boolean
-  image?: { src?: string; alt?: string }
+  image?: { src?: string; alt?: string; ext?: string; loop?: boolean }
   [key: string]: any
 }
 
@@ -42,7 +42,7 @@ export function usePostsApi() {
     return $fetch<{ exists: boolean }>('/api/posts/slug/check', { params, signal })
   }
 
-  const uploadCoverFile = (identifier: string | number, file: File, onProgress?: (percent: number) => void) => {
+  const uploadCoverFile = (identifier: string | number, file: File, loop = true, onProgress?: (percent: number) => void) => {
     return new Promise<UploadCoverResult>((resolve, reject) => {
       const xhr = new XMLHttpRequest()
       xhr.open('POST', `/api/posts/${encodeURIComponent(String(identifier))}/cover`)
@@ -69,6 +69,7 @@ export function usePostsApi() {
       form.append('file', file)
       form.append('fileName', file.name)
       form.append('type', file.type)
+      form.append('loop', String(loop))
 
       xhr.send(form)
     })
@@ -77,6 +78,19 @@ export function usePostsApi() {
   const deleteCover = (identifier: string | number) => {
     return $fetch(`/api/posts/${encodeURIComponent(String(identifier))}/cover`, { method: 'DELETE' })
   }
+
+  const updateCoverLoop = (identifier: string | number, loop: boolean) => {
+    return $fetch<{ success: boolean; loop: boolean }>(`/api/posts/${encodeURIComponent(String(identifier))}/cover/loop`, {
+      method: 'PUT',
+      body: { loop },
+    })
+  }
+
+  const importCoverFromUrl = (identifier: string | number, url: string, alt: string, loop: boolean) =>
+    $fetch<{ image: { alt: string; ext: string; loop: boolean; src: string }; success: boolean }>(`/api/posts/${encodeURIComponent(String(identifier))}/cover/import`, {
+      method: 'POST',
+      body: { url, alt, loop },
+    })
 
   const exportPostZip = async (identifier: string | number) => {
     const res = await fetch(`/api/posts/${encodeURIComponent(String(identifier))}/export`, { credentials: 'include' })
@@ -95,6 +109,8 @@ export function usePostsApi() {
     checkSlugUnique,
     uploadCoverFile,
     deleteCover,
+    updateCoverLoop,
+    importCoverFromUrl,
     exportPostZip,
   }
 }

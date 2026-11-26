@@ -191,6 +191,8 @@
   object-fit: cover;
 }
 
+.site-shell .site-post-editor .site-editor-cover .site-preview-cover-image:is(video) { background: #000; }
+
 .site-shell .site-post-editor .site-editor-cover-actions {
   position: absolute;
   top: 14px;
@@ -204,6 +206,16 @@
 .site-shell .site-post-editor .site-editor-cover:is(:hover, :focus-within) .site-editor-cover-actions { opacity: 1; }
 .site-shell .site-post-editor .site-editor-cover-progress { position: absolute; inset: auto 0 0; height: 4px; overflow: hidden; }
 .site-shell .site-post-editor .site-editor-cover-progress > div { background: var(--site-color-accent); }
+.site-shell .site-post-editor .site-editor-cover-loop {
+  position: absolute;
+  inset-inline-start: 14px;
+  inset-block-end: 14px;
+  padding: 7px 10px;
+  border: 1px solid var(--site-color-border);
+  border-radius: var(--site-radius-tag);
+  background: var(--site-color-background);
+  color: var(--site-color-text);
+}
 
 .site-shell .site-post-editor .site-editor-body {
   padding-block: 0;

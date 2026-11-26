@@ -72,7 +72,7 @@ export default defineEventHandler(async (event) => {
         await blob.put(newPath, bytes)
 
         if (source.image_src && typeof source.image_src === 'string' && srcPath === source.image_src) {
-          await database.update(schema.posts).set({ image_src: newPath, image_alt: source.image_alt, image_ext: source.image_ext }).where(eq(schema.posts.id, newId)).run()
+        await database.update(schema.posts).set({ image_src: newPath, image_alt: source.image_alt, image_ext: source.image_ext, image_loop: source.image_loop ?? true }).where(eq(schema.posts.id, newId)).run()
         }
       }
 

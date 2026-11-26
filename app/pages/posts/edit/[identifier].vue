@@ -9,7 +9,7 @@
       :language-options="languageOptions"
       :post-language="postLanguage"
       :has-cover="Boolean(post.image?.src)"
-      :uploading-cover="uploadingCover"
+      :uploading-cover="coverUploading"
       :exporting-zip="exportingZip"
       :can-undo="canUndo"
       :can-redo="canRedo"
@@ -57,31 +57,22 @@
       @update:model-value="post.authors = $event"
     />
 
-    <!-- Featured Image (preview / placeholder) -->
-    <div v-if="previewSrc || post.image?.src" class="site-preview-cover site-editor-cover group">
-      <div class="post-cover site-preview-cover-trigger">
-        <img v-if="previewSrc" :src="previewSrc" :alt="post.image?.alt || post.name" class="site-preview-cover-image" />
-        <NuxtImg v-else provider="hubblob" :src="post.image.src" :alt="post.image.alt || post.name" class="site-preview-cover-image" />
-      </div>
-
-      <div v-if="uploadingCover" class="site-editor-cover-progress">
-        <div class="h-full bg-[var(--site-color-accent)] transition-all duration-300" :style="{ width: uploadProgress + '%' }" />
-      </div>
-
-      <!-- Overlay actions -->
-      <div class="site-editor-cover-actions">
-        <NButton @click="triggerFileInput" btn="solid-white" size="xs" :disabled="uploadingCover" leading="i-ph-image">
-          <span v-if="!uploadingCover">{{ $ts('pages.postEditor.replace') }}</span>
-          <span v-else>{{ uploadProgress }}%</span>
-        </NButton>
-        <NButton v-if="post.image?.src" @click="openDeleteCoverDialog" btn="solid-white" size="xs" leading="i-ph-trash" class="text-red-500" :disabled="uploadingCover">
-          {{ $ts('pages.postEditor.delete') }}
-        </NButton>
-        <NButton v-else-if="previewSrc && !uploadingCover" @click="clearPreview" btn="solid-white" size="xs" leading="i-ph-x">
-          {{ $ts('pages.postEditor.cancel') }}
-        </NButton>
-      </div>
-    </div>
+    <EditorPostCoverEditor
+      v-if="post"
+      ref="coverEditor"
+      :post="post"
+      :identifier="identifier"
+      @delete-request="openDeleteCoverDialog"
+      @feedback="onCoverFeedback"
+      @uploading="coverUploading = $event"
+    />
+    <EditorPostCoverUrlDialog
+      v-if="post"
+      ref="coverUrlDialog"
+      :post="post"
+      :identifier="identifier"
+      @feedback="onCoverFeedback"
+    />
 
     <!-- Editable content follows the same reading column as the public post. -->
     <article class="site-post-content site-editor-body">
@@ -193,15 +184,6 @@
       @confirm-delete-cover="confirmDeleteCover"
     />
 
-    <!-- Hidden file input for cover image -->
-    <input
-      ref="fileInput"
-      type="file"
-      accept="image/*"
-      class="hidden"
-      :disabled="uploadingCover"
-      @change="onCoverFileChange"
-    />
   </div>
 </template>
 
@@ -216,7 +198,6 @@ import PostMetadataEditor from '~/components/PostMetadataEditor.vue'
 import PostAuthorsEditor from '~/components/PostAuthorsEditor.vue'
 import { usePost } from '~/composables/usePost'
 import { usePostsApi } from '~/composables/usePostsApi'
-import { usePostImages } from '~/composables/usePostImages'
 import { useSlugValidation } from '~/composables/useSlugValidation'
 import { usePostAI } from '~/composables/usePostAI'
 import { useAISettings } from '~/composables/useAISettings'
@@ -234,7 +215,7 @@ const identifier = computed(() => route.params.identifier as string)
 const { user } = useUserSession()
 const { enhancePost, formatPostDate } = usePost()
 const tagStore = useTagStore()
-const { fetchPost: fetchPostApi, updatePost, updateArticle, deletePost: deletePostApi, exportPostZip } = usePostsApi()
+const { fetchPost: fetchPostApi, updatePost, updateArticle, deletePost: deletePostApi, deleteCover, exportPostZip } = usePostsApi()
 const { streamSuggestion, cancel } = useAIWriter()
 
 const post = ref<Post | null>(null)
@@ -357,10 +338,11 @@ async function prepareRevisionRestore() {
   return post.value.contentRevision ?? 0
 }
 
-const { fileInput, uploadingCover, uploadProgress, previewSrc, clearPreview, triggerFileInput, handleFileChange, deleteCoverImage } = usePostImages(
-  () => identifier.value,
-  () => post.value,
-)
+const coverUploading = ref(false)
+const coverEditor = ref<{ triggerFileInput: () => void } | null>(null)
+const coverUrlDialog = ref<{ open: () => void } | null>(null)
+const triggerFileInput = () => coverEditor.value?.triggerFileInput()
+const openCoverUrlDialog = () => coverUrlDialog.value?.open()
 
 const enhancedPost = computed(() => (post.value ? enhancePost(post.value) : ({ readingTime: '—' } as any)))
 const isNumericIdentifier = computed(() => /^\d+$/.test(String(identifier.value)))
@@ -811,18 +793,10 @@ const onEditorUpdate = (json: object) => {
   scheduleArticleSave(json)
 }
 
-const onCoverFileChange = async (event: Event) => {
-  error.value = ''
-  successMessage.value = ''
-  try {
-    await handleFileChange(event)
-    if (post.value?.image?.src) {
-      successMessage.value = 'Cover image uploaded successfully'
-      setTimeout(() => (successMessage.value = ''), 3000)
-    }
-  } catch (e: any) {
-    error.value = e?.message || 'Failed to upload cover image'
-  }
+const onCoverFeedback = (kind: 'success' | 'error', message: string) => {
+  error.value = kind === 'error' ? message : ''
+  successMessage.value = kind === 'success' ? message : ''
+  if (kind === 'success') setTimeout(() => (successMessage.value = ''), 3000)
 }
 
 const openDeleteCoverDialog = () => {
@@ -839,8 +813,14 @@ const confirmDeleteCover = async () => {
   deleteCoverLoading.value = true
   error.value = ''
   try {
-    await deleteCoverImage()
-    successMessage.value = 'Cover image removed'
+    await deleteCover(String(identifier.value))
+    if (post.value?.image) {
+      post.value.image.src = ''
+      post.value.image.alt = ''
+      post.value.image.ext = ''
+      post.value.image.loop = true
+    }
+    successMessage.value = $ts('pages.postEditor.coverRemoved')
     setTimeout(() => (successMessage.value = ''), 3000)
     confirmDeleteCoverOpen.value = false
   } catch (e: any) {

@@ -75,14 +75,20 @@
       </div>
     </header>
 
-    <div v-if="post.image?.src" class="site-preview-cover">
+    <div v-if="post.image?.src && isVideoCover" class="site-preview-cover">
+      <div class="post-cover site-preview-cover-trigger">
+        <PostImage provider="hubblob" :src="post.image.src" :alt="post.image.alt || post.name" :ext="post.image.ext" :loop="post.image.loop" controls class="site-preview-cover-image" />
+      </div>
+    </div>
+
+    <div v-else-if="post.image?.src" class="site-preview-cover">
       <button
         type="button"
         class="post-cover site-preview-cover-trigger"
         :aria-label="locale === 'fr' ? 'Agrandir la couverture' : 'Expand cover image'"
         @click="handleCoverClick"
       >
-        <PostImage provider="hubblob" :src="post.image.src" :alt="post.image.alt || post.name" class="site-preview-cover-image" />
+        <PostImage provider="hubblob" :src="post.image.src" :alt="post.image.alt || post.name" :ext="post.image.ext" :loop="post.image.loop" class="site-preview-cover-image" />
       </button>
     </div>
 
@@ -323,6 +329,7 @@ const allVersions = computed<PostVersion[]>(() => {
 })
 
 const selectedVersion = computed(() => allVersions.value.find(version => version.active) ?? null)
+const isVideoCover = computed(() => ['mp4', 'webm'].includes(String(post.value?.image?.ext || '').toLowerCase()))
 
 function onVersionChange(version: PostVersion | null) {
   if (!version?.slug || version.active) return
@@ -344,6 +351,8 @@ const relatedArticles = computed(() => {
     editTarget: `post:${candidate.slug}`,
     title: candidate.name,
     image: candidate.image?.src || '/images/presentation/esc.webp',
+    ext: candidate.image?.ext,
+    loop: candidate.image?.loop,
     tag: candidate.tags?.[0]?.name,
     tagColor: candidate.tags?.[0]?.color,
     date: candidate.publishedAt || candidate.createdAt,

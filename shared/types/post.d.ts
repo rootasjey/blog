@@ -25,6 +25,7 @@ export type Post = {
   image: {
     alt: string
     ext: string
+    loop?: boolean
     src: string
   }
   isDeleteDialogOpen?: boolean
@@ -75,6 +76,7 @@ export type ApiPost = {
   description: string | null
   image_alt: string | null
   image_ext: string | null
+  image_loop: boolean
   image_src: string | null
   language: 'en' | 'fr' | 'es' | 'de' | 'it'
   links: string // JSON string in DB

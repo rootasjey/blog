@@ -4,7 +4,7 @@
     <div class="site-post-related-grid">
       <article v-for="article in articles" :key="article.to" class="site-post-related-card" :data-public-page-edit-target="article.editTarget">
         <NuxtLink class="site-post-related-image-link" :to="article.to" :aria-label="article.title">
-          <PostImage :src="article.image" :alt="article.title" loading="lazy" decoding="async" />
+          <PostImage :src="article.image" :alt="article.title" :ext="article.ext" :loop="article.loop" loading="lazy" decoding="async" />
         </NuxtLink>
         <span class="site-post-related-copy">
           <NuxtLink class="site-post-related-title" :to="article.to">{{ article.title }}</NuxtLink>
@@ -35,6 +35,8 @@ defineProps<{
     editTarget?: string
     title: string
     image: string
+    ext?: string
+    loop?: boolean
     tag?: string
     tagColor?: string | null
     date?: string
@@ -61,7 +63,7 @@ function tagPath(tag: string) {
 .site-shell .site-post-related-image-link { display: block; overflow: hidden; border-radius: 12px; transition: transform 220ms var(--site-ease-standard); }
 .site-shell .site-post-related-image-link:hover,
 .site-shell .site-post-related-image-link:focus-visible { transform: scale(1.05); }
-.site-shell .site-post-related-image-link > img { display: block; width: 96px; height: 80px; border-radius: inherit; object-fit: cover; }
+.site-shell .site-post-related-image-link > :is(img, video) { display: block; width: 96px; height: 80px; border-radius: inherit; object-fit: cover; }
 .site-shell .site-post-related-copy { display: grid; min-width: 0; gap: 6px; }
 .site-shell .site-post-related-title { color: var(--site-color-heading); font-size: 15px; font-weight: 550; line-height: 1.4; text-decoration: none; }
 .site-shell .site-post-related-meta { display: flex; flex-wrap: wrap; gap: 10px; color: var(--site-color-muted); font-size: 12px; line-height: 18px; }

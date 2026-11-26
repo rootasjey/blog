@@ -65,7 +65,7 @@
           <NuxtLink :to="localizedPath(`/posts/${post.slug}`, $getLocale())" class="home-recent-link">
             <!-- Image -->
             <div class="relative overflow-hidden rounded-2xl aspect-[4/3] mb-4">
-              <PostImage :src="post.image?.src || '/images/corpinot-cover.jpeg'" :alt="post.image?.alt || post.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+              <PostImage :src="post.image?.src || '/images/corpinot-cover.jpeg'" :alt="post.image?.alt || post.name" :ext="post.image?.ext" :loop="post.image?.loop" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
             </div>
 
             <!-- Content -->
