@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { fetchRemoteCover, validateRemoteCoverUrl } from '../../../../server/utils/fetchRemoteCover'
+import {
+  fetchRemoteCover,
+  getSameSiteImageBlobSource,
+  inspectRemoteCover,
+  validateRemoteCoverUrl,
+} from '../../../../server/utils/fetchRemoteCover'
 
 const gif = new TextEncoder().encode('GIF89a')
 
@@ -49,5 +54,32 @@ describe('fetchRemoteCover', () => {
     }))
 
     await expect(fetchRemoteCover('https://images.example.com/cover.gif', fetcher)).rejects.toThrow('supported image')
+  })
+})
+
+describe('same-site cover sources', () => {
+  it('maps a same-site image route to its R2 object key', () => {
+    expect(getSameSiteImageBlobSource(
+      'https://corpinot.cc/images/original.png?relatedTo=users&slug=1%2Favatar',
+      'https://corpinot.cc',
+    )).toEqual({ blobPath: 'users/1/avatar/original.png', fileName: 'original.png' })
+  })
+
+  it.each([
+    ['https://other.example/images/original.png?relatedTo=users&slug=1%2Favatar', 'https://corpinot.cc'],
+    ['https://untrusted@corpinot.cc/images/original.png?relatedTo=users&slug=1%2Favatar', 'https://corpinot.cc'],
+    ['https://corpinot.cc/posts/my-post/original.png', 'https://corpinot.cc'],
+    ['https://corpinot.cc/images/original.png?relatedTo=users&slug=../private', 'https://corpinot.cc'],
+    ['https://corpinot.cc/images/original.png?relatedTo=users&relatedTo=posts&slug=1%2Favatar', 'https://corpinot.cc'],
+  ])('does not map unsafe or unrelated source %s', (url, siteUrl) => {
+    expect(getSameSiteImageBlobSource(url, siteUrl)).toBeNull()
+  })
+
+  it('inspects a stored image with the same media validation as a remote image', () => {
+    expect(inspectRemoteCover(gif, 'image/gif', 'cover.gif')).toMatchObject({
+      contentType: 'image/gif',
+      fileName: 'cover.gif',
+      media: { extension: 'gif', kind: 'animated-image' },
+    })
   })
 })

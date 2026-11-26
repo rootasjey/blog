@@ -10,6 +10,11 @@ export interface RemoteCover {
   media: NonNullable<ReturnType<typeof detectCoverMedia>>
 }
 
+export interface SameSiteImageBlobSource {
+  fileName: string
+  blobPath: string
+}
+
 export async function fetchRemoteCover(input: string, fetcher: typeof fetch = fetch): Promise<RemoteCover> {
   let url = validateRemoteCoverUrl(input)
   const controller = new AbortController()
@@ -60,13 +65,57 @@ export async function fetchRemoteCover(input: string, fetcher: typeof fetch = fe
     }
 
     const fileName = decodeURIComponent(new URL(url).pathname.split('/').pop() || 'cover')
-    const media = detectCoverMedia(contentType, bytes, fileName)
-    if (!media || media.kind === 'video') throw new Error('The URL must point to a supported image.')
-
-    return { bytes, contentType: media.contentType, fileName, media }
+    return inspectRemoteCover(bytes, contentType, fileName)
   } finally {
     clearTimeout(timer)
   }
+}
+
+export function inspectRemoteCover(bytes: Uint8Array<ArrayBuffer>, contentType: string, fileName: string): RemoteCover {
+  const media = detectCoverMedia(contentType, bytes, fileName)
+  if (!media || media.kind === 'video') throw new Error('The URL must point to a supported image.')
+
+  return { bytes, contentType: media.contentType, fileName, media }
+}
+
+export function getSameSiteImageBlobSource(input: string, siteUrl: string): SameSiteImageBlobSource | null {
+  let url: URL
+  let site: URL
+  try {
+    url = new URL(input)
+    site = new URL(siteUrl)
+  } catch {
+    return null
+  }
+
+  if (url.origin !== site.origin || url.username || url.password) return null
+
+  const imagePrefix = '/images/'
+  if (!url.pathname.startsWith(imagePrefix)) return null
+
+  const encodedFileName = url.pathname.slice(imagePrefix.length)
+  if (!encodedFileName || encodedFileName.includes('/')) return null
+
+  let fileName: string
+  try {
+    fileName = decodeURIComponent(encodedFileName)
+  } catch {
+    return null
+  }
+
+  if (!fileName || fileName === '.' || fileName === '..' || fileName.includes('/') || fileName.includes('\\')) return null
+
+  const relatedToValues = url.searchParams.getAll('relatedTo')
+  const slugValues = url.searchParams.getAll('slug')
+  const relatedTo = relatedToValues[0]
+  const slug = slugValues[0]
+  if (relatedToValues.length !== 1 || slugValues.length !== 1 || !relatedTo || !slug) return null
+  if (!['posts', 'projects', 'users'].includes(relatedTo)) return null
+
+  const slugSegments = slug.split('/')
+  if (slugSegments.some(segment => !segment || segment === '.' || segment === '..' || /[\\\u0000-\u001f]/.test(segment))) return null
+
+  return { blobPath: `${relatedTo}/${slug}/${fileName}`, fileName }
 }
 
 export function validateRemoteCoverUrl(input: string): string {

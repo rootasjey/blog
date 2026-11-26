@@ -160,7 +160,7 @@
             <NButton
               btn="~"
               rounded="full"
-              class="site-interactive-hover site-header-avatar-trigger min-w-0 p-1"
+              class="site-header-avatar-trigger min-w-0 p-1"
               :aria-label="$ts('common.profile')"
             >
               <NuxtImg
@@ -288,7 +288,7 @@
                 :_dropdownMenuContent="{ class: 'site-header-user-menu' }"
                 :_dropdownMenuSubContent="{ class: 'site-header-user-menu-sub' }"
               >
-                <NButton btn="~" rounded="full" class="site-interactive-hover site-header-avatar-trigger min-w-0 p-0">
+                <NButton btn="~" rounded="full" class="site-header-avatar-trigger min-w-0 p-0">
                   <NuxtImg
                     v-if="currentAvatarProvider === 'hubblob' && !generatedAvatarFailed"
                     provider="hubblob"

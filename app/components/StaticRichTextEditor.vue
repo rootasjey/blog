@@ -17,7 +17,9 @@
         @keydown.esc.stop.prevent="closeLinkForm"
       >
         <input ref="linkInput" v-model="linkHref" type="url" :aria-label="labels.linkUrl" placeholder="https://…">
-        <button type="submit">{{ labels.apply }}</button>
+        <button type="submit" :aria-label="labels.apply" :title="labels.apply">
+          <NIcon name="i-lucide-check" aria-hidden="true" />
+        </button>
         <button type="button" :aria-label="labels.closeLinkForm" :title="labels.closeLinkForm" @click="closeLinkForm">
           <NIcon name="i-lucide-x" aria-hidden="true" />
         </button>
@@ -197,10 +199,15 @@ onBeforeUnmount(() => editor.value?.destroy())
   .static-rich-text-editor__tools { display: flex; align-items: center; gap: 3px; }
   .static-rich-text-editor__tools > button { display: grid; min-width: 30px; height: 30px; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--site-color-text); cursor: pointer; }
   .static-rich-text-editor__tools > button:hover, .static-rich-text-editor__tools > button.is-active { background: var(--site-color-hover-background); color: var(--site-color-heading); }
-  .static-rich-text-editor__link-form { display: flex; width: min(280px, calc(100vw - 32px)); min-width: 0; box-sizing: border-box; align-items: center; gap: 4px; }
+  .static-rich-text-editor__link-form { display: flex; width: min(224px, calc(100vw - 48px)); min-width: 0; box-sizing: border-box; align-items: center; gap: 6px; }
   .static-rich-text-editor__link-form input { flex: 1 1 auto; width: 0; min-width: 0; height: 30px; box-sizing: border-box; padding: 0 8px; border: 1px solid var(--site-color-border); border-radius: 6px; background: var(--site-color-background); color: var(--site-color-text); }
-  .static-rich-text-editor__link-form > button { display: grid; min-width: 30px; height: 30px; flex: 0 0 auto; place-items: center; padding-inline: 8px; border: 0; border-radius: 6px; background: var(--site-color-hover-background); color: var(--site-color-text); cursor: pointer; }
+  .static-rich-text-editor__link-form input:focus { border-color: var(--site-color-focus-ring); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--site-color-focus-ring) 60%, transparent); }
+  .static-rich-text-editor__link-form > button { display: grid; width: 30px; min-width: 30px; height: 30px; flex: 0 0 auto; place-items: center; padding: 0; border: 0; border-radius: 6px; background: var(--site-color-hover-background); color: var(--site-color-text); cursor: pointer; }
   .static-rich-text-editor__link-form > button:last-child { width: 30px; padding: 0; background: transparent; }
   .static-rich-text-editor__link-form > button:hover { color: var(--site-color-heading); }
+}
+
+@layer theme-overrides {
+  .static-rich-text-editor__link-form input:focus-visible { border-color: var(--site-color-focus-ring); outline: none; outline-offset: 0; }
 }
 </style>
