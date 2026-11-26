@@ -21,10 +21,9 @@
                 :style="{ '--post-tag-color': postTagColor(primaryTag.name, primaryTag.color) }"
               >
                 <span class="site-preview-tag-mark" aria-hidden="true">
-                  <NIcon v-if="primaryTag.icon" :name="primaryTag.icon" class="site-preview-tag-icon" />
-                  <span v-else>{{ primaryTag.name.slice(0, 1).toUpperCase() }}</span>
+                  <TagIcon :icon="primaryTag.icon" :icon-svg="primaryTag.icon_svg" :name="tagTitle(primaryTag)" class="site-preview-tag-icon" />
                 </span>
-                {{ primaryTag.name }}
+                {{ tagTitle(primaryTag) }}
               </NuxtLink>
               <div v-if="extraTags.length" ref="extraTagsPopover" class="site-post-extra-tags">
                 <button
@@ -48,10 +47,9 @@
                       :style="{ '--post-tag-color': postTagColor(tag.name, tag.color) }"
                     >
                       <span class="site-preview-tag-mark" aria-hidden="true">
-                        <NIcon v-if="tag.icon" :name="tag.icon" class="site-preview-tag-icon" />
-                        <span v-else>{{ tag.name.slice(0, 1).toUpperCase() }}</span>
+                        <TagIcon :icon="tag.icon" :icon-svg="tag.icon_svg" :name="tagTitle(tag)" class="site-preview-tag-icon" />
                       </span>
-                      {{ tag.name }}
+                      {{ tagTitle(tag) }}
                     </NuxtLink>
                   </div>
                 </Transition>
@@ -203,6 +201,7 @@ import type { Post, PostAuthor } from '~~/shared/types/post'
 import PostAuthorAvatarStack from '~/components/PostAuthorAvatarStack.vue'
 import { localizedPath } from '~/utils/presentationPosts'
 import { postTagColor } from '~/utils/postTagColor'
+import { localizedTagTitle } from '~~/shared/utils/tag-localization'
 
 const { $ts, $getLocale } = useI18n()
 const route = useRoute()
@@ -255,6 +254,7 @@ const editPostUrl = computed(() => localizedPath(`/posts/edit/${post.value?.slug
 const locale = computed(() => $getLocale())
 const primaryTag = computed(() => post.value?.tags?.[0])
 const extraTags = computed(() => post.value?.tags?.slice(1) ?? [])
+const tagTitle = (tag: NonNullable<Post['tags']>[number]) => localizedTagTitle(tag, locale.value)
 const extraTagsLabel = computed(() => locale.value === 'fr' ? `Afficher ${extraTags.value.length} autres tags` : `Show ${extraTags.value.length} more tags`)
 const extraTagsTooltipLabel = computed(() => formatExtraTagsTooltip(extraTags.value.length, locale.value))
 const extraTagsPopover = ref<HTMLElement | null>(null)
@@ -701,8 +701,8 @@ useHead({
 .site-shell .site-post-extra-tags-menu > a { display: inline-flex; align-items: center; gap: 7px; padding: 5px 8px; border-radius: var(--site-radius-control); color: var(--post-tag-color); font-size: 13px; font-weight: 550; text-decoration: none; white-space: nowrap; transition: background-color 160ms ease, color 160ms ease; }
 .site-shell .site-post-extra-tags-menu > a:hover,
 .site-shell .site-post-extra-tags-menu > a:focus-visible { background: var(--site-color-hover-background); color: var(--site-color-heading); }
-.site-shell .site-post-extra-tags-menu .site-preview-tag-mark { display: inline-grid; width: 18px; height: 18px; flex: none; place-items: center; border-radius: 5px; background: color-mix(in srgb, var(--post-tag-color) 14%, var(--site-color-surface)); font-size: 10px; font-weight: 650; line-height: 1; }
-.site-shell .site-post-extra-tags-menu .site-preview-tag-icon { font-size: 11px; }
+.site-shell .site-post-extra-tags-menu .site-preview-tag-mark { display: inline-grid; width: 18px; height: 18px; flex: none; place-items: center; border-radius: 5px; background: color-mix(in srgb, var(--post-tag-color) 14%, var(--site-color-surface)); font-size: 14px; font-weight: 650; line-height: 1; }
+.site-shell .site-post-extra-tags-menu .site-preview-tag-icon { font-size: 14px; }
 .site-shell .site-preview-topic-nav > .site-post-nav-link { position: relative; display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid transparent; border-radius: var(--site-radius-control); color: var(--site-color-muted); transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease; }
 .site-shell .site-preview-topic-nav > .site-post-nav-link:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--site-color-text) 12%, transparent); background: color-mix(in srgb, var(--site-color-text) 5%, transparent); color: var(--site-color-heading); }
 .site-shell .site-post-nav-link:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 3px; }

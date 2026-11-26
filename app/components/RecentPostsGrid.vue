@@ -74,7 +74,7 @@
                 {{ post.name }}
               </h3>
               <div v-if="post.tags?.length || post.formattedDate" class="home-recent-meta">
-                <span v-if="post.tags?.[0]?.name" class="home-recent-tag" :style="{ color: postTagColor(post.tags[0].name, post.tags[0].color) }">{{ post.tags[0].name }}</span>
+                <span v-if="post.tags?.[0]?.name" class="home-recent-tag" :style="{ color: postTagColor(post.tags[0].name, post.tags[0].color) }">{{ localizedTagTitle(post.tags[0], $getLocale()) }}</span>
                 <time v-if="post.formattedDate">{{ post.formattedDate }}</time>
               </div>
             </div>
@@ -89,6 +89,7 @@
 import type { Post } from '~~/shared/types/post'
 import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
 import { postTagColor } from '~/utils/postTagColor'
+import { localizedTagTitle } from '~~/shared/utils/tag-localization'
 import { DEFAULT_HOME_POST_SECTIONS, type HomePostSectionsContent } from '~~/shared/types/home-post-sections'
 import { filterHomePosts } from '~/utils/homePostSectionFilters'
 import useSiteSettings from '~/composables/useSiteSettings'

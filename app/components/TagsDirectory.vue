@@ -39,19 +39,18 @@
             </button>
           </li>
           <li v-for="tag in filteredTags" :key="tag.id" class="site-tags-directory-row">
-            <NuxtLink
+            <TagDisplayItem
               class="site-tags-directory-tag site-tags-directory-tag-link"
               :to="tagHref(tag)"
-              :data-public-page-edit-target="isAdmin && isEditMode ? `tag:${tag.id}` : undefined"
-              :style="{ '--tag-accent': postTagColor(tag.name, tag.color) }"
-            >
-              <span class="site-tags-directory-icon" aria-hidden="true">
-                <NIcon v-if="tag.icon" :name="tag.icon" />
-                <span v-else>{{ tagInitial(tag.name) }}</span>
-              </span>
-              <span class="site-tags-directory-name">{{ tag.name }}</span>
-              <span class="site-tags-directory-count">x{{ tag.count }}</span>
-            </NuxtLink>
+              :name="tag.name"
+              :title="tagTitle(tag)"
+              :count="tag.count"
+              :icon="tag.icon"
+              :icon-svg="tag.icon_svg"
+              :color="tag.color"
+              variant="directory"
+              :edit-target="isAdmin && isEditMode ? `tag:${tag.id}` : undefined"
+            />
 
             <NDropdownMenu v-if="isAdmin" :items="menuItems(tag)">
               <template #default>
@@ -59,7 +58,7 @@
                   btn="ghost-gray"
                   size="xs"
                   icon
-                  :aria-label="$ts('pages.tags.tagActions', { name: tag.name })"
+                  :aria-label="$ts('pages.tags.tagActions', { name: tagTitle(tag) })"
                   class="site-tags-directory-menu"
                 >
                   <NIcon name="i-ph-dots-three-vertical" />
@@ -76,7 +75,7 @@
 <script setup lang="ts">
 import type { ApiTag } from '~~/shared/types/tags'
 import { localizedPath } from '~/utils/presentationPosts'
-import { postTagColor } from '~/utils/postTagColor'
+import { localizedTagTitle, localizedTagDescription } from '~~/shared/utils/tag-localization'
 
 type DirectoryTag = ApiTag & { count: number }
 
@@ -96,14 +95,20 @@ const { $ts, $getLocale } = useI18n()
 const search = ref('')
 const searchInput = ref<HTMLInputElement | null>(null)
 const locale = computed(() => $getLocale())
+const tagTitle = (tag: ApiTag) => localizedTagTitle(tag, locale.value)
 
 const filteredTags = computed(() => {
   const query = search.value.trim().toLocaleLowerCase()
 
   return props.tags
-    .filter(tag => !query || [tag.name, tag.category ?? '', tag.description ?? ''].join(' ').toLocaleLowerCase().includes(query))
+    .filter(tag => !query || [
+      tag.name,
+      tagTitle(tag),
+      localizedTagDescription(tag, locale.value),
+      tag.category ?? '',
+    ].join(' ').toLocaleLowerCase().includes(query))
     .slice()
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, locale.value, { sensitivity: 'base' }))
+    .sort((a, b) => b.count - a.count || tagTitle(a).localeCompare(tagTitle(b), locale.value, { sensitivity: 'base' }))
 })
 
 function handleTypeToSearch(event: KeyboardEvent) {
@@ -130,10 +135,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleTypeToSearch))
 
 function tagHref(tag: DirectoryTag) {
   return localizedPath('/posts', locale.value) + '?tag=' + encodeURIComponent(tag.name)
-}
-
-function tagInitial(name: string) {
-  return Array.from(name.trim())[0]?.toLocaleUpperCase() || '#'
 }
 
 function menuItems(tag: DirectoryTag) {
@@ -199,7 +200,7 @@ function menuItems(tag: DirectoryTag) {
     align-items: center;
     gap: 8px;
   }
-  .site-shell .site-tags-directory-tag {
+  .site-shell .site-tags-directory-create {
     display: flex;
     min-width: 0;
     min-height: 44px;
@@ -225,36 +226,6 @@ function menuItems(tag: DirectoryTag) {
     font-weight: 550;
     transform: scale(1);
     transition: background-color 200ms ease, border-color 200ms ease, transform 220ms var(--site-ease-standard);
-  }
-  .site-shell .site-tags-directory-name {
-    min-width: 0;
-    color: var(--site-color-heading);
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 24px;
-    transition: transform 180ms ease-out, font-weight 200ms ease;
-  }
-  .site-shell .site-tags-directory-count {
-    flex: 0 0 auto;
-    margin-left: -8px;
-    color: var(--site-color-muted);
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 20px;
-    font-variant-numeric: tabular-nums;
-  }
-  .site-shell .site-tags-directory-tag:hover,
-  .site-shell .site-tags-directory-tag:focus-visible { color: var(--site-color-heading); }
-  .site-shell .site-tags-directory-tag:hover .site-tags-directory-icon,
-  .site-shell .site-tags-directory-tag:focus-visible .site-tags-directory-icon {
-    border-color: transparent;
-    background: color-mix(in srgb, var(--tag-accent) 6%, transparent);
-    transform: scale(1.05);
-  }
-  .site-shell .site-tags-directory-tag:hover .site-tags-directory-name,
-  .site-shell .site-tags-directory-tag:focus-visible .site-tags-directory-name {
-    font-weight: 600;
-    transform: translateX(2px);
   }
   .site-shell .site-tags-directory-menu {
     position: absolute;
@@ -288,7 +259,6 @@ function menuItems(tag: DirectoryTag) {
     white-space: nowrap;
     clip-path: inset(50%);
   }
-  .site-shell .site-tags-directory-tag:focus-visible,
   .site-shell .site-tags-directory-menu:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 3px; }
   @media (max-width: 767px) {
     .site-shell .site-tags-directory { padding-block: 36px 52px; }
@@ -302,7 +272,6 @@ function menuItems(tag: DirectoryTag) {
     .site-shell .site-tags-directory-tools input,
     .site-shell .site-tags-directory-create,
     .site-shell .site-tags-directory-icon,
-    .site-shell .site-tags-directory-name,
     .site-shell .site-tags-directory-menu { transition: none; transform: none; }
   }
 }

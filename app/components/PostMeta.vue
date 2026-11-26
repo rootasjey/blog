@@ -13,7 +13,7 @@
     <p v-if="post.description" :class="descClass">{{ post.description }}</p>
 
     <div v-if="post.tags && post.tags.length > 0" class="flex flex-wrap gap-2 mb-3">
-      <NBadge v-for="tag in post.tags.slice(0,3)" :key="tag.id" size="xs" badge="soft-gray">{{ tag.name }}</NBadge>
+      <NBadge v-for="tag in post.tags.slice(0,3)" :key="tag.id" size="xs" badge="soft-gray">{{ localizedTagTitle(tag, $getLocale()) }}</NBadge>
     </div>
 
     <div class="flex items-center justify-between pt-4 border-t b-dashed border-border mt-4" v-if="showMeta">
@@ -38,7 +38,8 @@
 
 <script setup lang="ts">
 import type { Post } from '~~/shared/types/post'
-const { $ts } = useI18n()
+import { localizedTagTitle } from '~~/shared/utils/tag-localization'
+const { $ts, $getLocale } = useI18n()
 
 const props = defineProps<{
   post: Post

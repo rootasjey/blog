@@ -73,7 +73,7 @@
 
 .site-shell .site-post-editor .site-editor-tag-link { display: inline-flex; align-items: center; gap: 5px; color: inherit; font-weight: 500; text-decoration: none; }
 .site-shell .site-post-editor .site-editor-tag-mark { display: inline-grid; width: 18px; height: 18px; flex: none; place-items: center; border-radius: 5px; background: color-mix(in srgb, var(--editor-tag-color) 14%, var(--site-color-surface)); color: inherit; }
-.site-shell .site-post-editor .site-editor-tag-icon { font-size: 11px; }
+.site-shell .site-post-editor .site-editor-tag-icon { font-size: 14px; }
 .site-shell .site-post-editor .site-editor-tag-initial { color: inherit; font-size: 10px; font-weight: 650; line-height: 1; }
 .site-shell .site-post-editor .site-editor-tag-link:hover { color: var(--editor-tag-color); }
 .site-shell .site-post-editor .site-editor-tag-remove { display: grid; width: 20px; height: 20px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--editor-tag-color) 10%, var(--site-color-surface)); color: inherit; cursor: pointer; opacity: 0.82; transition: background-color 160ms ease, opacity 160ms ease; }

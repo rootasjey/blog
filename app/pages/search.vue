@@ -46,7 +46,7 @@
               :disabled="tagsPending"
               @click="query = tag.name"
             >
-              #{{ tag.name }}
+              #{{ localizedTagTitle(tag, locale) }}
             </button>
             <span v-if="!suggestedTags.length && tagsPending" class="site-search-muted">{{ $ts('common.loading') }}</span>
             <span v-else-if="!suggestedTags.length" class="site-search-muted">{{ $ts('common.noTagsYet') }}</span>
@@ -110,6 +110,8 @@ import { onMounted, ref, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useDebounceFn, useStorage } from '@vueuse/core'
 import type { Post } from '~~/shared/types/post'
+import type { ApiTag } from '~~/shared/types/tags'
+import { localizedTagTitle } from '~~/shared/utils/tag-localization'
 
 type SearchResultType = 'post' | 'author' | 'tag'
 interface SearchResult {
@@ -120,11 +122,6 @@ interface SearchResult {
   description?: string
   biography?: string
   readingTime?: string
-}
-
-interface TagSuggestion {
-  id: string | number
-  name: string
 }
 
 const router = useRouter()
@@ -143,7 +140,7 @@ let skeletonTimer: ReturnType<typeof setTimeout> | null = null
 let requestVersion = 0
 const recentSearches = useStorage<string[]>('corpinot-search-recent', [])
 
-const { data: tagsData, pending: tagsPending } = await useFetch<TagSuggestion[]>('/api/tags')
+const { data: tagsData, pending: tagsPending } = await useFetch<ApiTag[]>('/api/tags')
 const suggestedTags = computed(() => (tagsData.value ?? []).slice(0, 10))
 const isMobile = useIsMobile()
 const { data: recentPostsData, pending: recentPending, error: recentError } = await useFetch<Post[]>('/api/posts', { params: { page: 1, limit: 6 } })

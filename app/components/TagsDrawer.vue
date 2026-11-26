@@ -50,9 +50,9 @@
                 <div class="flex items-center gap-3">
                   <span :style="{ backgroundColor: colorForTag(tag.name) }" class="w-9 h-9 rounded-lg inline-block flex-none"></span>
                   <div>
-                    <div class="text-sm font-semibold">{{ tag.name }}</div>
+                    <div class="text-sm font-semibold">{{ localizedTagTitle(tag, locale) }}</div>
                     <div class="text-xs text-gray-500 dark:text-gray-400">{{ tag.category || $ts('pages.tags.general') }}</div>
-                    <div v-if="tag.description" class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{{ tag.description }}</div>
+                    <div v-if="localizedTagDescription(tag, locale)" class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{{ localizedTagDescription(tag, locale) }}</div>
                   </div>
                 </div>
 
@@ -80,8 +80,10 @@
 import { ref, watch, computed, nextTick } from 'vue'
 import type { ApiTag } from '~~/shared/types/tags'
 import type { PropType } from 'vue'
+import { localizedTagTitle, localizedTagDescription } from '~~/shared/utils/tag-localization'
 
-const { $ts } = useI18n()
+const { $ts, $getLocale } = useI18n()
+const locale = computed(() => $getLocale())
 const props = defineProps({
   open: { type: Boolean, required: true },
   tags: { type: Array as PropType<ApiTag[]>, default: () => [] },
@@ -116,7 +118,7 @@ watch(() => isDrawerOpen.value, (v) => {
 const filteredTags = computed(() => {
   const q = localSearch.value.trim().toLowerCase()
   if (!q) return props.tags
-  return props.tags.filter((t) => t.name.toLowerCase().includes(q) || (t.category || '').toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q))
+  return props.tags.filter((t) => [t.name, localizedTagTitle(t, locale.value), localizedTagDescription(t, locale.value), t.category || ''].join(' ').toLowerCase().includes(q))
 })
 
 function colorForTag(name: string) {

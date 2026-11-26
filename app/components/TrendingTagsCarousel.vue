@@ -8,23 +8,21 @@
         </NuxtLink>
       </h2>
       <nav :aria-label="$ts('components.trendingTags.heading')">
-        <NuxtLink
+        <TagDisplayItem
           v-for="tag in tags"
           :key="tag.name"
+          class="home-trending-tag"
           :to="`${localizedPath('/posts', $getLocale())}?tag=${encodeURIComponent(tag.name)}`"
-          :data-public-page-edit-target="isAdmin && isEditMode && tag.id != null ? `tag:${tag.id}` : undefined"
-          :aria-label="`${tag.name}: ${tag.count}`"
-          :style="{ '--tag-accent': postTagColor(tag.name, tag.color) }"
-        >
-          <span class="home-trending-tag-icon" aria-hidden="true">
-            <NIcon v-if="tag.icon" :name="tag.icon" />
-            <span v-else>{{ tagInitial(tag.name) }}</span>
-          </span>
-          <span class="home-trending-tag-name">
-            {{ tag.name }}
-            <span class="home-trending-tag-count">x{{ tag.count }}</span>
-          </span>
-        </NuxtLink>
+          :name="tag.name"
+          :title="tag.title"
+          :count="tag.count"
+          :icon="tag.icon"
+          :icon-svg="tag.iconSvg"
+          :color="tag.color"
+          variant="home"
+          :aria-label="`${tag.title}: ${tag.count}`"
+          :edit-target="isAdmin && isEditMode && tag.id != null ? `tag:${tag.id}` : undefined"
+        />
       </nav>
     </div>
   </section>
@@ -34,13 +32,15 @@
 import type { ApiTag } from '~~/shared/types/tags'
 import { EXCLUDED_TAGS } from '~/utils/tagConstants'
 import { localizedPath, PRESENTATION_POSTS } from '~/utils/presentationPosts'
-import { postTagColor } from '~/utils/postTagColor'
+import { localizedTagTitle } from '~~/shared/utils/tag-localization'
 
 type TrendingTag = {
   id?: number
   name: string
+  title: string
   count: number
   icon: string | null
+  iconSvg: string | null
   color: string | null
 }
 
@@ -74,18 +74,16 @@ const tags = computed<TrendingTag[]>(() => {
     return liveTags.map(tag => ({
       id: tag.id,
       name: tag.name,
+      title: localizedTagTitle(tag, locale),
       count: tag.count ?? 0,
       icon: tag.icon ?? null,
+      iconSvg: tag.icon_svg ?? null,
       color: tag.color ?? null,
     }))
   }
 
-  return [...sampleCounts].slice(0, 4).map(([name, count]) => ({ name, count, icon: null, color: null }))
+  return [...sampleCounts].slice(0, 4).map(([name, count]) => ({ name, title: name, count, icon: null, iconSvg: null, color: null }))
 })
-
-function tagInitial(name: string) {
-  return Array.from(name.trim())[0]?.toLocaleUpperCase() || '#'
-}
 </script>
 
 <style>
@@ -174,66 +172,6 @@ function tagInitial(name: string) {
     gap: 12px;
     margin: 0 0 0 -10px;
   }
-  .site-shell .home-trending-tags nav a {
-    display: flex;
-    min-width: 0;
-    height: 44px;
-    flex: 0 0 44px;
-    align-items: center;
-    gap: 12px;
-    padding: 0 10px 0 0;
-    color: var(--site-color-heading);
-    font-size: 15px;
-    font-weight: 500;
-    text-decoration: none;
-  }
-  .site-shell .home-trending-tag-icon {
-    display: grid;
-    box-sizing: border-box;
-    flex: 0 0 44px;
-    width: 44px;
-    height: 44px;
-    place-items: center;
-    outline: none;
-    border: 1px solid color-mix(in srgb, var(--tag-accent) 30%, transparent);
-    border-radius: 12px;
-    background: color-mix(in srgb, var(--tag-accent) 5%, transparent);
-    color: var(--tag-accent);
-    font-size: 15px;
-    font-weight: 550;
-    transition:
-      transform 220ms var(--site-ease-standard),
-      background-color 200ms ease,
-      border-color 200ms ease;
-  }
-  .site-shell .home-trending-tag-icon > span {
-    display: grid;
-    width: 16px;
-    height: 16px;
-    place-items: center;
-    line-height: 1;
-  }
-  .site-shell .home-trending-tags nav a:hover .home-trending-tag-icon {
-    background: color-mix(in srgb, var(--tag-accent) 6%, transparent);
-    border-color: transparent;
-    transform: scale(1.05);
-  }
-  .site-shell .home-trending-tag-name {
-    min-width: 0;
-    overflow: hidden;
-    font-weight: 700;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    transition: transform 250ms ease;
-  }
-  .site-shell .home-trending-tags nav a:hover .home-trending-tag-name {
-    transform: translateX(2px);
-  }
-  .site-shell .home-trending-tag-count {
-    color: var(--site-color-muted);
-    font-size: 12px;
-    font-weight: 400;
-  }
   @media (max-width: 600px) {
     .site-shell .home-trending-tags {
       margin-top: 40px;
@@ -247,9 +185,7 @@ function tagInitial(name: string) {
   }
   @media (prefers-reduced-motion: reduce) {
     .site-shell .home-trending-tags-heading,
-    .site-shell .home-trending-tags-heading > span:last-child,
-    .site-shell .home-trending-tag-icon,
-    .site-shell .home-trending-tag-name {
+    .site-shell .home-trending-tags-heading > span:last-child {
       transition: none;
       transform: none;
     }

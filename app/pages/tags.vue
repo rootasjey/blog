@@ -25,23 +25,60 @@
       </div>
 
   <NDialog v-model:open="tagDialogOpen">
-    <NDialogContent class="max-w-md">
+    <NDialogContent class="max-w-lg">
       <NDialogHeader>
         <NDialogTitle>{{ editingTag ? $ts('pages.tags.editTag') : $ts('pages.tags.createTag') }}</NDialogTitle>
       </NDialogHeader>
 
       <NDialogDescription>
         <div class="space-y-3">
-          <NInput v-model="tagName" :placeholder="$ts('pages.tags.tagNamePlaceholder')" input="outline" class="site-tag-dialog-field" autofocus />
-          <NInput v-model="tagDescription" :placeholder="$ts('pages.tags.descriptionPlaceholder')" input="outline" class="site-tag-dialog-field" />
+          <div class="site-tag-language-tabs" role="tablist" :aria-label="$ts('pages.tags.languageTabs')">
+            <button
+              v-for="language in tagLanguages"
+              :key="language.code"
+              type="button"
+              role="tab"
+              :aria-selected="activeTagLanguage === language.code"
+              :tabindex="activeTagLanguage === language.code ? 0 : -1"
+              :class="{ 'is-active': activeTagLanguage === language.code }"
+              @click="activeTagLanguage = language.code"
+            >
+              {{ language.label }}
+            </button>
+          </div>
+          <div role="tabpanel" class="site-tag-language-panel">
+            <NInput
+              v-model="localizedTitle"
+              :placeholder="$ts('pages.tags.tagNamePlaceholder')"
+              input="outline"
+              class="site-tag-dialog-field"
+              autofocus
+            />
+            <NInput
+              v-model="localizedDescription"
+              :placeholder="$ts('pages.tags.descriptionPlaceholder')"
+              input="outline"
+              class="site-tag-dialog-field"
+            />
+          </div>
           <NInput v-model="tagCategory" :placeholder="$ts('pages.tags.categoryPlaceholder')" input="outline" class="site-tag-dialog-field" />
           <div class="pt-1">
             <p class="mb-2 text-sm font-medium">{{ $ts('pages.tags.iconLabel') }}</p>
             <TagIconPicker
-              v-model="tagIcon"
-              :tag-name="tagName"
+              :enabled="tagDialogOpen"
+              :icon="tagIcon"
+              :icon-svg="tagIconSvg"
+              :tag-name="localizedTitle || tagName"
               :label="$ts('pages.tags.iconLabel')"
               :letter-label="$ts('pages.tags.keepInitial')"
+              :search-label="$ts('pages.tags.iconSearchPlaceholder')"
+              :loading-label="$ts('pages.tags.iconLoading')"
+              :empty-label="$ts('pages.tags.iconNoResults')"
+              :load-more-label="$ts('pages.tags.iconLoadMore')"
+              :error-label="$ts('pages.tags.iconLoadError')"
+              :retry-label="$ts('pages.tags.iconRetry')"
+              @update:icon="tagIcon = $event"
+              @update:icon-svg="tagIconSvg = $event"
             />
           </div>
           <TagColorPicker
@@ -80,7 +117,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import type { ApiTag } from '~~/shared/types/tags'
-import type { TagIconName } from '~~/shared/constants/tag-icons'
+import { localizedTagTitle } from '~~/shared/utils/tag-localization'
 import type { Post as ApiPost } from '~~/shared/types/post'
 import { EXCLUDED_TAGS } from '~/utils/tagConstants'
 import { getPublicTagEditId, PUBLIC_PAGE_EDIT_REQUEST_EVENT, type PublicPageEditTarget } from '~/utils/publicPageEditRequests'
@@ -145,8 +182,31 @@ const tagDialogOpen = ref(false)
 const editingTag = ref<ApiTag | null>(null)
 const tagName = ref('')
 const tagCategory = ref('')
-const tagDescription = ref('')
-const tagIcon = ref<TagIconName | null>(null)
+const tagTitleFr = ref('')
+const tagTitleEn = ref('')
+const tagDescriptionFr = ref('')
+const tagDescriptionEn = ref('')
+const tagIcon = ref<string | null>(null)
+const tagIconSvg = ref<string | null>(null)
+const activeTagLanguage = ref<'fr' | 'en'>('en')
+const tagLanguages = [
+  { code: 'fr' as const, label: 'Français' },
+  { code: 'en' as const, label: 'English' },
+]
+const localizedTitle = computed({
+  get: () => activeTagLanguage.value === 'fr' ? tagTitleFr.value : tagTitleEn.value,
+  set: (value: string) => {
+    if (activeTagLanguage.value === 'fr') tagTitleFr.value = value
+    else tagTitleEn.value = value
+  },
+})
+const localizedDescription = computed({
+  get: () => activeTagLanguage.value === 'fr' ? tagDescriptionFr.value : tagDescriptionEn.value,
+  set: (value: string) => {
+    if (activeTagLanguage.value === 'fr') tagDescriptionFr.value = value
+    else tagDescriptionEn.value = value
+  },
+})
 const tagColor = ref<string | null>(null)
 const saving = ref(false)
 
@@ -170,9 +230,14 @@ function openNewTag() {
   editingTag.value = null
   tagName.value = ''
   tagCategory.value = ''
-  tagDescription.value = ''
+  tagTitleFr.value = ''
+  tagTitleEn.value = ''
+  tagDescriptionFr.value = ''
+  tagDescriptionEn.value = ''
   tagIcon.value = null
+  tagIconSvg.value = null
   tagColor.value = null
+  activeTagLanguage.value = $getLocale() === 'fr' ? 'fr' : 'en'
   tagDialogOpen.value = true
 }
 
@@ -180,9 +245,14 @@ function openEditTag(tag: ApiTag) {
   editingTag.value = tag
   tagName.value = tag.name
   tagCategory.value = tag.category || ''
-  tagDescription.value = tag.description || ''
-  tagIcon.value = (tag.icon as TagIconName | null) || null
+  tagTitleFr.value = tag.title_fr || tag.name
+  tagTitleEn.value = tag.title_en || tag.name
+  tagDescriptionFr.value = tag.description_fr || tag.description || ''
+  tagDescriptionEn.value = tag.description_en || tag.description || ''
+  tagIcon.value = tag.icon || null
+  tagIconSvg.value = tag.icon_svg || null
   tagColor.value = tag.color || null
+  activeTagLanguage.value = $getLocale() === 'fr' ? 'fr' : 'en'
   tagDialogOpen.value = true
 }
 
@@ -222,18 +292,47 @@ function onDeleteFromDirectory(tag: ApiTag) {
 }
 
 async function saveTag() {
-  if (!tagName.value?.trim()) {
+  const canonicalName = editingTag.value?.name || tagTitleEn.value.trim() || tagTitleFr.value.trim()
+  if (!canonicalName) {
     alert($ts('pages.profile.nameRequired'))
     return
   }
   saving.value = true
   try {
     if (editingTag.value) {
-      const updated = await $fetch<ApiTag>(`/api/tags/${editingTag.value.id}`, { method: 'PUT' as any, body: { name: tagName.value.trim(), category: tagCategory.value.trim() || 'general', description: tagDescription.value.trim(), icon: tagIcon.value, color: tagColor.value } })
+      const updated = await $fetch<ApiTag>(`/api/tags/${editingTag.value.id}`, {
+        method: 'PUT',
+        body: {
+          name: canonicalName,
+          title_fr: tagTitleFr.value.trim(),
+          title_en: tagTitleEn.value.trim(),
+          category: tagCategory.value.trim() || 'general',
+          description: tagDescriptionEn.value.trim() || tagDescriptionFr.value.trim(),
+          description_fr: tagDescriptionFr.value.trim(),
+          description_en: tagDescriptionEn.value.trim(),
+          icon: tagIcon.value,
+          icon_svg: tagIconSvg.value,
+          color: tagColor.value,
+        },
+      })
       tags.value = tags.value.map(t => t.id === updated.id ? updated : t)
       tagStore.tags = tagStore.tags.map(tag => tag.id === updated.id ? { ...tag, ...updated } : tag)
     } else {
-      const created = await $fetch<ApiTag>('/api/tags', { method: 'POST' as any, body: { name: tagName.value.trim(), category: tagCategory.value.trim() || 'general', description: tagDescription.value.trim(), icon: tagIcon.value, color: tagColor.value } })
+      const created = await $fetch<ApiTag>('/api/tags', {
+        method: 'POST',
+        body: {
+          name: canonicalName,
+          title_fr: tagTitleFr.value.trim(),
+          title_en: tagTitleEn.value.trim(),
+          category: tagCategory.value.trim() || 'general',
+          description: tagDescriptionEn.value.trim() || tagDescriptionFr.value.trim(),
+          description_fr: tagDescriptionFr.value.trim(),
+          description_en: tagDescriptionEn.value.trim(),
+          icon: tagIcon.value,
+          icon_svg: tagIconSvg.value,
+          color: tagColor.value,
+        },
+      })
       tags.value = [...tags.value, created].sort((a, b) => a.name.localeCompare(b.name))
     }
     tagDialogOpen.value = false
@@ -307,6 +406,33 @@ async function confirmDelete() {
 </style>
 
 <style>
+  @layer components {
+  .site-tag-language-tabs {
+    display: flex;
+    width: fit-content;
+    gap: 4px;
+    padding: 3px;
+    border: 1px solid var(--site-color-border);
+    border-radius: 11px;
+  }
+  .site-tag-language-tabs button {
+    min-height: 32px;
+    padding: 4px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--site-color-muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+  }
+  .site-tag-language-tabs button.is-active {
+    background: var(--site-color-hover-background);
+    color: var(--site-color-heading);
+  }
+  .site-tag-language-tabs button:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 2px; }
+  .site-tag-language-panel { display: grid; gap: 10px; }
+  }
 @layer components {
   .site-tag-dialog-field:focus-visible {
     border-width: 2px !important;
