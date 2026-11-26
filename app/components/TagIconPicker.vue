@@ -51,19 +51,10 @@
     <button
       v-if="loadError"
       type="button"
-      class="site-tag-icon-picker-load-more"
+      class="site-tag-icon-picker-retry"
       @click="loadVisibleIcons"
     >
       {{ retryLabel }}
-    </button>
-    <button
-      v-else-if="hasMoreResults"
-      type="button"
-      class="site-tag-icon-picker-load-more"
-      :disabled="loading"
-      @click="loadMore"
-    >
-      {{ loadMoreLabel }}
     </button>
   </div>
 </template>
@@ -89,7 +80,6 @@ const props = defineProps<{
   searchLabel: string
   loadingLabel: string
   emptyLabel: string
-  loadMoreLabel: string
   errorLabel: string
   retryLabel: string
 }>()
@@ -256,9 +246,9 @@ function loadMore() {
   .site-tag-icon-picker-option.is-selected { border-color: var(--site-color-heading); color: var(--site-color-heading); background: var(--site-color-hover-background); }
   .site-tag-icon-picker-option:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 2px; }
   .site-tag-icon-picker-status { margin: 0; color: var(--site-color-muted); font-size: 12px; }
-  .site-tag-icon-picker-load-more { justify-self: start; min-height: 34px; padding: 5px 10px; border: 1px solid var(--site-color-border); border-radius: 9px; background: transparent; color: var(--site-color-text); cursor: pointer; font: inherit; font-size: 12px; transition: background-color 160ms ease, border-color 160ms ease; }
-  .site-tag-icon-picker-load-more:hover { border-color: var(--site-color-heading); background: var(--site-color-hover-background); }
-  .site-tag-icon-picker-load-more:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 2px; }
+  .site-tag-icon-picker-retry { justify-self: start; min-height: 34px; padding: 5px 10px; border: 1px solid var(--site-color-border); border-radius: 9px; background: transparent; color: var(--site-color-text); cursor: pointer; font: inherit; font-size: 12px; transition: background-color 160ms ease, border-color 160ms ease; }
+  .site-tag-icon-picker-retry:hover { border-color: var(--site-color-heading); background: var(--site-color-hover-background); }
+  .site-tag-icon-picker-retry:focus-visible { outline: 2px solid var(--site-color-focus-ring); outline-offset: 2px; }
   @media (max-width: 480px) { .site-tag-icon-picker-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
   @media (prefers-reduced-motion: reduce) {
     .site-tag-icon-picker-option,

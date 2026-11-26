@@ -29,7 +29,6 @@
       "iconSearchPlaceholderWithCount": "Rechercher parmi {count} icônes Tabler",
       "iconLoading": "Chargement des icônes Tabler…",
       "iconNoResults": "Aucune icône ne correspond à cette recherche.",
-      "iconLoadMore": "Charger plus d’icônes",
       "iconLoadError": "Impossible de charger le catalogue d’icônes.",
       "iconRetry": "Réessayer",
       "colorLabel": "Couleur du tag",
