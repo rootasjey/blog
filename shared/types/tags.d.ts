@@ -6,9 +6,14 @@
 export type ApiTag = {
   id: number
   name: string
+  title_fr?: string
+  title_en?: string
   category: string
   description: string
+  description_fr?: string
+  description_en?: string
   icon?: string | null
+  icon_svg?: string | null
   color?: string | null
   created_at: string
   updated_at: string
@@ -22,9 +27,14 @@ export type ApiTag = {
  */
 export type Tag = {
   name: string
+  title_fr?: string
+  title_en?: string
   category?: string
   description?: string
+  description_fr?: string
+  description_en?: string
   icon?: string | null
+  icon_svg?: string | null
   color?: string | null
 }
 

@@ -5,6 +5,7 @@
 .nitro
 .cache
 dist
+public/tabler-icons/
 
 # Node dependencies
 node_modules

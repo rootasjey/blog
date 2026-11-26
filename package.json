@@ -1,20 +1,21 @@
 {
   "name": "eneide",
-  "version": "5.9.1",
+  "version": "5.10.0",
   "type": "module",
   "private": true,
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "build": "NODE_OPTIONS=\"--max-old-space-size=8192\" nuxt build",
-    "dev": "nuxt dev",
+    "build": "bun run icons:generate && NODE_OPTIONS=\"--max-old-space-size=8192\" nuxt build",
+    "dev": "bun run icons:generate && nuxt dev",
     "design:compare": "node ./scripts/design-compare.mjs",
-    "dev:clean": "rm -rf .nuxt .output node_modules/.vite && nuxt dev",
-    "generate": "nuxt generate",
+    "dev:clean": "rm -rf .nuxt .output node_modules/.vite && bun run icons:generate && nuxt dev",
+    "generate": "bun run icons:generate && nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "typecheck": "nuxt typecheck",
+    "icons:generate": "bun scripts/generate-tabler-icon-assets.ts",
     "sdk:build": "bun run --cwd packages/sdk build",
     "cli:build": "bun run --cwd packages/cli build",
     "packages:build": "bun run sdk:build && bun run cli:build",

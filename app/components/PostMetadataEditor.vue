@@ -15,10 +15,9 @@
             >
               <NLink :to="tagPath(tag.name)" class="site-editor-tag-link">
                 <span class="site-editor-tag-mark" aria-hidden="true">
-                  <NIcon v-if="tag.icon" :name="tag.icon" class="site-editor-tag-icon" />
-                  <span v-else class="site-editor-tag-initial">{{ tag.name.slice(0, 1).toUpperCase() }}</span>
+                  <TagIcon :icon="tag.icon" :icon-svg="tag.icon_svg" :name="tagTitle(tag)" class="site-editor-tag-icon" />
                 </span>
-                {{ tag.name }}
+                {{ tagTitle(tag) }}
               </NLink>
               <NTooltip>
                 <template #content>
@@ -135,6 +134,7 @@ import { useTagStore } from '~/stores/tags'
 import type { ApiTag } from '~~/shared/types/tags'
 import { postTagColor } from '~/utils/postTagColor'
 import { localizedPath } from '~/utils/presentationPosts'
+import { localizedTagTitle } from '~~/shared/utils/tag-localization'
 const { $ts, $getLocale } = useI18n()
 const tagPath = (name: string) => `${localizedPath('/tags', $getLocale())}?tag=${encodeURIComponent(name)}`
 
@@ -146,6 +146,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const tagTitle = (tag: ApiTag) => localizedTagTitle(tag, $getLocale())
 const emit = defineEmits<{
   'update:name': [value: string]
   'update:description': [value: string]

@@ -37,7 +37,7 @@
               :style="{ '--tag-accent': postTagColor(post.tags[0].name, post.tags[0].color) }"
               class="site-public-post-tag"
             >
-              {{ post.tags[0].name }}
+              {{ localizedTagTitle(post.tags[0], locale) }}
             </NuxtLink>
             <time :datetime="post.publishedAt || post.createdAt">{{ formatDate(post.publishedAt || post.createdAt) }}</time>
           </span>
@@ -58,6 +58,7 @@
 import type { Post } from '~~/shared/types/post'
 import { localizedPath } from '~/utils/presentationPosts'
 import { postTagColor } from '~/utils/postTagColor'
+import { localizedTagTitle } from '~~/shared/utils/tag-localization'
 
 const props = defineProps<{ posts: Post[] }>()
 const { $getLocale, $ts } = useI18n()
