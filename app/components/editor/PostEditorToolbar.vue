@@ -97,6 +97,7 @@ const emit = defineEmits<{
   'export-zip': []
   'export-json': []
   'replace-cover': []
+  'import-cover-url': []
   'delete-cover': []
 }>()
 
@@ -135,9 +136,13 @@ const menuItems = computed<EditorMenuItem[]>(() => [
     items: props.hasCover
       ? [
           { label: $ts('pages.posts.replaceCover'), onSelect: () => emit('replace-cover'), leading: props.uploadingCover ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-image' },
+          { label: $ts('pages.postEditor.coverFromUrl'), onSelect: () => emit('import-cover-url'), leading: 'i-lucide-link' },
           { label: $ts('pages.posts.removeCover'), onSelect: () => emit('delete-cover'), leading: 'i-ph-trash' },
         ]
-      : [{ label: $ts('pages.posts.addCover'), onSelect: () => emit('replace-cover'), leading: 'i-ph-image' }],
+      : [
+          { label: $ts('pages.posts.addCover'), onSelect: () => emit('replace-cover'), leading: 'i-ph-image' },
+          { label: $ts('pages.postEditor.coverFromUrl'), onSelect: () => emit('import-cover-url'), leading: 'i-lucide-link' },
+        ],
   },
 ])
 

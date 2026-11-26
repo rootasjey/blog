@@ -24,6 +24,7 @@
       @export-zip="exportPostZipFile"
       @export-json="exportPost"
       @replace-cover="triggerFileInput"
+      @import-cover-url="openCoverUrlDialog"
       @delete-cover="openDeleteCoverDialog"
     >
       <EditSlugDialog
